@@ -1,0 +1,39 @@
+item.yoyo.name=Yoyo
+item.yoyo_axle.name=Axle
+item.yoyo_body.name=Body
+item.yoyo_cord.name=Cord
+
+item.yoyo.desc=The Yoyo is a ranged melee weapon allowing you to tear your opponents to shreds.\nIt is also a children's toy. Go figure.
+
+stat.axle.name=Axle
+stat.body.name=Body
+stat.cord.name=Cord
+
+stat.yoyo.duration.name=Duration
+stat.yoyo.duration.suffix=Seconds
+stat.yoyo.infinite.name=Infinite
+
+stat.body.weight.name=Weight
+stat.body.weight.desc=Base value for movement speed calculation.\nFinal value is the sum of all weights.
+
+stat.axle.friction.name=Friction
+stat.axle.friction.desc=Value used to calculate how long the yoyo can last.\nIf any part has 0 friction the yoyo can last forever.
+
+stat.cord.length.name=Length
+stat.cord.length.desc=How far away the yoyo will get from you.
+
+modifier.extension.name=Extension
+modifier.extension.desc=§oSize does matter!§r\nIncreases the length of the cord.
+
+modifier.lubricated.name=Lubricated
+modifier.lubricated.desc=§oRuns like dream.§r\nDecreases friction between the parts of the yoyo, lengthening it's duration.
+
+modifier.floating.name=Floating
+modifier.floating.desc=§oLook at the little guy!§r\nThe pufferfish acts like a balloon and makes the yoyo lighter.
+
+modifier.gardening.name=Gardening
+modifier.gardening.desc=§oA rose by another name...§r\nCuts down grass and flowers and such.
+
+gui.error.not_a_yoyo=%s can only be applied to yoyos!
+gui.error.too_light=Weighs too little!
+gui.error.frictionless=Already frictionless!

@@ -1,0 +1,8 @@
+{
+    "textures": {
+        "layer0": "yoyos:items/yoyo/cord",
+        "layer1": "yoyos:items/yoyo/body",
+        "layer2": "yoyos:items/yoyo/body1",
+        "layer3": "yoyos:items/yoyo/axle"
+    }
+}

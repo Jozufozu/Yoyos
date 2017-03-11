@@ -2,8 +2,6 @@ package com.jozufozu.yoyos;
 
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import slimeknights.mantle.pulsar.config.ForgeCFG;
 import slimeknights.mantle.pulsar.control.PulseManager;
 
@@ -24,7 +22,4 @@ public class Yoyos {
     public void preInit(FMLPreInitializationEvent event) {
         pulsar.registerPulse(new TinkersYoyos());
     }
-
-
-    public static final Logger log = LogManager.getLogger(NAME);
 }

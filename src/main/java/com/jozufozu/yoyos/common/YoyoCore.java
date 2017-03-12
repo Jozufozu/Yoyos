@@ -46,6 +46,7 @@ public class YoyoCore extends TinkerToolCore {
     @Override
     public void getSubItems(@Nonnull Item itemIn, CreativeTabs tab, List<ItemStack> subItems) {
         addDefaultSubItems(subItems, TinkerMaterials.string, null, null, null);
+        addInfiTool(subItems, "InfiSpinner");
     }
 
     @Override

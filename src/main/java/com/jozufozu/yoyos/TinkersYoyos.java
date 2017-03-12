@@ -228,11 +228,13 @@ public class TinkersYoyos extends AbstractTinkerPulse {
         /*Slime*/
         TinkerRegistry.addMaterialStats(TinkerMaterials.blueslime,
                 new BodyMaterialStats(1.2F, 0.6F, 800),
-                new AxleMaterialStats(2F, 0.3F));
+                new AxleMaterialStats(2F, 0.3F),
+                new CordMaterialStats(1.0F, 8F));
 
         TinkerRegistry.addMaterialStats(TinkerMaterials.magmaslime,
                 new BodyMaterialStats(3.3F, 0.6F, 450),
-                new AxleMaterialStats(1.3F, 0.3F));
+                new AxleMaterialStats(1.3F, 0.3F),
+                new CordMaterialStats(1.0F, 8F));
 
         TinkerRegistry.addMaterialStats(TinkerMaterials.knightslime,
                 new BodyMaterialStats(6.1F, 0.6F, 600),
@@ -241,7 +243,8 @@ public class TinkersYoyos extends AbstractTinkerPulse {
 
         TinkerRegistry.addMaterialStats(TinkerMaterials.slime,
                 new BodyMaterialStats(1.2F, 0.6F, 1000),
-                new AxleMaterialStats(2F, 0.3F));
+                new AxleMaterialStats(2F, 0.3F),
+                new CordMaterialStats(1.0F, 8F));
 
         TinkerRegistry.addMaterialStats(TinkerMaterials.slimevine_blue,
                 new CordMaterialStats(1.5F, 10F));

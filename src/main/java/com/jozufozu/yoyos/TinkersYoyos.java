@@ -3,11 +3,11 @@ package com.jozufozu.yoyos;
 import com.google.common.eventbus.Subscribe;
 import com.jozufozu.yoyos.client.RenderYoYo;
 import com.jozufozu.yoyos.common.CommonProxy;
-import com.jozufozu.yoyos.common.YoyoCore;
 import com.jozufozu.yoyos.common.EntityYoyo;
-import com.jozufozu.yoyos.common.materials.CordMaterialStats;
+import com.jozufozu.yoyos.common.YoyoCore;
 import com.jozufozu.yoyos.common.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.common.materials.BodyMaterialStats;
+import com.jozufozu.yoyos.common.materials.CordMaterialStats;
 import com.jozufozu.yoyos.common.modifiers.ModExtension;
 import com.jozufozu.yoyos.common.modifiers.ModFloating;
 import com.jozufozu.yoyos.common.modifiers.ModGardening;
@@ -47,6 +47,7 @@ public class TinkersYoyos extends AbstractTinkerPulse {
 
     public static ToolPart YOYO_AXLE;
     public static ToolPart YOYO_BODY;
+    public static ToolPart YOYO_CORD;
 
     public static ToolCore YOYO;
 
@@ -77,7 +78,7 @@ public class TinkersYoyos extends AbstractTinkerPulse {
         EXTENSION.addItem("string");
         EXTENSION.addItem("blockWool", 1, 4);
 
-        FLOATING = registerModifier(new ModFloating(2));
+        FLOATING = registerModifier(new ModFloating(3));
         FLOATING.addItem(new ItemStack(Items.FISH, 1, ItemFishFood.FishType.PUFFERFISH.getMetadata()), 1, 1);
 
         LUBRICATED = registerModifier(new ModLubricated(5));
@@ -105,6 +106,7 @@ public class TinkersYoyos extends AbstractTinkerPulse {
     private void registerToolParts() {
         YOYO_AXLE = registerToolPart(new ToolPart(Material.VALUE_Fragment * 6), "yoyo_axle");
         YOYO_BODY = registerToolPart(new ToolPart(Material.VALUE_Ingot * 4), "yoyo_body");
+        YOYO_CORD = registerToolPart(new ToolPart(Material.VALUE_Ingot * 2), "yoyo_cord");
     }
 
     private void registerTools() {
@@ -192,7 +194,7 @@ public class TinkersYoyos extends AbstractTinkerPulse {
                 new BodyMaterialStats(0.0F, 0.3F, 1050));
 
         TinkerRegistry.addMaterialStats(TinkerMaterials.obsidian,
-                new AxleMaterialStats(0.0F, 0.9F),
+                new AxleMaterialStats(0.1F, 0.9F),
                 new BodyMaterialStats(4.2F, 1.2F, 120));
 
         TinkerRegistry.addMaterialStats(TinkerMaterials.stone,
@@ -234,7 +236,8 @@ public class TinkersYoyos extends AbstractTinkerPulse {
 
         TinkerRegistry.addMaterialStats(TinkerMaterials.knightslime,
                 new BodyMaterialStats(6.1F, 0.6F, 600),
-                new AxleMaterialStats(2F, 0.3F));
+                new AxleMaterialStats(2F, 0.3F),
+                new CordMaterialStats(2.0F, 16F));
 
         TinkerRegistry.addMaterialStats(TinkerMaterials.slime,
                 new BodyMaterialStats(1.2F, 0.6F, 1000),

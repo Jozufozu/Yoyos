@@ -150,6 +150,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                 target = this.getPlayerHandPos(1);
             }
             else {
+                retractionTimeout = 0;
                 RayTraceResult rayTraceResult = this.getMouseOver(eyePos, target, false);
 
                 if (rayTraceResult != null)
@@ -158,11 +159,12 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
 
             Vec3d motionVec = target.subtract(this.posX, this.posY + this.height / 2, this.posZ).scale(Math.min(1/nbt.weight, 1.5));
 
+            if (this.inWater)
+                motionVec = motionVec.scale(0.3);
+
             this.motionX = motionVec.xCoord;
             this.motionY = motionVec.yCoord;
             this.motionZ = motionVec.zCoord;
-
-            handleWaterMovement();
 
             this.moveEntity(this.motionX, this.motionY, this.motionZ);
             this.onGround = true; //TODO: This is the only way I've found to get the yoyo to throw out smoothly

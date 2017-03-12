@@ -43,7 +43,7 @@ public class ModFloating extends ToolModifier {
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(rootCompound, Tags.TOOL_DATA));
 
         for (int i = data.level; i > 0 ; i--) {
-            toolData.weight -= 0.2F / i;
+            toolData.weight -= 0.5F / i;
         }
 
         toolData.weight = Math.max(toolData.weight, 0.01F);

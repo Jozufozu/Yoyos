@@ -4,11 +4,16 @@ import com.jozufozu.yoyos.TinkersYoyos;
 import com.jozufozu.yoyos.common.materials.*;
 import com.jozufozu.yoyos.network.MessageRetractYoYo;
 import com.jozufozu.yoyos.network.YoyoNetwork;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.*;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import slimeknights.tconstruct.library.Util;
@@ -19,7 +24,7 @@ import slimeknights.tconstruct.library.tools.TinkerToolCore;
 import slimeknights.tconstruct.library.tools.ToolNBT;
 import slimeknights.tconstruct.library.utils.ToolHelper;
 import slimeknights.tconstruct.library.utils.TooltipBuilder;
-import slimeknights.tconstruct.tools.TinkerTools;
+import slimeknights.tconstruct.tools.TinkerMaterials;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -30,12 +35,22 @@ public class YoyoCore extends TinkerToolCore {
     public static HashMap<Entity, EntityYoyo> casters = new HashMap<>();
 
     public YoyoCore() {
-        super(  new PartMaterialType(TinkerTools.bowString, YoyoMaterialTypes.CORD),
+        super(  new PartMaterialType(TinkersYoyos.YOYO_CORD, YoyoMaterialTypes.CORD),
                 new PartMaterialType(TinkersYoyos.YOYO_BODY, YoyoMaterialTypes.BODY),
                 new PartMaterialType(TinkersYoyos.YOYO_BODY, YoyoMaterialTypes.BODY),
                 new PartMaterialType(TinkersYoyos.YOYO_AXLE, YoyoMaterialTypes.AXLE));
 
         addCategory(Category.WEAPON, Category.NO_MELEE);
+    }
+
+    @Override
+    public void getSubItems(@Nonnull Item itemIn, CreativeTabs tab, List<ItemStack> subItems) {
+        addDefaultSubItems(subItems, TinkerMaterials.string, null, null, null);
+    }
+
+    @Override
+    public int[] getRepairParts() {
+        return new int[]{1, 2};
     }
 
     @Override

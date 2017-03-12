@@ -12,7 +12,7 @@ public class Yoyos {
     public static Yoyos INSTANCE;
 
     public static final String MODID = "yoyos";
-    public static final String NAME = "Yoyos";
+    public static final String NAME = "Tinkers' Yoyos";
     public static final String VERSION = "@VERSION@";
 
     public static ForgeCFG pulseConfig = new ForgeCFG("TinkerYoyos", "Yoyos");

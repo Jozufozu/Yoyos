@@ -74,7 +74,7 @@ public class TinkersYoyos extends AbstractTinkerPulse {
             registerStencil(toolPartPattern.getLeft(), toolPartPattern.getRight());
         }
 
-        EXTENSION = registerModifier(new ModExtension(4));
+        EXTENSION = registerModifier(new ModExtension());
         EXTENSION.addItem("string");
         EXTENSION.addItem("blockWool", 1, 4);
 

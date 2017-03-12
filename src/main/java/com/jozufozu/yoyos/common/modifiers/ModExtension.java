@@ -17,10 +17,10 @@ import slimeknights.tconstruct.tools.modifiers.ToolModifier;
  */
 public class ModExtension extends ToolModifier {
 
-    public ModExtension(int max) {
+    public ModExtension() {
         super("extension", 0x4FDCFF);
 
-        addAspects(new ModifierAspect.LevelAspect(this, max), new ModifierAspect.DataAspect(this), ModifierAspect.freeModifier);
+        addAspects(new ModifierAspect.MultiAspect(this, 10, 16, 1));
     }
 
     @Override
@@ -35,7 +35,7 @@ public class ModExtension extends ToolModifier {
         ModifierNBT.IntegerNBT data = ModifierNBT.readInteger(modifierTag);
 
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(rootCompound, Tags.TOOL_DATA));
-        toolData.chordLength += 2 * data.level;
+        toolData.chordLength += data.level;
 
         TagUtil.setToolTag(rootCompound, toolData.get());
     }

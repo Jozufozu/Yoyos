@@ -7,7 +7,7 @@ import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -18,8 +18,8 @@ import java.util.List;
 public class ClientProxy extends CommonProxy {
 
     @Override
-    public void init(FMLInitializationEvent event) {
-        super.init(event);
+    public void preInit(FMLPreInitializationEvent event) {
+        super.preInit(event);
         registerModel(Yoyos.WOODEN_YOYO);
         registerModel(Yoyos.STONE_YOYO);
         registerModel(Yoyos.IRON_YOYO);

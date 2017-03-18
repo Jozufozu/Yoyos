@@ -273,7 +273,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                 boolean hit = false;
                 for (Entity entity : this.worldObj.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expandXyz(0.4), CAN_DAMAGE)) {
                     if (entity != this.thrower) {
-                        if (entity instanceof EntityLivingBase && entity instanceof IShearable) {
+                        if (this.gardening && entity instanceof EntityLivingBase && entity instanceof IShearable) {
                             Items.SHEARS.itemInteractionForEntity(this.yoyoStack, this.thrower, ((EntityLivingBase) entity), hand);
                         }
                         else if (attackCool >= maxCool) {

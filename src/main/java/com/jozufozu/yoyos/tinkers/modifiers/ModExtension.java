@@ -1,6 +1,6 @@
 package com.jozufozu.yoyos.tinkers.modifiers;
 
-import com.jozufozu.yoyos.TinkersYoyos;
+import com.jozufozu.yoyos.tinkers.TinkersYoyos;
 import com.jozufozu.yoyos.tinkers.materials.YoyoNBT;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;

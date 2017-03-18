@@ -2,6 +2,7 @@ package com.jozufozu.yoyos.common;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -18,9 +19,9 @@ public interface IYoyo {
 
     boolean gardening(ItemStack yoyo);
 
-    void damage(ItemStack yoyo, EntityLivingBase player);
+    void damageItem(ItemStack yoyo, EntityLivingBase player);
 
-    void attack(Entity target, ItemStack yoyo, EntityLivingBase player);
+    void attack(Entity target, ItemStack yoyo, EntityPlayer player);
 
     @SideOnly(Side.CLIENT)
     default int getChordColor(ItemStack yoyo) {

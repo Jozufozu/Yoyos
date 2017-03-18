@@ -15,6 +15,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.profiler.Profiler;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.relauncher.Side;
@@ -37,6 +38,9 @@ public class RenderYoYo extends Render<EntityYoyo> {
     public void doRender(@Nonnull EntityYoyo entity, double x, double y, double z, float entityYaw, float partialTicks) {
         if (RENDER_SLAVE == null)
             RENDER_SLAVE = new EntityCreeper(entity.worldObj);
+
+        Profiler mcProfiler = Minecraft.getMinecraft().mcProfiler;
+        mcProfiler.startSection("renderYoyo");
 
         float ageInTicks = entity.ticksExisted + partialTicks;
 
@@ -77,6 +81,8 @@ public class RenderYoYo extends Render<EntityYoyo> {
         renderChord(entity, x, y, z, partialTicks);
 
         super.doRender(entity, x, y, z, entityYaw, partialTicks);
+
+        mcProfiler.endSection();
     }
 
     public static void renderChord(@Nonnull EntityYoyo entity, double x, double y, double z, float partialTicks) {

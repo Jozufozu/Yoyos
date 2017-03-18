@@ -1,6 +1,5 @@
 package com.jozufozu.yoyos.tinkers;
 
-import com.jozufozu.yoyos.TinkersYoyos;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.IYoyo;
 import com.jozufozu.yoyos.network.MessageRetractYoYo;
@@ -173,7 +172,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo {
     }
 
     @Override
-    public void damage(ItemStack yoyo, EntityLivingBase player) {
+    public void damageItem(ItemStack yoyo, EntityLivingBase player) {
         ToolHelper.damageTool(yoyo, 1, player);
     }
 
@@ -185,7 +184,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo {
     }
 
     @Override
-    public void attack(Entity target, ItemStack yoyo, EntityLivingBase player) {
+    public void attack(Entity target, ItemStack yoyo, EntityPlayer player) {
         ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target);
     }
 }

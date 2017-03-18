@@ -6,24 +6,32 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.profiler.Profiler;
+import net.minecraft.stats.StatList;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
+import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.common.registry.IThrowableEntity;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class EntityYoyo extends Entity implements IThrowableEntity {
 
@@ -129,8 +137,12 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
         super.onUpdate();
 
         if (this.thrower != null) {
+            Profiler profiler = this.worldObj.theProfiler;
+
+            profiler.startSection("yoyoTick");
             this.yoyoStack = this.thrower.getHeldItemMainhand();
 
+            profiler.startSection("validTest");
             if (this.yoyoStack == null || !(yoyoStack.getItem() instanceof IYoyo)) {
                 this.yoyoStack = this.thrower.getHeldItemOffhand();
 
@@ -144,12 +156,16 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
 
             if (!CASTERS.containsKey(this.thrower) || this.yoyoStack == null || (this.lastSlot != -1 && this.lastSlot != currentSlot) || this.yoyoStack.getMaxDamage() - this.yoyoStack.getItemDamage() <= 0 || !(yoyoStack.getItem() instanceof IYoyo)) {
                 this.setDead();
+                profiler.endSection();
+                profiler.endSection();
                 return;
             }
 
             if ((!worldObj.isRemote && CASTERS.get(this.thrower) != this)) {
                 CASTERS.put(this.thrower, this);
             }
+
+            profiler.endSection();
 
             IYoyo yoyo = (IYoyo) this.yoyoStack.getItem();
 
@@ -168,6 +184,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
             if (duration != -1 && this.ticksExisted >= duration)
                 this.forceRetract();
 
+            profiler.startSection("positionMath");
             //handle position
             Vec3d eyePos = new Vec3d(this.thrower.posX, this.thrower.posY + this.thrower.eyeHeight, + this.thrower.posZ);
             Vec3d lookVec = this.thrower.getLookVec();
@@ -177,6 +194,8 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
             if (this.isRetracting()) {
                 if (retractionTimeout++ >= MAX_RETRACT_TIME) {
                     this.setDead();
+                    profiler.endSection();
+                    profiler.endSection();
                     return;
                 }
                 target = this.getPlayerHandPos(1);
@@ -201,27 +220,63 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
             this.moveEntity(this.motionX, this.motionY, this.motionZ);
             this.onGround = true; //TODO: This is the only way I've found to get the yoyo to throw out smoothly
 
+            profiler.endSection();
+
             if (!worldObj.isRemote) {
+                profiler.startSection("gardening");
                 //Tend to the roses
                 if (this.gardening) {
                     BlockPos pos = this.getPosition();
                     IBlockState state = this.worldObj.getBlockState(pos);
                     Block block = state.getBlock();
-                    if (block != Blocks.AIR && block instanceof BlockBush) {
+                    if (block instanceof IShearable && !block.isLeaves(state, worldObj, pos))
+                    {
+                        IShearable shearable = (IShearable) block;
+                        if (shearable.isShearable(this.yoyoStack, this.worldObj, pos))
+                        {
+                            List<ItemStack> drops = shearable.onSheared(this.yoyoStack, this.worldObj, pos,
+                                    EnchantmentHelper.getEnchantmentLevel(net.minecraft.init.Enchantments.FORTUNE, this.yoyoStack));
+                            Random rand = new java.util.Random();
+
+                            for(ItemStack stack : drops)
+                            {
+                                float f = 0.7F;
+                                double d  = (double)(rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
+                                double d1 = (double)(rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
+                                double d2 = (double)(rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
+                                EntityItem entityitem = new net.minecraft.entity.item.EntityItem(this.worldObj, (double)pos.getX() + d, (double)pos.getY() + d1, (double)pos.getZ() + d2, stack);
+                                entityitem.setDefaultPickupDelay();
+                                this.thrower.worldObj.spawnEntityInWorld(entityitem);
+                            }
+
+                            if (!this.thrower.isCreative())
+                                yoyo.damageItem(this.yoyoStack, this.thrower);
+                            this.thrower.addStat(StatList.getBlockStats(block));
+
+                            worldObj.playSound(null, pos, block.getSoundType(state, worldObj, pos, this).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
+                            block.removedByPlayer(state, worldObj, pos, this.thrower, true);
+                            worldObj.playEvent(2001, pos, Block.getStateId(state));
+                        }
+                    }
+                    else if (block != Blocks.AIR && block instanceof BlockBush) {
                         block.dropBlockAsItemWithChance(this.worldObj, pos, state, 1.0F, 0);
                         if (!this.thrower.isCreative())
-                            yoyo.damage(this.yoyoStack, this.thrower);
+                            yoyo.damageItem(this.yoyoStack, this.thrower);
 
                         worldObj.playSound(null, pos, block.getSoundType(state, worldObj, pos, this).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
                         worldObj.setBlockToAir(pos);
                     }
                 }
 
+                profiler.endStartSection("attack");
                 //Kill stuff
                 boolean hit = false;
                 for (Entity entity : this.worldObj.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expandXyz(0.4), CAN_DAMAGE)) {
                     if (entity != this.thrower) {
-                        if (attackCool >= maxCool) {
+                        if (entity instanceof EntityLivingBase && entity instanceof IShearable) {
+                            Items.SHEARS.itemInteractionForEntity(this.yoyoStack, this.thrower, ((EntityLivingBase) entity), hand);
+                        }
+                        else if (attackCool >= maxCool) {
                             yoyo.attack(entity, this.yoyoStack, this.thrower);
                             hit = true;
                         }
@@ -231,7 +286,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
 
                 ++attackCool;
                 if (hit) attackCool = 0;
+                profiler.endSection();
             }
+            profiler.endSection();
         }
         else
             this.setDead();

@@ -1,6 +1,6 @@
 package com.jozufozu.yoyos.tinkers.modifiers;
 
-import com.jozufozu.yoyos.TinkersYoyos;
+import com.jozufozu.yoyos.tinkers.TinkersYoyos;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import slimeknights.tconstruct.library.Util;

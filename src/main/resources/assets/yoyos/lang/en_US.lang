@@ -31,8 +31,8 @@ modifier.lubricated.desc=§oRuns like dream.§r\nDecreases friction between the 
 modifier.floating.name=Floating
 modifier.floating.desc=§oLook at the little guy!§r\nThe pufferfish acts like a balloon and makes the yoyo lighter.
 
-modifier.gardening.name=Gardening
-modifier.gardening.desc=§oA rose by another name...§r\nCuts down grass and flowers and such.
+modifier.gardening.name=Shear
+modifier.gardening.desc=§oSnip, snip...§r\nCuts down grass and flowers and such. Also sheep. It shears sheep.
 
 gui.error.not_a_yoyo=%s can only be applied to yoyos!
 gui.error.too_light=Weighs too little!

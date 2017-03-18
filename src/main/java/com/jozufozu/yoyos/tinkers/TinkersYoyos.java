@@ -1,10 +1,9 @@
-package com.jozufozu.yoyos;
+package com.jozufozu.yoyos.tinkers;
 
 import com.google.common.eventbus.Subscribe;
+import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.client.RenderYoYo;
-import com.jozufozu.yoyos.common.CommonProxy;
 import com.jozufozu.yoyos.common.EntityYoyo;
-import com.jozufozu.yoyos.tinkers.YoyoCore;
 import com.jozufozu.yoyos.tinkers.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.BodyMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
@@ -56,8 +55,8 @@ public class TinkersYoyos extends AbstractTinkerPulse {
     public static Modifier LUBRICATED;
     public static Modifier GARDENING;
 
-    @SidedProxy(clientSide = "com.jozufozu.yoyos.TinkersYoyos$YoyoClientProxy", serverSide = "com.jozufozu.yoyos.common.CommonProxy$ServerProxy")
-    public static CommonProxy proxy;
+    @SidedProxy(clientSide = "com.jozufozu.yoyos.tinkers.TinkersYoyos$TinkersClientProxy", serverSide = "com.jozufozu.yoyos.tinkers.TinkersProxy$TinkersServerProxy")
+    public static TinkersProxy proxy;
 
     static {
         Material.UNKNOWN.addStats(new BodyMaterialStats(1F, 2F, 400));
@@ -253,7 +252,7 @@ public class TinkersYoyos extends AbstractTinkerPulse {
                 new CordMaterialStats(1.9F, 14F));
     }
 
-    public static class YoyoClientProxy extends CommonProxy {
+    public static class TinkersClientProxy extends TinkersProxy {
 
         @Override
         public void preInit(FMLPreInitializationEvent event) {
@@ -292,11 +291,6 @@ public class TinkersYoyos extends AbstractTinkerPulse {
             info.addSlotPosition(50, 48);
             info.addSlotPosition(29, 38);
             TinkerRegistryClient.addToolBuilding(info);
-        }
-
-        @Override
-        public boolean isServer() {
-            return false;
         }
     }
 }

@@ -1,6 +1,7 @@
-package com.jozufozu.yoyos;
+package com.jozufozu.yoyos.tinkers;
 
 import com.google.common.collect.Lists;
+import com.jozufozu.yoyos.Yoyos;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;

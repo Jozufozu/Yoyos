@@ -219,6 +219,16 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
             this.moveEntity(this.motionX, this.motionY, this.motionZ);
             this.onGround = true; //TODO: This is the only way I've found to get the yoyo to throw out smoothly
 
+            Vec3d thisPos = this.getPositionVector();
+            Vec3d throwerPos = this.thrower.getPositionVector();
+            double distance = thisPos.distanceTo(throwerPos);
+            if (distance > this.chordLength + 2) {
+                Vec3d dif = this.getPositionVector().subtract(this.thrower.posX, this.thrower.posY + this.thrower.height / 2, this.thrower.posZ).scale(.01 * (distance - this.chordLength - 2));
+                this.thrower.addVelocity(dif.xCoord, dif.yCoord, dif.zCoord);
+                if (this.isRetracting)
+                    this.setDead();
+            }
+
             profiler.endSection();
 
             if (!worldObj.isRemote) {
@@ -292,8 +302,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                             yoyo.attack(entity, this.yoyoStack, this.thrower, this);
                             hit = true;
                         }
-                    } else if (this.isRetracting())
+                    } else if (this.isRetracting()) {
                         this.setDead();
+                    }
                 }
 
                 ++attackCool;

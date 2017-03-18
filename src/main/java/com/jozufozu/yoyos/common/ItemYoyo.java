@@ -98,6 +98,7 @@ public class ItemYoyo extends ItemSword implements IYoyo {
         tooltip.add(I18n.format("info.weight.name", getWeight(stack)));
         tooltip.add(I18n.format("info.length.name", getLength(stack)));
         tooltip.add(I18n.format("info.duration.name", ((float) getDuration(stack)) / 20F));
+        tooltip.add("");
     }
 
     @Override

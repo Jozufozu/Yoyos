@@ -13,7 +13,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
+import net.minecraft.init.Enchantments;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.profiler.Profiler;
@@ -31,7 +31,6 @@ import net.minecraftforge.fml.common.registry.IThrowableEntity;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 public class EntityYoyo extends Entity implements IThrowableEntity {
 
@@ -229,28 +228,25 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                     BlockPos pos = this.getPosition();
                     IBlockState state = this.worldObj.getBlockState(pos);
                     Block block = state.getBlock();
-                    if (block instanceof IShearable && !block.isLeaves(state, worldObj, pos))
-                    {
+                    if (block instanceof IShearable && !block.isLeaves(state, worldObj, pos)) {
                         IShearable shearable = (IShearable) block;
-                        if (shearable.isShearable(this.yoyoStack, this.worldObj, pos))
-                        {
+                        if (shearable.isShearable(this.yoyoStack, this.worldObj, pos)) {
                             List<ItemStack> drops = shearable.onSheared(this.yoyoStack, this.worldObj, pos,
-                                    EnchantmentHelper.getEnchantmentLevel(net.minecraft.init.Enchantments.FORTUNE, this.yoyoStack));
-                            Random rand = new java.util.Random();
+                                    EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, this.yoyoStack));
 
-                            for(ItemStack stack : drops)
-                            {
+                            for(ItemStack stack : drops) {
                                 float f = 0.7F;
                                 double d  = (double)(rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
                                 double d1 = (double)(rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
                                 double d2 = (double)(rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
-                                EntityItem entityitem = new net.minecraft.entity.item.EntityItem(this.worldObj, (double)pos.getX() + d, (double)pos.getY() + d1, (double)pos.getZ() + d2, stack);
+                                EntityItem entityitem = new EntityItem(this.worldObj, (double)pos.getX() + d, (double)pos.getY() + d1, (double)pos.getZ() + d2, stack);
                                 entityitem.setDefaultPickupDelay();
                                 this.thrower.worldObj.spawnEntityInWorld(entityitem);
                             }
 
                             if (!this.thrower.isCreative())
                                 yoyo.damageItem(this.yoyoStack, this.thrower);
+
                             this.thrower.addStat(StatList.getBlockStats(block));
 
                             worldObj.playSound(null, pos, block.getSoundType(state, worldObj, pos, this).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
@@ -274,7 +270,23 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                 for (Entity entity : this.worldObj.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expandXyz(0.4), CAN_DAMAGE)) {
                     if (entity != this.thrower) {
                         if (this.gardening && entity instanceof EntityLivingBase && entity instanceof IShearable) {
-                            Items.SHEARS.itemInteractionForEntity(this.yoyoStack, this.thrower, ((EntityLivingBase) entity), hand);
+                            IShearable shearable = (IShearable)entity;
+                            BlockPos pos = new BlockPos(entity.posX, entity.posY, entity.posZ);
+
+                            if (shearable.isShearable(this.yoyoStack, worldObj, pos)) {
+                                List<ItemStack> drops = shearable.onSheared(this.yoyoStack, worldObj, pos,
+                                        EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, this.yoyoStack));
+
+                                for (ItemStack stack : drops) {
+                                    EntityItem ent = entity.entityDropItem(stack, 1.0F);
+                                    ent.motionY += rand.nextFloat() * 0.05F;
+                                    ent.motionX += (rand.nextFloat() - rand.nextFloat()) * 0.1F;
+                                    ent.motionZ += (rand.nextFloat() - rand.nextFloat()) * 0.1F;
+                                }
+
+                                if (!this.thrower.isCreative())
+                                    yoyo.damageItem(this.yoyoStack, this.thrower);
+                            }
                         }
                         else if (attackCool >= maxCool) {
                             yoyo.attack(entity, this.yoyoStack, this.thrower);

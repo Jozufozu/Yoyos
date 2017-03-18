@@ -87,17 +87,20 @@ public class ItemYoyo extends Item implements IYoyo {
 
     @Override
     public float getWeight(ItemStack yoyo) {
+        if (this.gardening)
+            return 2.5F;
+
         switch (this.material) {
             case WOOD:
-                return 2.0F;
+                return 2.2F;
             case STONE:
-                return 6.0F;
-            case IRON:
-                return 7.0F;
-            case DIAMOND:
-                return 1.2F;
-            case GOLD:
                 return 4.0F;
+            case IRON:
+                return 5.0F;
+            case DIAMOND:
+                return 1.7F;
+            case GOLD:
+                return 5.5F;
             default:
                 return 1.0F;
         }
@@ -105,12 +108,12 @@ public class ItemYoyo extends Item implements IYoyo {
 
     @Override
     public float getLength(ItemStack yoyo) {
-        return 8.0F;
+        return 5.0F + this.material.getEfficiencyOnProperMaterial() / 2;
     }
 
     @Override
     public int getDuration(ItemStack yoyo) {
-        return 100;
+        return ((int) (100 * this.material.getEfficiencyOnProperMaterial()));
     }
 
     @Override

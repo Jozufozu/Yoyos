@@ -25,6 +25,8 @@ public class ClientProxy extends CommonProxy {
         registerModel(Yoyos.IRON_YOYO);
         registerModel(Yoyos.DIAMOND_YOYO);
         registerModel(Yoyos.GOLD_YOYO);
+        registerModel(Yoyos.SHEAR_YOYO);
+        registerModel(Yoyos.CORD);
     }
 
     public static void registerModel(Item item) {

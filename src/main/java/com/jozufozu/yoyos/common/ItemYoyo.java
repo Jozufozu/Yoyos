@@ -115,7 +115,7 @@ public class ItemYoyo extends Item implements IYoyo {
 
     @Override
     public int getAttackSpeed(ItemStack yoyo) {
-        return 15;
+        return 10;
     }
 
     @Override

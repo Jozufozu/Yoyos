@@ -289,7 +289,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                             }
                         }
                         else if (attackCool >= maxCool) {
-                            yoyo.attack(entity, this.yoyoStack, this.thrower);
+                            yoyo.attack(entity, this.yoyoStack, this.thrower, this);
                             hit = true;
                         }
                     } else if (this.isRetracting())

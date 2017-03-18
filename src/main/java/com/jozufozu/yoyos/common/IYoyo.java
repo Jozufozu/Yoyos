@@ -21,7 +21,7 @@ public interface IYoyo {
 
     void damageItem(ItemStack yoyo, EntityLivingBase player);
 
-    void attack(Entity target, ItemStack yoyo, EntityPlayer player);
+    void attack(Entity target, ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity);
 
     @SideOnly(Side.CLIENT)
     default int getChordColor(ItemStack yoyo) {

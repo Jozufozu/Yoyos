@@ -1,4 +1,4 @@
-package com.jozufozu.yoyos.common.modifiers;
+package com.jozufozu.yoyos.tinkers.modifiers;
 
 import com.jozufozu.yoyos.TinkersYoyos;
 import net.minecraft.item.ItemStack;

@@ -1,4 +1,4 @@
-package com.jozufozu.yoyos.common.materials;
+package com.jozufozu.yoyos.tinkers.materials;
 
 import slimeknights.tconstruct.library.materials.MaterialTypes;
 

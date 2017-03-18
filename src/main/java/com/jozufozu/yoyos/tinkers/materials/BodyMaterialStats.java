@@ -1,4 +1,4 @@
-package com.jozufozu.yoyos.common.materials;
+package com.jozufozu.yoyos.tinkers.materials;
 
 import com.google.common.collect.ImmutableList;
 import slimeknights.tconstruct.library.Util;

@@ -1,7 +1,7 @@
-package com.jozufozu.yoyos.common.modifiers;
+package com.jozufozu.yoyos.tinkers.modifiers;
 
 import com.jozufozu.yoyos.TinkersYoyos;
-import com.jozufozu.yoyos.common.materials.YoyoNBT;
+import com.jozufozu.yoyos.tinkers.materials.YoyoNBT;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import slimeknights.tconstruct.library.Util;
@@ -13,12 +13,13 @@ import slimeknights.tconstruct.library.utils.Tags;
 import slimeknights.tconstruct.tools.modifiers.ToolModifier;
 
 /**
- * Makes yoyos last longer
+ * Makes yoyos lighter
+ * Pufferfish or something
  */
-public class ModLubricated extends ToolModifier {
+public class ModFloating extends ToolModifier {
 
-    public ModLubricated(int max) {
-        super("lubricated", 0xFFFE5E);
+    public ModFloating(int max) {
+        super("floating", 0x00FFD9);
 
         addAspects(new ModifierAspect.LevelAspect(this, max), new ModifierAspect.DataAspect(this), ModifierAspect.freeModifier);
     }
@@ -26,11 +27,11 @@ public class ModLubricated extends ToolModifier {
     @Override
     protected boolean canApplyCustom(ItemStack stack) throws TinkerGuiException {
         if (stack.getItem() != TinkersYoyos.YOYO)
-            throw new TinkerGuiException(Util.translateFormatted("gui.error.not_a_yoyo", Util.translate("modifier.lubricated.name")));
+            throw new TinkerGuiException(Util.translateFormatted("gui.error.not_a_yoyo", Util.translate("modifier.floating.name")));
 
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(stack.getTagCompound(), Tags.TOOL_DATA));
-        if (toolData.duration == -1) {
-            throw new TinkerGuiException(Util.translateFormatted("gui.error.frictionless"));
+        if (toolData.weight <= 0.1) {
+            throw new TinkerGuiException(Util.translateFormatted("gui.error.too_light"));
         }
         return true;
     }
@@ -40,20 +41,13 @@ public class ModLubricated extends ToolModifier {
         ModifierNBT.IntegerNBT data = ModifierNBT.readInteger(modifierTag);
 
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(rootCompound, Tags.TOOL_DATA));
-        float friction = 100/toolData.duration;
 
         for (int i = data.level; i > 0 ; i--) {
-            friction -= 0.2F / i * data.level;
+            toolData.weight -= 0.5F / i;
+            toolData.weight -= 0.2F;
         }
 
-        int ret;
-
-        if (friction <= 0)
-            ret = -1;
-        else
-            ret = (int) (100/friction);
-
-        toolData.duration = ret;
+        toolData.weight = Math.max(toolData.weight, 0.01F);
 
         TagUtil.setToolTag(rootCompound, toolData.get());
     }

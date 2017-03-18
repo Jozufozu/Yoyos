@@ -1,11 +1,14 @@
-package com.jozufozu.yoyos.common;
+package com.jozufozu.yoyos.tinkers;
 
 import com.jozufozu.yoyos.TinkersYoyos;
-import com.jozufozu.yoyos.common.materials.*;
+import com.jozufozu.yoyos.common.EntityYoyo;
+import com.jozufozu.yoyos.common.IYoyo;
 import com.jozufozu.yoyos.network.MessageRetractYoYo;
 import com.jozufozu.yoyos.network.YoyoNetwork;
+import com.jozufozu.yoyos.tinkers.materials.*;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
@@ -16,23 +19,25 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import slimeknights.tconstruct.library.Util;
 import slimeknights.tconstruct.library.materials.Material;
 import slimeknights.tconstruct.library.tinkering.Category;
 import slimeknights.tconstruct.library.tinkering.PartMaterialType;
 import slimeknights.tconstruct.library.tools.TinkerToolCore;
+import slimeknights.tconstruct.library.tools.ToolCore;
 import slimeknights.tconstruct.library.tools.ToolNBT;
+import slimeknights.tconstruct.library.utils.TagUtil;
+import slimeknights.tconstruct.library.utils.TinkerUtil;
 import slimeknights.tconstruct.library.utils.ToolHelper;
 import slimeknights.tconstruct.library.utils.TooltipBuilder;
 import slimeknights.tconstruct.tools.TinkerMaterials;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
 import java.util.List;
 
-public class YoyoCore extends TinkerToolCore {
-
-    public static HashMap<Entity, EntityYoyo> casters = new HashMap<>();
+public class YoyoCore extends TinkerToolCore implements IYoyo {
 
     public YoyoCore() {
         super(  new PartMaterialType(TinkersYoyos.YOYO_CORD, YoyoMaterialTypes.CORD),
@@ -123,7 +128,7 @@ public class YoyoCore extends TinkerToolCore {
     @Override
     public ActionResult<ItemStack> onItemRightClick(@Nonnull ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand) {
         if (!worldIn.isRemote) {
-            EntityYoyo entityYoyo = casters.get(playerIn);
+            EntityYoyo entityYoyo = EntityYoyo.CASTERS.get(playerIn);
 
             if (entityYoyo != null && entityYoyo.isEntityAlive()) {
                 entityYoyo.setRetracting(!entityYoyo.isRetracting());
@@ -140,5 +145,47 @@ public class YoyoCore extends TinkerToolCore {
         }
 
         return new ActionResult<>(EnumActionResult.SUCCESS, itemStackIn);
+    }
+
+    @Override
+    public float getWeight(ItemStack yoyo) {
+        return YoyoNBT.from(yoyo).weight;
+    }
+
+    @Override
+    public float getLength(ItemStack yoyo) {
+        return YoyoNBT.from(yoyo).chordLength;
+    }
+
+    @Override
+    public int getDuration(ItemStack yoyo) {
+        return YoyoNBT.from(yoyo).duration;
+    }
+
+    @Override
+    public int getAttackSpeed(ItemStack yoyo) {
+        return ((int) (ToolHelper.getActualAttackSpeed(yoyo) * 5));
+    }
+
+    @Override
+    public boolean gardening(ItemStack yoyo) {
+        return !TinkerUtil.getModifierTag(yoyo, "gardening").hasNoTags();
+    }
+
+    @Override
+    public void damage(ItemStack yoyo, EntityLivingBase player) {
+        ToolHelper.damageTool(yoyo, 1, player);
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public int getChordColor(ItemStack yoyo) {
+        List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
+        return materials.get(0).materialTextColor;
+    }
+
+    @Override
+    public void attack(Entity target, ItemStack yoyo, EntityLivingBase player) {
+        ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target);
     }
 }

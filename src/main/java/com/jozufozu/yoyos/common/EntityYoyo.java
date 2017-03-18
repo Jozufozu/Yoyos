@@ -2,7 +2,6 @@ package com.jozufozu.yoyos.common;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.jozufozu.yoyos.common.materials.YoyoNBT;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.material.Material;
@@ -21,14 +20,14 @@ import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.common.registry.IThrowableEntity;
-import slimeknights.tconstruct.library.tools.ToolCore;
-import slimeknights.tconstruct.library.utils.TinkerUtil;
-import slimeknights.tconstruct.library.utils.ToolHelper;
 
 import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.List;
 
 public class EntityYoyo extends Entity implements IThrowableEntity {
+
+    public static final HashMap<Entity, EntityYoyo> CASTERS = new HashMap<>();
 
     private static final Predicate<Entity> CAN_DAMAGE = entity -> entity instanceof EntityLiving || entity instanceof EntityPlayer;
     private static final int MAX_RETRACT_TIME = 40;
@@ -36,7 +35,11 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
     private EntityPlayer thrower;
     private ItemStack yoyoStack;
     private EnumHand hand;
-    private YoyoNBT nbt;
+
+    private float weight;
+    private float chordLength;
+    private int maxCool;
+    private int duration;
     private boolean gardening;
 
     private boolean isRetracting = false;
@@ -44,9 +47,40 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
 
     private int lastSlot = -1;
 
+    //counters
     private int retractionTimeout = 0;
     private int attackCool;
-    private int maxCool;
+
+    private boolean shouldGetStats = true;
+
+    @Override
+    public void setThrower(Entity entity) {
+        if (entity instanceof EntityPlayer && !(entity instanceof FakePlayer)) {
+            this.thrower = ((EntityPlayer) entity);
+            CASTERS.put(entity, this);
+        }
+    }
+
+    @Override
+    public Entity getThrower() {
+        return thrower;
+    }
+
+    public ItemStack getYoyoStack() {
+        return yoyoStack;
+    }
+
+    public float getWeight() {
+        return weight;
+    }
+
+    public float getChordLength() {
+        return chordLength;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
 
     public EntityYoyo(World world) {
         super(world);
@@ -59,7 +93,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
         this(world);
         this.thrower = player;
 
-        YoyoCore.casters.put(player, this);
+        CASTERS.put(player, this);
 
         this.yoyoStack = this.thrower.getHeldItemMainhand();
 
@@ -90,10 +124,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
         return isRetracting;
     }
 
-    public YoyoNBT getNbt() {
-        return nbt;
-    }
-
     @Override
     public void onUpdate() {
         super.onUpdate();
@@ -101,7 +131,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
         if (this.thrower != null) {
             this.yoyoStack = this.thrower.getHeldItemMainhand();
 
-            if (this.yoyoStack == null || !(yoyoStack.getItem() instanceof YoyoCore)) {
+            if (this.yoyoStack == null || !(yoyoStack.getItem() instanceof IYoyo)) {
                 this.yoyoStack = this.thrower.getHeldItemOffhand();
 
                 if (this.yoyoStack != null)
@@ -112,35 +142,37 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
 
             int currentSlot = this.hand == EnumHand.MAIN_HAND ? this.thrower.inventory.currentItem : -2;
 
-            if (!YoyoCore.casters.containsKey(this.thrower) || yoyoStack == null || (this.lastSlot != -1 && this.lastSlot != currentSlot) || ToolHelper.getCurrentDurability(this.yoyoStack) <= 0 || !(yoyoStack.getItem() instanceof YoyoCore)) {
+            if (!CASTERS.containsKey(this.thrower) || this.yoyoStack == null || (this.lastSlot != -1 && this.lastSlot != currentSlot) || this.yoyoStack.getMaxDamage() - this.yoyoStack.getItemDamage() <= 0 || !(yoyoStack.getItem() instanceof IYoyo)) {
                 this.setDead();
                 return;
             }
 
-            if ((!worldObj.isRemote && YoyoCore.casters.get(this.thrower) != this)) {
-                YoyoCore.casters.put(this.thrower, this);
+            if ((!worldObj.isRemote && CASTERS.get(this.thrower) != this)) {
+                CASTERS.put(this.thrower, this);
+            }
+
+            IYoyo yoyo = (IYoyo) this.yoyoStack.getItem();
+
+            if (this.shouldGetStats) {
+                this.gardening = yoyo.gardening(this.yoyoStack);
+                this.maxCool = yoyo.getAttackSpeed(this.yoyoStack);
+                this.duration = yoyo.getDuration(this.yoyoStack);
+                this.chordLength = yoyo.getLength(this.yoyoStack);
+                this.weight = yoyo.getWeight(this.yoyoStack);
+
+                this.shouldGetStats = false;
             }
 
             this.lastSlot = currentSlot;
 
-            if (this.nbt == null) {
-                this.nbt = YoyoNBT.from(this.yoyoStack);
-                this.gardening = !TinkerUtil.getModifierTag(this.yoyoStack, "gardening").hasNoTags();
-                this.maxCool = (int)(((YoyoCore) this.yoyoStack.getItem()).attackSpeed() * 5);
-            }
-
-            int duration = nbt.duration;
-
             if (duration != -1 && this.ticksExisted >= duration)
                 this.forceRetract();
-
-            float length = nbt.chordLength;
 
             //handle position
             Vec3d eyePos = new Vec3d(this.thrower.posX, this.thrower.posY + this.thrower.eyeHeight, + this.thrower.posZ);
             Vec3d lookVec = this.thrower.getLookVec();
 
-            Vec3d target = new Vec3d(eyePos.xCoord + lookVec.xCoord * length, eyePos.yCoord + lookVec.yCoord * length, eyePos.zCoord + lookVec.zCoord * length);
+            Vec3d target = new Vec3d(eyePos.xCoord + lookVec.xCoord * this.chordLength, eyePos.yCoord + lookVec.yCoord * this.chordLength, eyePos.zCoord + lookVec.zCoord * this.chordLength);
 
             if (this.isRetracting()) {
                 if (retractionTimeout++ >= MAX_RETRACT_TIME) {
@@ -151,13 +183,13 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
             }
             else {
                 retractionTimeout = 0;
-                RayTraceResult rayTraceResult = this.getMouseOver(eyePos, target, false);
+                RayTraceResult rayTraceResult = this.getTargetLook(eyePos, target, false);
 
                 if (rayTraceResult != null)
                     target = rayTraceResult.hitVec;
             }
 
-            Vec3d motionVec = target.subtract(this.posX, this.posY + this.height / 2, this.posZ).scale(Math.min(1/nbt.weight, 1.5));
+            Vec3d motionVec = target.subtract(this.posX, this.posY + this.height / 2, this.posZ).scale(Math.min(1/this.weight, 1.5));
 
             if (this.inWater)
                 motionVec = motionVec.scale(0.3);
@@ -175,37 +207,10 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                     BlockPos pos = this.getPosition();
                     IBlockState state = this.worldObj.getBlockState(pos);
                     Block block = state.getBlock();
-                    /*
-                    if (block instanceof IShearable)
-                    {
-                        IShearable shearable = (IShearable)block;
-                        if (shearable.isShearable(this.yoyoStack, worldObj, pos))
-                        {
-                            List<ItemStack> drops = shearable.onSheared(this.yoyoStack, worldObj, pos,
-                                    EnchantmentHelper.getEnchantmentLevel(net.minecraft.init.Enchantments.FORTUNE, this.yoyoStack));
-
-                            for(ItemStack stack : drops) {
-                                float f = 0.7F;
-                                double d  = (double)(rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
-                                double d1 = (double)(rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
-                                double d2 = (double)(rand.nextFloat() * f) + (double)(1.0F - f) * 0.5D;
-                                net.minecraft.entity.item.EntityItem entityitem = new net.minecraft.entity.item.EntityItem(worldObj, (double)pos.getX() + d, (double)pos.getY() + d1, (double)pos.getZ() + d2, stack);
-                                entityitem.setDefaultPickupDelay();
-                                worldObj.spawnEntityInWorld(entityitem);
-                            }
-
-                            worldObj.playSound(null, pos, block.getSoundType(state, worldObj, pos, this).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
-                            worldObj.setBlockToAir(pos);
-
-                            ToolHelper.damageTool(this.yoyoStack, 1, this.thrower);
-                            this.thrower.addStat(StatList.getBlockStats(block));
-                        }
-                    }
-                    else */
                     if (block != Blocks.AIR && block instanceof BlockBush) {
                         block.dropBlockAsItemWithChance(this.worldObj, pos, state, 1.0F, 0);
                         if (!this.thrower.isCreative())
-                            ToolHelper.damageTool(this.yoyoStack, 1, this.thrower);
+                            yoyo.damage(this.yoyoStack, this.thrower);
 
                         worldObj.playSound(null, pos, block.getSoundType(state, worldObj, pos, this).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
                         worldObj.setBlockToAir(pos);
@@ -217,12 +222,13 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                 for (Entity entity : this.worldObj.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expandXyz(0.4), CAN_DAMAGE)) {
                     if (entity != this.thrower) {
                         if (attackCool >= maxCool) {
-                            ToolHelper.attackEntity(this.yoyoStack, ((ToolCore) this.yoyoStack.getItem()), this.thrower, entity);
+                            yoyo.attack(entity, this.yoyoStack, this.thrower);
                             hit = true;
                         }
                     } else if (this.isRetracting())
                         this.setDead();
                 }
+
                 ++attackCool;
                 if (hit) attackCool = 0;
             }
@@ -234,7 +240,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
     @Override
     public void setDead() {
         super.setDead();
-        YoyoCore.casters.remove(this.thrower, this);
+        CASTERS.remove(this.thrower, this);
     }
 
     @Override
@@ -243,23 +249,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
 
     @Override
     protected void writeEntityToNBT(@Nonnull NBTTagCompound compound) {
-    }
-
-    @Override
-    public void setThrower(Entity entity) {
-        if (entity instanceof EntityPlayer && !(entity instanceof FakePlayer)) {
-            this.thrower = ((EntityPlayer) entity);
-            YoyoCore.casters.put(entity, this);
-        }
-    }
-
-    @Override
-    public Entity getThrower() {
-        return thrower;
-    }
-
-    public ItemStack getYoyoStack() {
-        return yoyoStack;
     }
 
     public Vec3d getPlayerHandPos(float partialTicks) {
@@ -300,7 +289,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
         this.isRetracting = true;
     }
 
-    public RayTraceResult getMouseOver(Vec3d vec3d, Vec3d vec3d2, boolean stopOnLiquid) {
+    public RayTraceResult getTargetLook(Vec3d vec3d, Vec3d vec3d2, boolean stopOnLiquid) {
         double distance = vec3d.distanceTo(vec3d2);
         RayTraceResult objectMouseOver = rayTraceBlocks(this.worldObj, vec3d, vec3d2, stopOnLiquid);
         boolean flag = false;

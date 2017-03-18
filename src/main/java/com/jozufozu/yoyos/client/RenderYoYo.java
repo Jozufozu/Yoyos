@@ -2,7 +2,7 @@ package com.jozufozu.yoyos.client;
 
 import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.EntityYoyo;
-import com.jozufozu.yoyos.common.materials.YoyoNBT;
+import com.jozufozu.yoyos.common.IYoyo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
@@ -19,12 +19,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import slimeknights.tconstruct.library.materials.Material;
-import slimeknights.tconstruct.library.utils.TagUtil;
-import slimeknights.tconstruct.library.utils.TinkerUtil;
 
 import javax.annotation.Nonnull;
-import java.util.List;
 
 @SideOnly(Side.CLIENT)
 public class RenderYoYo extends Render<EntityYoyo> {
@@ -53,9 +49,8 @@ public class RenderYoYo extends Render<EntityYoyo> {
         float yaw = (float) (Math.atan2(pointer.xCoord, pointer.zCoord) * -180 / Math.PI);
         float multiplier = 35;
 
-        YoyoNBT nbt = entity.getNbt();
-        if (nbt != null && nbt.duration != -1) {
-            multiplier *= 2 - ageInTicks/ ((float) nbt.duration);
+        if (entity.getDuration() != -1) {
+            multiplier *= 2 - ageInTicks/ ((float) entity.getDuration());
         }
 
         float pitch = ageInTicks * multiplier;
@@ -108,8 +103,7 @@ public class RenderYoYo extends Render<EntityYoyo> {
 
             int color = 0xDDDDDD;
             if (entity.getYoyoStack() != null) {
-                List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(entity.getYoyoStack()));
-                color = materials.get(0).materialTextColor;
+                color = ((IYoyo) entity.getYoyoStack().getItem()).getChordColor(entity.getYoyoStack());
             }
 
             float stringR = ((color >> 16) & 255) / 255F;

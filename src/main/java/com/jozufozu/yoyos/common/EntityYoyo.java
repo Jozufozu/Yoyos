@@ -43,7 +43,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
     protected EnumHand hand;
 
     protected float weight;
-    protected float chordLength;
+    protected float cordLength;
     protected int maxCool;
     protected int duration;
     protected boolean gardening;
@@ -80,8 +80,8 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
         return weight;
     }
 
-    public float getChordLength() {
-        return chordLength;
+    public float getCordLength() {
+        return cordLength;
     }
 
     public int getDuration() {
@@ -164,7 +164,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                 this.gardening = yoyo.gardening(this.yoyoStack);
                 this.maxCool = yoyo.getAttackSpeed(this.yoyoStack);
                 this.duration = yoyo.getDuration(this.yoyoStack);
-                this.chordLength = yoyo.getLength(this.yoyoStack);
+                this.cordLength = yoyo.getLength(this.yoyoStack);
                 this.weight = yoyo.getWeight(this.yoyoStack);
 
                 this.shouldGetStats = false;
@@ -179,7 +179,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
             Vec3d eyePos = new Vec3d(this.thrower.posX, this.thrower.posY + this.thrower.eyeHeight, + this.thrower.posZ);
             Vec3d lookVec = this.thrower.getLookVec();
 
-            Vec3d target = new Vec3d(eyePos.xCoord + lookVec.xCoord * this.chordLength, eyePos.yCoord + lookVec.yCoord * this.chordLength, eyePos.zCoord + lookVec.zCoord * this.chordLength);
+            Vec3d target = new Vec3d(eyePos.xCoord + lookVec.xCoord * this.cordLength, eyePos.yCoord + lookVec.yCoord * this.cordLength, eyePos.zCoord + lookVec.zCoord * this.cordLength);
 
             if (this.isRetracting()) {
                 if (retractionTimeout++ >= MAX_RETRACT_TIME) {
@@ -210,9 +210,11 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
 
             Vec3d thisPos = this.getPositionVector();
             Vec3d throwerPos = this.thrower.getPositionVector();
+
             double distance = thisPos.distanceTo(throwerPos);
-            if (distance > this.chordLength + 2) {
-                Vec3d dif = this.getPositionVector().subtract(this.thrower.posX, this.thrower.posY + this.thrower.height / 2, this.thrower.posZ).scale(.01 * (distance - this.chordLength - 2));
+
+            if (distance > this.cordLength + 2) {
+                Vec3d dif = this.getPositionVector().subtract(this.thrower.posX, this.thrower.posY + this.thrower.height / 2, this.thrower.posZ).scale(.01 * (distance - this.cordLength - 2));
                 this.thrower.addVelocity(dif.xCoord, dif.yCoord, dif.zCoord);
                 this.thrower.fallDistance = 0;
                 if (this.isRetracting)

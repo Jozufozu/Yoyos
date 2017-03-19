@@ -1,4 +1,7 @@
 # Yoyos
+
+Children's toy based weaponry!
+
 Also Tinkers' Yoyos!
 
 ## Crafting

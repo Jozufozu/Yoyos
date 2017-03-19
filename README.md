@@ -1,7 +1,7 @@
 # Yoyos
 Tinkers' Yoyos!
 
-##Crafting
+## Crafting
 The yoyo is made in the tool forge using an axle, two bodies, and a bowstring.
 
 The cord determines how far away from you the yoyo gets.
@@ -12,7 +12,7 @@ The axle has a durability multiplier.
 
 Both the cord and axle have friction, which determines how long the yoyo can stay out.
 
-##Modifiers
+## Modifiers
 * Gardening
 
    Allows for the yoyo to cut grass and flowers and plants and stuff.

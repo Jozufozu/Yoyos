@@ -24,7 +24,7 @@ By combining an iron yoyo with shears, you can give the functionality of shears 
 
 ### Building the yoyo
 
-The yoyo is made in the tool forge using an axle, two bodies, and a bowstring.
+The yoyo is made in the tool forge using an axle, two bodies, and a cord.
 
 ### Parts
 

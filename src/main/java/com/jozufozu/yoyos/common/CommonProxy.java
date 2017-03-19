@@ -10,6 +10,7 @@ public abstract class CommonProxy {
 
     public void preInit(FMLPreInitializationEvent event) {
         EntityRegistry.registerModEntity(EntityYoyo.class, "YoYo", 0, Yoyos.INSTANCE, 64, 4, true);
+        EntityRegistry.registerModEntity(EntityStickyYoyo.class, "Sticky_YoYo", 1, Yoyos.INSTANCE, 64, 4, true);
     }
 
     public void init(FMLInitializationEvent event) {

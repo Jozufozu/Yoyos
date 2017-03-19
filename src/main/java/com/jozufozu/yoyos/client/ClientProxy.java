@@ -2,6 +2,7 @@ package com.jozufozu.yoyos.client;
 
 import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.CommonProxy;
+import com.jozufozu.yoyos.common.EntityStickyYoyo;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -24,6 +25,7 @@ public class ClientProxy extends CommonProxy {
         super.preInit(event);
 
         RenderingRegistry.registerEntityRenderingHandler(EntityYoyo.class, RenderYoYo::new);
+        RenderingRegistry.registerEntityRenderingHandler(EntityStickyYoyo.class, RenderYoYo::new);
 
         registerModel(Yoyos.WOODEN_YOYO);
         registerModel(Yoyos.STONE_YOYO);

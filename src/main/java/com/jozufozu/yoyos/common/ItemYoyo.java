@@ -33,8 +33,8 @@ import java.util.Set;
 
 public class ItemYoyo extends ItemSword implements IYoyo {
 
-    private final ToolMaterial material;
-    private final boolean gardening;
+    protected final ToolMaterial material;
+    protected final boolean gardening;
 
     public ItemYoyo(String name, ToolMaterial material) {
         this(name, material, false);

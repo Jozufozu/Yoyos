@@ -16,7 +16,6 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Enchantments;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.profiler.Profiler;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.EntitySelectors;
 import net.minecraft.util.EnumFacing;
@@ -36,29 +35,29 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
 
     public static final HashMap<Entity, EntityYoyo> CASTERS = new HashMap<>();
 
-    private static final Predicate<Entity> CAN_DAMAGE = entity -> entity instanceof EntityLiving || entity instanceof EntityPlayer;
-    private static final int MAX_RETRACT_TIME = 40;
+    protected static final Predicate<Entity> CAN_DAMAGE = entity -> entity instanceof EntityLiving || entity instanceof EntityPlayer;
+    protected static final int MAX_RETRACT_TIME = 40;
 
-    private EntityPlayer thrower;
-    private ItemStack yoyoStack;
-    private EnumHand hand;
+    protected EntityPlayer thrower;
+    protected ItemStack yoyoStack;
+    protected EnumHand hand;
 
-    private float weight;
-    private float chordLength;
-    private int maxCool;
-    private int duration;
-    private boolean gardening;
+    protected float weight;
+    protected float chordLength;
+    protected int maxCool;
+    protected int duration;
+    protected boolean gardening;
 
-    private boolean isRetracting = false;
-    private boolean canCancelRetract = true;
+    protected boolean isRetracting = false;
+    protected boolean canCancelRetract = true;
 
-    private int lastSlot = -1;
+    protected int lastSlot = -1;
 
     //counters
-    private int retractionTimeout = 0;
-    private int attackCool;
+    protected int retractionTimeout = 0;
+    protected int attackCool;
 
-    private boolean shouldGetStats = true;
+    protected boolean shouldGetStats = true;
 
     @Override
     public void setThrower(Entity entity) {
@@ -136,12 +135,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
         super.onUpdate();
 
         if (this.thrower != null) {
-            Profiler profiler = this.worldObj.theProfiler;
 
-            profiler.startSection("yoyoTick");
             this.yoyoStack = this.thrower.getHeldItemMainhand();
 
-            profiler.startSection("validTest");
             if (this.yoyoStack == null || !(yoyoStack.getItem() instanceof IYoyo)) {
                 this.yoyoStack = this.thrower.getHeldItemOffhand();
 
@@ -155,16 +151,12 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
 
             if (!CASTERS.containsKey(this.thrower) || this.yoyoStack == null || (this.lastSlot != -1 && this.lastSlot != currentSlot) || this.yoyoStack.getMaxDamage() - this.yoyoStack.getItemDamage() <= 0 || !(yoyoStack.getItem() instanceof IYoyo)) {
                 this.setDead();
-                profiler.endSection();
-                profiler.endSection();
                 return;
             }
 
             if ((!worldObj.isRemote && CASTERS.get(this.thrower) != this)) {
                 CASTERS.put(this.thrower, this);
             }
-
-            profiler.endSection();
 
             IYoyo yoyo = (IYoyo) this.yoyoStack.getItem();
 
@@ -183,7 +175,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
             if (duration != -1 && this.ticksExisted >= duration)
                 this.forceRetract();
 
-            profiler.startSection("positionMath");
             //handle position
             Vec3d eyePos = new Vec3d(this.thrower.posX, this.thrower.posY + this.thrower.eyeHeight, + this.thrower.posZ);
             Vec3d lookVec = this.thrower.getLookVec();
@@ -193,8 +184,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
             if (this.isRetracting()) {
                 if (retractionTimeout++ >= MAX_RETRACT_TIME) {
                     this.setDead();
-                    profiler.endSection();
-                    profiler.endSection();
                     return;
                 }
                 target = this.getPlayerHandPos(1);
@@ -230,10 +219,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                     this.setDead();
             }
 
-            profiler.endSection();
-
             if (!worldObj.isRemote) {
-                profiler.startSection("gardening");
                 //Tend to the roses
                 if (this.gardening) {
                     BlockPos pos = this.getPosition();
@@ -275,7 +261,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
                     }
                 }
 
-                profiler.endStartSection("attack");
                 //Kill stuff
                 boolean hit = false;
                 for (Entity entity : this.worldObj.getEntitiesInAABBexcluding(this, this.getEntityBoundingBox().expandXyz(0.4), CAN_DAMAGE)) {
@@ -310,9 +295,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
 
                 ++attackCool;
                 if (hit) attackCool = 0;
-                profiler.endSection();
             }
-            profiler.endSection();
         }
         else
             this.setDead();
@@ -365,7 +348,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
         return start + (end - start) * pct;
     }
 
-    private void forceRetract() {
+    protected void forceRetract() {
         this.canCancelRetract = false;
         this.isRetracting = true;
     }

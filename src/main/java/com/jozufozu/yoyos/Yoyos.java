@@ -1,6 +1,7 @@
 package com.jozufozu.yoyos;
 
 import com.jozufozu.yoyos.common.CommonProxy;
+import com.jozufozu.yoyos.common.ItemStickyYoyo;
 import com.jozufozu.yoyos.common.ItemYoyo;
 import com.jozufozu.yoyos.tinkers.TinkersYoyos;
 import net.minecraft.creativetab.CreativeTabs;
@@ -38,6 +39,8 @@ public class Yoyos {
     public static Item GOLD_YOYO;
     public static Item SHEAR_YOYO;
 
+    public static Item STICKY_YOYO;
+
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         CORD = register(new Item().setCreativeTab(CreativeTabs.MATERIALS).setRegistryName(MODID, "cord").setUnlocalizedName("cord"));
@@ -49,6 +52,8 @@ public class Yoyos {
         GOLD_YOYO = register(new ItemYoyo("gold_yoyo", Item.ToolMaterial.GOLD));
 
         SHEAR_YOYO = register(new ItemYoyo("shear_yoyo", Item.ToolMaterial.IRON, true));
+
+        STICKY_YOYO = register(new ItemStickyYoyo());
 
         proxy.preInit(event);
 

@@ -2,11 +2,13 @@ package com.jozufozu.yoyos.client;
 
 import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.CommonProxy;
+import com.jozufozu.yoyos.common.EntityYoyo;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -20,6 +22,9 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
+
+        RenderingRegistry.registerEntityRenderingHandler(EntityYoyo.class, RenderYoYo::new);
+
         registerModel(Yoyos.WOODEN_YOYO);
         registerModel(Yoyos.STONE_YOYO);
         registerModel(Yoyos.IRON_YOYO);

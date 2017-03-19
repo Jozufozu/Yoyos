@@ -11,7 +11,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
 
-version = "${mc_version}-0.1.0-1"
+version = "${mc_version}-0.2.0-5-"
 group = "com.jozufozu.yoyos" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "yoyos"
 
@@ -45,8 +45,8 @@ repositories {
 dependencies {
 	deobfCompile "mezz.jei:jei_${mc_version}:${jei_version}"
 	deobfCompile "mcjty.theoneprobe:TheOneProbe:${top_version}"
-	deobfCompile "slimeknights:TConstruct:${mc_version}-${tcon_version}"
-	deobfCompile "slimeknights.mantle:Mantle:${mc_version}-${mantle_version}"
+    deobfCompile "slimeknights:TConstruct:${mc_version}-${tcon_version}"
+    deobfCompile "slimeknights.mantle:Mantle:${mc_version}-${mantle_version}"
 }
 
 processResources {

@@ -225,6 +225,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity {
             if (distance > this.chordLength + 2) {
                 Vec3d dif = this.getPositionVector().subtract(this.thrower.posX, this.thrower.posY + this.thrower.height / 2, this.thrower.posZ).scale(.01 * (distance - this.chordLength - 2));
                 this.thrower.addVelocity(dif.xCoord, dif.yCoord, dif.zCoord);
+                this.thrower.fallDistance = 0;
                 if (this.isRetracting)
                     this.setDead();
             }

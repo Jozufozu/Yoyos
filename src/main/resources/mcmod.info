@@ -1,7 +1,7 @@
 [
 {
   "modid": "yoyos",
-  "name": "Tinkers' Yoyos",
+  "name": "Yoyos",
   "description": "Projectile melee weapons!",
   "version": "${version}",
   "mcversion": "${mcversion}",

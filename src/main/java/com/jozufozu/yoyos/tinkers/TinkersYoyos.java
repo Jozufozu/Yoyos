@@ -1,9 +1,8 @@
 package com.jozufozu.yoyos.tinkers;
 
-import com.google.common.eventbus.Subscribe;
+import com.google.common.collect.Lists;
 import com.jozufozu.yoyos.Yoyos;
-import com.jozufozu.yoyos.client.RenderYoYo;
-import com.jozufozu.yoyos.common.EntityYoyo;
+import com.jozufozu.yoyos.common.CommonProxy;
 import com.jozufozu.yoyos.tinkers.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.BodyMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
@@ -16,13 +15,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemFishFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.client.registry.RenderingRegistry;
-import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import org.apache.commons.lang3.tuple.Pair;
-import slimeknights.mantle.pulsar.pulse.Pulse;
 import slimeknights.tconstruct.common.ModelRegisterUtil;
 import slimeknights.tconstruct.library.TinkerRegistry;
 import slimeknights.tconstruct.library.TinkerRegistryClient;
@@ -30,19 +27,25 @@ import slimeknights.tconstruct.library.client.ToolBuildGuiInfo;
 import slimeknights.tconstruct.library.materials.Material;
 import slimeknights.tconstruct.library.modifiers.IModifier;
 import slimeknights.tconstruct.library.modifiers.Modifier;
+import slimeknights.tconstruct.library.tinkering.PartMaterialType;
+import slimeknights.tconstruct.library.tools.IPattern;
+import slimeknights.tconstruct.library.tools.Pattern;
 import slimeknights.tconstruct.library.tools.ToolCore;
 import slimeknights.tconstruct.library.tools.ToolPart;
 import slimeknights.tconstruct.tools.TinkerMaterials;
 import slimeknights.tconstruct.tools.TinkerModifiers;
+import slimeknights.tconstruct.tools.TinkerTools;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-@Pulse( id = "yoyos",
-        description = "Projectile melee weapons!",
-        forced = true,
-        modsRequired = "tconstruct")
-public class TinkersYoyos extends AbstractTinkerPulse {
+public class TinkersYoyos {
+
+    private static List<ToolCore> tools = Lists.newLinkedList();
+    private static List<ToolPart> toolParts = Lists.newLinkedList();
+    private static List<IModifier> modifiers = Lists.newLinkedList();
+    private static List<Pair<Item, ToolPart>> toolPartPatterns = Lists.newLinkedList();
 
     public static ToolPart YOYO_AXLE;
     public static ToolPart YOYO_BODY;
@@ -55,17 +58,19 @@ public class TinkersYoyos extends AbstractTinkerPulse {
     public static Modifier LUBRICATED;
     public static Modifier GARDENING;
 
-    @SidedProxy(clientSide = "com.jozufozu.yoyos.tinkers.TinkersYoyos$TinkersClientProxy", serverSide = "com.jozufozu.yoyos.tinkers.TinkersProxy$TinkersServerProxy")
     public static TinkersProxy proxy;
 
-    static {
+    public static void preInit(FMLPreInitializationEvent event) {
+        if (Yoyos.proxy instanceof CommonProxy.ServerProxy) {
+            proxy = new TinkersProxy.TinkersServerProxy();
+        }
+        else {
+            proxy = new TinkersClientProxy();
+        }
+
         Material.UNKNOWN.addStats(new BodyMaterialStats(1F, 2F, 400));
         Material.UNKNOWN.addStats(new AxleMaterialStats(0.5F, 1F));
         Material.UNKNOWN.addStats(new CordMaterialStats(0.2F, 5F));
-    }
-
-    @Subscribe
-    public void preInit(FMLPreInitializationEvent event) {
         registerToolParts();
         registerTools();
 
@@ -89,34 +94,32 @@ public class TinkersYoyos extends AbstractTinkerPulse {
         proxy.preInit(event);
     }
 
-    @Subscribe
-    public void init(FMLInitializationEvent event) {
+    public static void init(FMLInitializationEvent event) {
         registerToolBuilding();
         registerMaterialStats();
 
         proxy.init(event);
     }
 
-    @Subscribe
-    public void postInit(FMLPostInitializationEvent event) {
+    public static void postInit(FMLPostInitializationEvent event) {
         proxy.postInit(event);
     }
 
-    private void registerToolParts() {
+    private static void registerToolParts() {
         YOYO_AXLE = registerToolPart(new ToolPart(Material.VALUE_Fragment * 6), "yoyo_axle");
         YOYO_BODY = registerToolPart(new ToolPart(Material.VALUE_Ingot * 4), "yoyo_body");
         YOYO_CORD = registerToolPart(new ToolPart(Material.VALUE_Ingot * 2), "yoyo_cord");
     }
 
-    private void registerTools() {
+    private static void registerTools() {
         YOYO = registerTool(new YoyoCore(), "yoyo");
     }
 
-    private void registerToolBuilding() {
+    private static void registerToolBuilding() {
         TinkerRegistry.registerToolForgeCrafting(YOYO);
     }
 
-    private void registerMaterialStats() {
+    private static void registerMaterialStats() {
         /*Metals*/
         TinkerRegistry.addMaterialStats(TinkerMaterials.bronze,
                 new BodyMaterialStats(3.5F, 2F, 450),
@@ -252,13 +255,62 @@ public class TinkersYoyos extends AbstractTinkerPulse {
                 new CordMaterialStats(1.9F, 14F));
     }
 
+    private static <T extends ToolCore> T registerTool(T item, String name) {
+        tools.add(item);
+        return registerItem(item, name);
+    }
+
+    private static ToolPart registerToolPart(ToolPart part, String name) {
+        return registerToolPart(part, name, TinkerTools.pattern);
+    }
+
+    private static <T extends Item & IPattern> ToolPart registerToolPart(ToolPart part, String name, T pattern) {
+        ToolPart ret = registerItem(part, name);
+
+        if(pattern != null) {
+            toolPartPatterns.add(Pair.of(pattern, ret));
+        }
+
+        toolParts.add(ret);
+
+        return ret;
+    }
+
+    private static void registerStencil(Item pattern, ToolPart toolPart) {
+        for(ToolCore toolCore : TinkerRegistry.getTools()) {
+            for(PartMaterialType partMaterialType : toolCore.getRequiredComponents()) {
+                if(partMaterialType.getPossibleParts().contains(toolPart)) {
+                    ItemStack stencil = new ItemStack(pattern);
+                    Pattern.setTagForPart(stencil, toolPart);
+                    TinkerRegistry.registerStencilTableCrafting(stencil);
+                    return;
+                }
+            }
+        }
+    }
+
+    private static <T extends Item> T registerItem(T item, String name) {
+        if(!name.equals(name.toLowerCase(Locale.US))) {
+            throw new IllegalArgumentException(String.format("Unlocalized names need to be all lowercase! Item: %s", name));
+        }
+
+        item.setUnlocalizedName(name);
+        item.setRegistryName(new ResourceLocation(Yoyos.MODID, name));
+        GameRegistry.register(item);
+        return item;
+    }
+
+    private static <T extends IModifier> T registerModifier(T modifier) {
+        TinkerRegistry.registerModifier(modifier);
+        modifiers.add(modifier);
+        return modifier;
+    }
+
     public static class TinkersClientProxy extends TinkersProxy {
 
         @Override
         public void preInit(FMLPreInitializationEvent event) {
             super.preInit(event);
-
-            RenderingRegistry.registerEntityRenderingHandler(EntityYoyo.class, RenderYoYo::new);
 
             toolParts.forEach(  ModelRegisterUtil::registerPartModel);
             tools.forEach(      ModelRegisterUtil::registerToolModel);

@@ -10,12 +10,11 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
-import slimeknights.mantle.pulsar.config.ForgeCFG;
-import slimeknights.mantle.pulsar.control.PulseManager;
 
 @Mod(name = Yoyos.NAME, modid = Yoyos.MODID, version = Yoyos.VERSION, dependencies = "after:tconstruct")
 public class Yoyos {
@@ -24,11 +23,8 @@ public class Yoyos {
     public static Yoyos INSTANCE;
 
     public static final String MODID = "yoyos";
-    public static final String NAME = "Tinkers' Yoyos";
+    public static final String NAME = "Yoyos";
     public static final String VERSION = "@VERSION@";
-
-    public static ForgeCFG pulseConfig = new ForgeCFG("TinkerYoyos", "Yoyos");
-    public static PulseManager pulsar = new PulseManager(pulseConfig);
 
     @SidedProxy(clientSide = "com.jozufozu.yoyos.client.ClientProxy", serverSide = "com.jozufozu.yoyos.common.CommonProxy$ServerProxy")
     public static CommonProxy proxy;
@@ -44,10 +40,6 @@ public class Yoyos {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        if (Loader.isModLoaded("tconstruct")) {
-            pulsar.registerPulse(new TinkersYoyos());
-        }
-
         CORD = register(new Item().setCreativeTab(CreativeTabs.MATERIALS).setRegistryName(MODID, "cord").setUnlocalizedName("cord"));
 
         WOODEN_YOYO = register(new ItemYoyo("wooden_yoyo", Item.ToolMaterial.WOOD));
@@ -59,6 +51,10 @@ public class Yoyos {
         SHEAR_YOYO = register(new ItemYoyo("shear_yoyo", Item.ToolMaterial.IRON, true));
 
         proxy.preInit(event);
+
+        if (Loader.isModLoaded("tconstruct")) {
+            TinkersYoyos.preInit(event);
+        }
     }
 
     @Mod.EventHandler
@@ -78,6 +74,17 @@ public class Yoyos {
         GameRegistry.addRecipe(new ShapelessOreRecipe(SHEAR_YOYO, IRON_YOYO, Items.SHEARS));
 
         proxy.init(event);
+
+        if (Loader.isModLoaded("tconstruct")) {
+            TinkersYoyos.init(event);
+        }
+    }
+
+    @Mod.EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        if (Loader.isModLoaded("tconstruct")) {
+            TinkersYoyos.postInit(event);
+        }
     }
 
     private static void addYoyoCrafting(Item item, String oreDict) {

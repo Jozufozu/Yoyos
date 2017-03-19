@@ -1,6 +1,5 @@
 package com.jozufozu.yoyos.client;
 
-import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.IYoyo;
 import net.minecraft.client.Minecraft;
@@ -27,8 +26,6 @@ import javax.annotation.Nonnull;
 public class RenderYoYo extends Render<EntityYoyo> {
 
     private static EntityLivingBase RENDER_SLAVE;
-
-    private ResourceLocation YOYO_TEXTURE = new ResourceLocation(Yoyos.MODID, "textures/entity/yoyo.png");
 
     public RenderYoYo(RenderManager renderManager) {
         super(renderManager);
@@ -165,6 +162,6 @@ public class RenderYoYo extends Render<EntityYoyo> {
 
     @Override
     protected ResourceLocation getEntityTexture(EntityYoyo entity) {
-        return YOYO_TEXTURE;
+        return null;
     }
 }

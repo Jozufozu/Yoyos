@@ -29,6 +29,7 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.fml.common.registry.IThrowableEntity;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 
@@ -147,46 +148,11 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     {
         super.onUpdate();
         
-        if (thrower != null)
+        if (thrower != null && !thrower.isDead)
         {
+            IYoyo yoyo = checkThrowerAndGetStats();
             
-            yoyoStack = thrower.getHeldItemMainhand();
-            
-            if (yoyoStack == ItemStack.EMPTY || !(yoyoStack.getItem() instanceof IYoyo))
-            {
-                yoyoStack = thrower.getHeldItemOffhand();
-                
-                if (yoyoStack != ItemStack.EMPTY) hand = EnumHand.OFF_HAND;
-            }
-            else hand = EnumHand.MAIN_HAND;
-            
-            int currentSlot = hand == EnumHand.MAIN_HAND ? thrower.inventory.currentItem : -2;
-            
-            if (!CASTERS.containsKey(thrower) || yoyoStack == null || (lastSlot != -1 && lastSlot != currentSlot) || yoyoStack.getMaxDamage() - yoyoStack.getItemDamage() <= 0 || !(yoyoStack.getItem() instanceof IYoyo))
-            {
-                setDead();
-                return;
-            }
-            
-            if ((!world.isRemote && CASTERS.get(thrower) != this))
-            {
-                CASTERS.put(thrower, this);
-            }
-            
-            IYoyo yoyo = (IYoyo) yoyoStack.getItem();
-            
-            if (shouldGetStats)
-            {
-                gardening = yoyo.gardening(yoyoStack);
-                maxCool = yoyo.getAttackSpeed(yoyoStack);
-                duration = yoyo.getDuration(yoyoStack);
-                cordLength = yoyo.getLength(yoyoStack);
-                weight = yoyo.getWeight(yoyoStack);
-                
-                shouldGetStats = false;
-            }
-            
-            lastSlot = currentSlot;
+            if (yoyo == null) return;
             
             if (duration != -1 && ticksExisted >= duration) forceRetract();
             
@@ -205,6 +171,50 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             }
         }
         else setDead();
+    }
+    
+    @Nullable
+    protected IYoyo checkThrowerAndGetStats()
+    {
+        yoyoStack = thrower.getHeldItemMainhand();
+    
+        if (yoyoStack == ItemStack.EMPTY || !(yoyoStack.getItem() instanceof IYoyo))
+        {
+            yoyoStack = thrower.getHeldItemOffhand();
+        
+            if (yoyoStack != ItemStack.EMPTY) hand = EnumHand.OFF_HAND;
+        }
+        else hand = EnumHand.MAIN_HAND;
+    
+        int currentSlot = hand == EnumHand.MAIN_HAND ? thrower.inventory.currentItem : -2;
+    
+        if (!CASTERS.containsKey(thrower) || yoyoStack == null || (lastSlot != -1 && lastSlot != currentSlot) || yoyoStack.getMaxDamage() - yoyoStack.getItemDamage() <= 0 || !(yoyoStack.getItem() instanceof IYoyo))
+        {
+            setDead();
+            return null;
+        }
+    
+        if ((!world.isRemote && CASTERS.get(thrower) != this))
+        {
+            CASTERS.put(thrower, this);
+        }
+    
+        IYoyo yoyo = (IYoyo) yoyoStack.getItem();
+    
+        if (shouldGetStats)
+        {
+            gardening = yoyo.gardening(yoyoStack);
+            maxCool = yoyo.getAttackSpeed(yoyoStack);
+            duration = yoyo.getDuration(yoyoStack);
+            cordLength = yoyo.getLength(yoyoStack);
+            weight = yoyo.getWeight(yoyoStack);
+        
+            shouldGetStats = false;
+        }
+    
+        lastSlot = currentSlot;
+        
+        return yoyo;
     }
     
     public void updatePosition()
@@ -370,6 +380,11 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     }
     
     public Vec3d getPlayerHandPos(float partialTicks) {
+        if (this.thrower == null)
+        {
+            return new Vec3d(this.posX, this.posY, this.posZ);
+        }
+        
         float yaw = this.thrower.rotationYaw;
         float pitch = this.thrower.rotationPitch;
         

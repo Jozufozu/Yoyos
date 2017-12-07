@@ -10,6 +10,7 @@ item.cord.name=Cord
 
 yoyos.config.vanilla=Vanilla Yoyos
 yoyos.config.tinkers=Tinkers' Yoyos
+yoyos.config.tinkers=Yoyo Swinging
 
 info.weight.name=Weight: %s
 info.duration.name=Duration: %s seconds

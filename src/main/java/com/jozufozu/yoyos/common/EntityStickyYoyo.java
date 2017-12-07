@@ -1,8 +1,6 @@
 package com.jozufozu.yoyos.common;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
 
 public class EntityStickyYoyo extends EntityYoyo
@@ -46,8 +44,13 @@ public class EntityStickyYoyo extends EntityYoyo
             }
             else
             {
-                //handle position
                 updatePosition();
+            }
+            
+            if (!world.isRemote)
+            {
+                this.attackCool = 0;
+                doEntityCollisions(yoyo);
             }
             
             handleSwing();

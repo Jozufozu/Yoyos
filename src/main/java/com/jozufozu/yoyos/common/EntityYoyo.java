@@ -236,7 +236,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         else
         {
             retractionTimeout = 0;
-            RayTraceResult rayTraceResult = getTargetLook(eyePos, target, false);
+            RayTraceResult rayTraceResult = getTargetLook(eyePos, target);
         
             if (rayTraceResult != null) target = rayTraceResult.hitVec;
         }
@@ -424,10 +424,13 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         isRetracting = true;
     }
     
-    public RayTraceResult getTargetLook(Vec3d vec3d, Vec3d vec3d2, boolean stopOnLiquid)
+    //Enter if ye dare
+    
+    @Nullable
+    public RayTraceResult getTargetLook(Vec3d from, Vec3d to)
     {
-        double distance = vec3d.distanceTo(vec3d2);
-        RayTraceResult objectMouseOver = rayTraceBlocks(world, vec3d, vec3d2, stopOnLiquid);
+        double distance = from.distanceTo(to);
+        RayTraceResult objectMouseOver = rayTraceBlocks(world, from, to);
         boolean flag = false;
         double d1 = distance;
         
@@ -438,34 +441,35 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         
         if (objectMouseOver != null)
         {
-            d1 = objectMouseOver.hitVec.distanceTo(vec3d);
+            d1 = objectMouseOver.hitVec.distanceTo(from);
         }
         
         Vec3d vec3d1 = thrower.getLook(1);
         Entity pointedEntity = null;
         Vec3d vec3d3 = null;
-        List<Entity> list = world.getEntitiesInAABBexcluding(thrower, thrower.getEntityBoundingBox().expand(vec3d1.x * distance, vec3d1.y * distance, vec3d1.z * distance).expand(1.0D, 1.0D, 1.0D), Predicates.and(EntitySelectors.NOT_SPECTATING, entity -> entity != null && entity.canBeCollidedWith()));
-        double d2 = d1;
+        AxisAlignedBB expanded = thrower.getEntityBoundingBox().expand(vec3d1.x * distance, vec3d1.y * distance, vec3d1.z * distance).expand(1.0D, 1.0D, 1.0D);
         
-        for (int j = 0; j < list.size(); ++j)
+        List<Entity> list = world.getEntitiesInAABBexcluding(thrower, expanded, Predicates.and(EntitySelectors.NOT_SPECTATING, entity -> entity != null && entity.canBeCollidedWith()));
+        double d2 = d1;
+    
+        for (Entity entity1 : list)
         {
-            Entity entity1 = list.get(j);
             AxisAlignedBB axisalignedbb = entity1.getEntityBoundingBox().grow((double) entity1.getCollisionBorderSize());
-            RayTraceResult raytraceresult = axisalignedbb.calculateIntercept(vec3d, vec3d2);
-            
-            if (axisalignedbb.contains(vec3d))
+            RayTraceResult raytraceresult = axisalignedbb.calculateIntercept(from, to);
+        
+            if (axisalignedbb.contains(from))
             {
                 if (d2 >= 0.0D)
                 {
                     pointedEntity = entity1;
-                    vec3d3 = raytraceresult == null ? vec3d : raytraceresult.hitVec;
+                    vec3d3 = raytraceresult == null ? from : raytraceresult.hitVec;
                     d2 = 0.0D;
                 }
             }
             else if (raytraceresult != null)
             {
-                double d3 = vec3d.distanceTo(raytraceresult.hitVec);
-                
+                double d3 = from.distanceTo(raytraceresult.hitVec);
+            
                 if (d3 < d2 || d2 == 0.0D)
                 {
                     if (entity1.getLowestRidingEntity() == thrower.getLowestRidingEntity() && !thrower.canRiderInteract())
@@ -489,7 +493,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         if (pointedEntity != null && flag)
         {
             pointedEntity = null;
-            objectMouseOver = new RayTraceResult(RayTraceResult.Type.MISS, vec3d3, null, new BlockPos(vec3d3));
+            objectMouseOver = new RayTraceResult(RayTraceResult.Type.MISS, vec3d3, EnumFacing.UP, new BlockPos(vec3d3));
         }
         
         if (pointedEntity != null && objectMouseOver == null)
@@ -500,7 +504,8 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         return objectMouseOver;
     }
     
-    public static RayTraceResult rayTraceBlocks(World world, Vec3d start, Vec3d end, boolean stopOnLiquid)
+    @Nullable
+    public static RayTraceResult rayTraceBlocks(World world, Vec3d start, Vec3d end)
     {
         if (!Double.isNaN(start.x) && !Double.isNaN(start.y) && !Double.isNaN(start.z))
         {
@@ -516,7 +521,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                 IBlockState iblockstate = world.getBlockState(blockpos);
                 Block block = iblockstate.getBlock();
                 
-                if ((!(block instanceof BlockBush) || iblockstate.getCollisionBoundingBox(world, blockpos) != Block.NULL_AABB) && block.canCollideCheck(iblockstate, stopOnLiquid))
+                if ((!(block instanceof BlockBush) || iblockstate.getCollisionBoundingBox(world, blockpos) != Block.NULL_AABB) && block.canCollideCheck(iblockstate, false))
                 {
                     RayTraceResult raytraceresult = iblockstate.collisionRayTrace(world, blockpos, start, end);
                     
@@ -651,7 +656,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                     
                     if (!(block1 instanceof BlockBush) || state.getMaterial() == Material.PORTAL || state.getCollisionBoundingBox(world, blockpos) != Block.NULL_AABB)
                     {
-                        if (block1.canCollideCheck(state, stopOnLiquid))
+                        if (block1.canCollideCheck(state, false))
                         {
                             RayTraceResult rayTraceResult = state.collisionRayTrace(world, blockpos, start, end);
                             

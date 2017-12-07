@@ -10,12 +10,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.SoundCategory;
+import net.minecraft.util.*;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -31,160 +27,197 @@ import slimeknights.tconstruct.library.utils.TagUtil;
 import slimeknights.tconstruct.library.utils.TinkerUtil;
 import slimeknights.tconstruct.library.utils.ToolHelper;
 import slimeknights.tconstruct.library.utils.TooltipBuilder;
-import slimeknights.tconstruct.tools.TinkerMaterials;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
-public class YoyoCore extends TinkerToolCore implements IYoyo {
-
-    public YoyoCore() {
-        super(  new PartMaterialType(TinkersYoyos.YOYO_CORD, YoyoMaterialTypes.CORD),
-                new PartMaterialType(TinkersYoyos.YOYO_BODY, YoyoMaterialTypes.BODY),
-                new PartMaterialType(TinkersYoyos.YOYO_BODY, YoyoMaterialTypes.BODY),
-                new PartMaterialType(TinkersYoyos.YOYO_AXLE, YoyoMaterialTypes.AXLE));
-
+public class YoyoCore extends TinkerToolCore implements IYoyo
+{
+    
+    public YoyoCore()
+    {
+        super(new PartMaterialType(TinkersYoyos.YOYO_CORD, YoyoMaterialTypes.CORD), new PartMaterialType(TinkersYoyos.YOYO_BODY, YoyoMaterialTypes.BODY), new PartMaterialType(TinkersYoyos.YOYO_BODY, YoyoMaterialTypes.BODY), new PartMaterialType(TinkersYoyos.YOYO_AXLE, YoyoMaterialTypes.AXLE));
+        
         addCategory(Category.WEAPON, Category.NO_MELEE);
     }
-
+    
     @Override
-    public void getSubItems(@Nonnull Item itemIn, CreativeTabs tab, List<ItemStack> subItems) {
-        addDefaultSubItems(subItems, TinkerMaterials.string, null, null, null);
-        addInfiTool(subItems, "InfiSpinner");
+    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> subItems)
+    {
+        super.getSubItems(tab, subItems);
+        if (this.isInCreativeTab(tab)) {
+            addInfiTool(subItems, "InfiSpinner");
+        }
     }
-
+    
     @Override
-    public int[] getRepairParts() {
+    public int[] getRepairParts()
+    {
         return new int[]{1, 2};
     }
-
+    
     @Override
-    public float damagePotential() {
+    public float damagePotential()
+    {
         return 0.85F;
     }
-
+    
     @Override
-    public double attackSpeed() {
+    public double attackSpeed()
+    {
         return 0.8;
     }
-
+    
     @Override
-    protected ToolNBT buildTagData(List<Material> materials) {
+    protected ToolNBT buildTagData(List<Material> materials)
+    {
         CordMaterialStats chord = materials.get(0).getStatsOrUnknown(YoyoMaterialTypes.CORD);
         BodyMaterialStats side1 = materials.get(1).getStatsOrUnknown(YoyoMaterialTypes.BODY);
         BodyMaterialStats side2 = materials.get(2).getStatsOrUnknown(YoyoMaterialTypes.BODY);
         AxleMaterialStats core = materials.get(3).getStatsOrUnknown(YoyoMaterialTypes.AXLE);
-
+        
         YoyoNBT data = new YoyoNBT();
-
+        
         data.side(side1, side2);
         data.core(core);
         data.chord(chord);
-
+        
         return data;
     }
-
+    
     @Override
-    public boolean onLeftClickEntity(ItemStack stack, EntityPlayer player, Entity entity) {
+    public boolean onLeftClickEntity(ItemStack stack, EntityPlayer player, Entity entity)
+    {
         return false;
     }
-
+    
     @Override
-    public List<String> getInformation(ItemStack stack, boolean detailed) {
+    public List<String> getInformation(ItemStack stack, boolean detailed)
+    {
         TooltipBuilder info = new TooltipBuilder(stack);
-
+        
         YoyoNBT nbt = YoyoNBT.from(stack);
         info.addDurability(!detailed);
         info.addAttack();
         info.add(CordMaterialStats.formatLength(nbt.chordLength));
-        if (nbt.duration == -1) {
-            info.add(String.format("%s: %s%s",
-                    Util.translate(YoyoNBT.LOC_Duration),
-                    AxleMaterialStats.COLOR_Friction,
-                    Util.translate(YoyoNBT.LOC_Infinite))
-                    + TextFormatting.RESET);
+        if (nbt.duration == -1)
+        {
+            info.add(String.format("%s: %s%s", Util.translate(YoyoNBT.LOC_Duration), AxleMaterialStats.COLOR_Friction, Util.translate(YoyoNBT.LOC_Infinite)) + TextFormatting.RESET);
         }
         else
-            info.add(String.format("%s: %s%s %s",
-                    Util.translate(YoyoNBT.LOC_Duration),
-                    AxleMaterialStats.COLOR_Friction,
-                    Util.df.format(nbt.duration / 20F),
-                    Util.translate(YoyoNBT.LOC_Suffix))
-                    + TextFormatting.RESET);
+            info.add(String.format("%s: %s%s %s", Util.translate(YoyoNBT.LOC_Duration), AxleMaterialStats.COLOR_Friction, Util.df.format(nbt.duration / 20F), Util.translate(YoyoNBT.LOC_Suffix)) + TextFormatting.RESET);
         info.add(BodyMaterialStats.formatWeight(nbt.weight));
-
-        if (ToolHelper.getFreeModifiers(stack) > 0) {
+        
+        if (ToolHelper.getFreeModifiers(stack) > 0)
+        {
             info.addFreeModifiers();
         }
-
-        if (detailed) {
+        
+        if (detailed)
+        {
             info.addModifierInfo();
         }
-
+        
         return info.getTooltip();
     }
-
+    
     @Override
-    public ActionResult<ItemStack> onItemRightClick(@Nonnull ItemStack itemStackIn, World worldIn, EntityPlayer playerIn, EnumHand hand) {
-        if (!worldIn.isRemote) {
+    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
+    {
+        ItemStack itemStackIn = playerIn.getHeldItem(hand);
+        if (!worldIn.isRemote)
+        {
             EntityYoyo entityYoyo = EntityYoyo.CASTERS.get(playerIn);
-
-            if (entityYoyo != null && entityYoyo.isEntityAlive()) {
+            
+            if (entityYoyo != null && entityYoyo.isEntityAlive())
+            {
                 entityYoyo.setRetracting(!entityYoyo.isRetracting());
-                YoyoNetwork.INSTANCE.sendToAll(new MessageRetractYoYo(entityYoyo, false));
+                YoyoNetwork.INSTANCE.sendToAll(new MessageRetractYoYo(entityYoyo));
                 playerIn.swingArm(hand);
             }
-            else if (ToolHelper.getCurrentDurability(itemStackIn) > 0) {
+            else if (ToolHelper.getCurrentDurability(itemStackIn) > 0)
+            {
                 worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_BOBBER_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
-
-                worldIn.spawnEntityInWorld(new EntityYoyo(worldIn, playerIn));
-
+                
+                worldIn.spawnEntity(new EntityYoyo(worldIn, playerIn));
+                
                 playerIn.swingArm(hand);
             }
         }
-
+        
         return new ActionResult<>(EnumActionResult.SUCCESS, itemStackIn);
     }
-
+    
     @Override
-    public float getWeight(ItemStack yoyo) {
+    public float getWeight(ItemStack yoyo)
+    {
         return YoyoNBT.from(yoyo).weight;
     }
-
+    
     @Override
-    public float getLength(ItemStack yoyo) {
+    public float getLength(ItemStack yoyo)
+    {
         return YoyoNBT.from(yoyo).chordLength;
     }
-
+    
     @Override
-    public int getDuration(ItemStack yoyo) {
+    public int getDuration(ItemStack yoyo)
+    {
         return YoyoNBT.from(yoyo).duration;
     }
-
+    
     @Override
-    public int getAttackSpeed(ItemStack yoyo) {
+    public int getAttackSpeed(ItemStack yoyo)
+    {
         return ((int) (ToolHelper.getActualAttackSpeed(yoyo) * 5));
     }
-
+    
     @Override
-    public boolean gardening(ItemStack yoyo) {
+    public boolean gardening(ItemStack yoyo)
+    {
         return !TinkerUtil.getModifierTag(yoyo, "gardening").hasNoTags();
     }
-
+    
     @Override
-    public void damageItem(ItemStack yoyo, EntityLivingBase player) {
+    public void damageItem(ItemStack yoyo, EntityLivingBase player)
+    {
         ToolHelper.damageTool(yoyo, 1, player);
     }
-
+    
     @Override
     @SideOnly(Side.CLIENT)
-    public int getChordColor(ItemStack yoyo) {
+    public int getCordColor(ItemStack yoyo)
+    {
         List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
         return materials.get(0).materialTextColor;
     }
-
+    
     @Override
-    public void attack(Entity target, ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity) {
+    @SideOnly(Side.CLIENT)
+    public int getLeftColor(ItemStack yoyo)
+    {
+        List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
+        return materials.get(1).materialTextColor;
+    }
+    
+    @Override
+    @SideOnly(Side.CLIENT)
+    public int getRightColor(ItemStack yoyo)
+    {
+        List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
+        return materials.get(2).materialTextColor;
+    }
+    
+    @Override
+    @SideOnly(Side.CLIENT)
+    public int getAxleColor(ItemStack yoyo)
+    {
+        List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
+        return materials.get(3).materialTextColor;
+    }
+    
+    @Override
+    public void attack(Entity target, ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity)
+    {
         ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target);
     }
 }

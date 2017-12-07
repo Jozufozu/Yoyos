@@ -1,0 +1,16 @@
+{
+  "type": "forge:ore_shaped",
+  "pattern": [
+    "CCC",
+    "C C",
+    "CCC"
+  ],
+  "key": {
+    "S": {
+      "ore": "string"
+    }
+  },
+  "result": {
+    "item": "yoyos:cord"
+  }
+}

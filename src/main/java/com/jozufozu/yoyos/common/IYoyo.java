@@ -7,24 +7,44 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public interface IYoyo {
-
+public interface IYoyo
+{
+    
     float getWeight(ItemStack yoyo);
-
+    
     float getLength(ItemStack yoyo);
-
+    
     int getDuration(ItemStack yoyo);
-
+    
     int getAttackSpeed(ItemStack yoyo);
-
+    
     boolean gardening(ItemStack yoyo);
-
+    
     void damageItem(ItemStack yoyo, EntityLivingBase player);
-
+    
     void attack(Entity target, ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity);
-
+    
     @SideOnly(Side.CLIENT)
-    default int getChordColor(ItemStack yoyo) {
+    default int getCordColor(ItemStack yoyo)
+    {
+        return 0xDDDDDD;
+    }
+    
+    @SideOnly(Side.CLIENT)
+    default int getLeftColor(ItemStack yoyo)
+    {
+        return 0xDDDDDD;
+    }
+    
+    @SideOnly(Side.CLIENT)
+    default int getRightColor(ItemStack yoyo)
+    {
+        return 0xDDDDDD;
+    }
+    
+    @SideOnly(Side.CLIENT)
+    default int getAxleColor(ItemStack yoyo)
+    {
         return 0xDDDDDD;
     }
 }

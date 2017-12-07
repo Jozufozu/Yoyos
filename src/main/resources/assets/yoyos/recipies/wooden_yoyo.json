@@ -1,0 +1,22 @@
+{
+  "type": "forge:ore_shaped",
+  "pattern": [
+    " X ",
+    "XSX",
+    "CX "
+  ],
+  "key": {
+    "S": {
+      "ore": "stickWood"
+    },
+    "X": {
+      "ore": "plankWood"
+    },
+    "C": {
+      "item": "yoyos:cord"
+    }
+  },
+  "result": {
+    "item": "yoyos:wooden_yoyo"
+  }
+}

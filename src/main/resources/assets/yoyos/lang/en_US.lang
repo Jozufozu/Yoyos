@@ -4,8 +4,12 @@ item.iron_yoyo.name=Iron Yoyo
 item.diamond_yoyo.name=Diamond Yoyo
 item.gold_yoyo.name=Gold Yoyo
 item.shear_yoyo.name=Shear Yoyo
+item.sticky_yoyo.name=Sticky Yoyo
 
 item.cord.name=Cord
+
+yoyos.config.vanilla=Vanilla Yoyos
+yoyos.config.tinkers=Tinkers' Yoyos
 
 info.weight.name=Weight: %s
 info.duration.name=Duration: %s seconds

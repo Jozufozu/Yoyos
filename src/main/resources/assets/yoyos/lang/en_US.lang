@@ -9,6 +9,7 @@ item.sticky_yoyo.name=Sticky Yoyo
 item.cord.name=Cord
 
 yoyos.config.vanilla=Vanilla Yoyos
+yoyos.config.enable=Enable
 yoyos.config.tinkers=Tinkers' Yoyos
 yoyos.config.swing=Yoyo Swinging
 

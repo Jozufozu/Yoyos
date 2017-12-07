@@ -33,6 +33,7 @@ public class ModConfig
     
     public static class VanillaYoyos
     {
+        @Config.LangKey("yoyos.config.enable")
         @Config.Comment("Whether or not the default yoyos are added")
         @Config.RequiresMcRestart
         public boolean enable = true;

@@ -57,7 +57,10 @@ processResources {
 
 //I might have copied this from botania... Don't tell anyone
 jar {
+    archiveName = baseName + "_" + project.mcVersion + "-" + project.version  + "." + extension
+
     exclude "**/*.bat"
     exclude "**/*.psd"
     exclude "**/*.exe"
 }
+

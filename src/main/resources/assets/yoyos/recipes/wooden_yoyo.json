@@ -7,9 +7,11 @@
   ],
   "key": {
     "S": {
+      "type": "forge:ore_dict",
       "ore": "stickWood"
     },
     "X": {
+      "type": "forge:ore_dict",
       "ore": "plankWood"
     },
     "C": {

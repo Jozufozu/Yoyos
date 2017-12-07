@@ -49,39 +49,27 @@ public class Yoyos
     }
     
     @SubscribeEvent
-    public void onRegistryRegister(RegistryEvent.Register<Item> event)
+    public void registerItems(RegistryEvent.Register<Item> event)
     {
         IForgeRegistry<Item> registry = event.getRegistry();
-        registry.register(CORD);
+        registry.register(CORD = new Item().setCreativeTab(CreativeTabs.MATERIALS).setRegistryName(MODID, "cord").setUnlocalizedName("cord"));
         
         if (!ModConfig.vanillaYoyos.enable)
             return;
         
-        registry.register(WOODEN_YOYO);
-        registry.register(STONE_YOYO);
-        registry.register(IRON_YOYO);
-        registry.register(DIAMOND_YOYO);
-        registry.register(GOLD_YOYO);
-        registry.register(SHEAR_YOYO);
-        registry.register(STICKY_YOYO);
+        registry.register(WOODEN_YOYO = new ItemYoyo("wooden_yoyo", Item.ToolMaterial.WOOD));
+        registry.register(STONE_YOYO = new ItemYoyo("stone_yoyo", Item.ToolMaterial.STONE));
+        registry.register(IRON_YOYO = new ItemYoyo("iron_yoyo", Item.ToolMaterial.IRON));
+        registry.register(DIAMOND_YOYO = new ItemYoyo("diamond_yoyo", Item.ToolMaterial.DIAMOND));
+        registry.register(GOLD_YOYO = new ItemYoyo("gold_yoyo", Item.ToolMaterial.GOLD));
+        registry.register(SHEAR_YOYO = new ItemYoyo("shear_yoyo", Item.ToolMaterial.IRON, true));
+        registry.register(STICKY_YOYO = new ItemStickyYoyo());
     }
     
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
         MinecraftForge.EVENT_BUS.register(proxy);
-        
-        CORD = new Item().setCreativeTab(CreativeTabs.MATERIALS).setRegistryName(MODID, "cord").setUnlocalizedName("cord");
-        
-        WOODEN_YOYO = new ItemYoyo("wooden_yoyo", Item.ToolMaterial.WOOD);
-        STONE_YOYO = new ItemYoyo("stone_yoyo", Item.ToolMaterial.STONE);
-        IRON_YOYO = new ItemYoyo("iron_yoyo", Item.ToolMaterial.IRON);
-        DIAMOND_YOYO = new ItemYoyo("diamond_yoyo", Item.ToolMaterial.DIAMOND);
-        GOLD_YOYO = new ItemYoyo("gold_yoyo", Item.ToolMaterial.GOLD);
-        
-        SHEAR_YOYO = new ItemYoyo("shear_yoyo", Item.ToolMaterial.IRON, true);
-        
-        STICKY_YOYO = new ItemStickyYoyo();
         
         proxy.preInit(event);
         

@@ -2,6 +2,8 @@ package com.jozufozu.yoyos.common;
 
 import com.jozufozu.yoyos.network.MessageRetractYoYo;
 import com.jozufozu.yoyos.network.YoyoNetwork;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
@@ -9,7 +11,11 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.text.TextComponentKeybind;
 import net.minecraft.world.World;
+
+import javax.annotation.Nullable;
+import java.util.List;
 
 public class ItemStickyYoyo extends ItemYoyo
 {
@@ -44,5 +50,14 @@ public class ItemStickyYoyo extends ItemYoyo
         }
         
         return new ActionResult<>(EnumActionResult.SUCCESS, itemStackIn);
+    }
+    
+    @Override
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn)
+    {
+        super.addInformation(stack, worldIn, tooltip, flagIn);
+        tooltip.add("");
+        tooltip.add(I18n.format("info.sticky.name"));
+        tooltip.add(I18n.format("info.sticky.retraction.name", new TextComponentKeybind("key.sneak").getUnformattedText()));
     }
 }

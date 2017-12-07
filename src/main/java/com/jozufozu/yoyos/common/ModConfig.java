@@ -54,7 +54,7 @@ public class ModConfig
         
         public static class YoyoSettings
         {
-            @Config.Comment("Effects how fast the yoyo moves")
+            @Config.Comment("Affects how fast the yoyo moves")
             @Config.RangeDouble(min = 0)
             public float weight;
     
@@ -65,10 +65,6 @@ public class ModConfig
             @Config.Comment("How long the yoyo can stay out (in ticks)")
             @Config.RangeInt(min = 0)
             public int duration;
-    
-            public YoyoSettings()
-            {
-            }
     
             public YoyoSettings(float weight, float length, int duration)
             {

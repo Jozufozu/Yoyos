@@ -10,11 +10,14 @@ item.cord.name=Cord
 
 yoyos.config.vanilla=Vanilla Yoyos
 yoyos.config.tinkers=Tinkers' Yoyos
-yoyos.config.tinkers=Yoyo Swinging
+yoyos.config.swing=Yoyo Swinging
 
 info.weight.name=Weight: %s
 info.duration.name=Duration: %s seconds
 info.length.name=Length: %s blocks
+
+info.sticky.name=Sticks to blocks and acts like a rope swing.
+info.sticky.retraction.name=Hold %s to retract string.
 
 item.yoyo.name=Yoyo
 item.yoyo_axle.name=Axle

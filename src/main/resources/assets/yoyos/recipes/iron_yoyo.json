@@ -7,16 +7,18 @@
   ],
   "key": {
     "S": {
+      "type": "forge:ore_dict",
       "ore": "stickWood"
     },
     "X": {
-      "ore": "gemDiamond"
+      "type": "forge:ore_dict",
+      "ore": "ingotIron"
     },
     "C": {
       "item": "yoyos:cord"
     }
   },
   "result": {
-    "item": "yoyos:diamond_yoyo"
+    "item": "yoyos:iron_yoyo"
   }
 }

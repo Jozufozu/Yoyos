@@ -6,7 +6,8 @@
     "CCC"
   ],
   "key": {
-    "S": {
+    "C": {
+      "type": "forge:ore_dict",
       "ore": "string"
     }
   },

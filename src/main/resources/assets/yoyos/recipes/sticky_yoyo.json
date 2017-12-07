@@ -1,0 +1,18 @@
+{
+  "type": "forge:ore_shaped",
+  "pattern": [
+    "SYS"
+  ],
+  "key": {
+    "Y": {
+      "item": "yoyos:diamond_yoyo"
+    },
+    "S": {
+      "type": "forge:ore_dict",
+      "ore": "slimeball"
+    }
+  },
+  "result": {
+    "item": "yoyos:sticky_yoyo"
+  }
+}

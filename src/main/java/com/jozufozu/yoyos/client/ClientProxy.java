@@ -4,6 +4,7 @@ import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.CommonProxy;
 import com.jozufozu.yoyos.common.EntityStickyYoyo;
 import com.jozufozu.yoyos.common.EntityYoyo;
+import com.jozufozu.yoyos.common.ModConfig;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.event.ModelRegistryEvent;
@@ -20,6 +21,11 @@ public class ClientProxy extends CommonProxy
     @SubscribeEvent
     public void onModelRegistry(ModelRegistryEvent event)
     {
+        registerModel(Yoyos.CORD);
+        
+        if (!ModConfig.vanillaYoyos.enable)
+            return;
+        
         registerModel(Yoyos.WOODEN_YOYO);
         registerModel(Yoyos.STONE_YOYO);
         registerModel(Yoyos.IRON_YOYO);
@@ -27,7 +33,6 @@ public class ClientProxy extends CommonProxy
         registerModel(Yoyos.GOLD_YOYO);
         registerModel(Yoyos.SHEAR_YOYO);
         registerModel(Yoyos.STICKY_YOYO);
-        registerModel(Yoyos.CORD);
     }
     
     @Override

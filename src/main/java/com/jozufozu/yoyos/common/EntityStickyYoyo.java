@@ -49,7 +49,6 @@ public class EntityStickyYoyo extends EntityYoyo
             
             if (!world.isRemote)
             {
-                this.attackCool = 0;
                 doEntityCollisions(yoyo);
             }
             

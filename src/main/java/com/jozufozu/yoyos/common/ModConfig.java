@@ -38,39 +38,48 @@ public class ModConfig
         public boolean enable = true;
         
         @Config.LangKey("item.wooden_yoyo.name")
-        public YoyoSettings woodenYoyo = new YoyoSettings(2.2f, 6.0f, 100);
+        public YoyoSettings woodenYoyo = new YoyoSettings(2.2f, 6.0f, 100, 3.0f);
         @Config.LangKey("item.stone_yoyo.name")
-        public YoyoSettings stoneYoyo = new YoyoSettings(4.0f, 7.0f, 200);
+        public YoyoSettings stoneYoyo = new YoyoSettings(4.0f, 7.0f, 200, 4.0f);
         @Config.LangKey("item.iron_yoyo.name")
-        public YoyoSettings ironYoyo = new YoyoSettings(5.0f, 8.0f, 300);
+        public YoyoSettings ironYoyo = new YoyoSettings(5.0f, 8.0f, 300, 5.0f);
         @Config.LangKey("item.shear_yoyo.name")
-        public YoyoSettings shearYoyo = new YoyoSettings(5.1f, 8.0f, 300);
+        public YoyoSettings shearYoyo = new YoyoSettings(5.1f, 8.0f, 300, 5.5f);
         @Config.LangKey("item.gold_yoyo.name")
-        public YoyoSettings goldYoyo = new YoyoSettings(5.5f, 11.0f, 600);
+        public YoyoSettings goldYoyo = new YoyoSettings(5.5f, 11.0f, 600, 3.0f);
         @Config.LangKey("item.diamond_yoyo.name")
-        public YoyoSettings diamondYoyo = new YoyoSettings(1.7f, 9.0f, 400);
+        public YoyoSettings diamondYoyo = new YoyoSettings(1.7f, 9.0f, 400, 6.0f);
         @Config.LangKey("item.sticky_yoyo.name")
-        public YoyoSettings stickyYoyo = new YoyoSettings(1.7f, 9.0f, 400);
+        public YoyoSettings stickyYoyo = new YoyoSettings(1.7f, 9.0f, 400, 0.0f);
         
         public static class YoyoSettings
         {
+            @Config.LangKey("yoyos.config.weight")
             @Config.Comment("Affects how fast the yoyo moves")
             @Config.RangeDouble(min = 0)
             public float weight;
     
+            @Config.LangKey("yoyos.config.length")
             @Config.Comment("How far away the yoyo can get (in blocks)")
             @Config.RangeDouble(min = 0)
             public float length;
     
+            @Config.LangKey("yoyos.config.duration")
             @Config.Comment("How long the yoyo can stay out (in ticks)")
             @Config.RangeInt(min = 0)
             public int duration;
     
-            public YoyoSettings(float weight, float length, int duration)
+            @Config.LangKey("yoyos.config.damage")
+            @Config.Comment("How much damage the yoyo does (in hearts)")
+            @Config.RangeDouble(min = 0)
+            public float damage;
+    
+            public YoyoSettings(float weight, float length, int duration, float damage)
             {
                 this.weight = weight;
                 this.length = length;
                 this.duration = duration;
+                this.damage = damage;
             }
         }
     }

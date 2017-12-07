@@ -12,6 +12,11 @@ yoyos.config.vanilla=Vanilla Yoyos
 yoyos.config.tinkers=Tinkers' Yoyos
 yoyos.config.swing=Yoyo Swinging
 
+yoyos.config.damage=Damage
+yoyos.config.weight=Weight
+yoyos.config.length=Length
+yoyos.config.duration=Duration
+
 info.weight.name=Weight: %s
 info.duration.name=Duration: %s seconds
 info.length.name=Length: %s blocks

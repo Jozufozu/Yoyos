@@ -1,6 +1,8 @@
 package com.jozufozu.yoyos.common;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.network.MessageRetractYoYo;
 import com.jozufozu.yoyos.network.YoyoNetwork;
@@ -9,10 +11,12 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.*;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
 import net.minecraft.network.play.server.SPacketEntityVelocity;
@@ -57,9 +61,6 @@ public class ItemYoyo extends ItemSword implements IYoyo
         return ImmutableSet.of("yoyo");
     }
     
-    /**
-     * Return the enchantability factor of the item, most of the time is based on material.
-     */
     public int getItemEnchantability()
     {
         return this.material.getEnchantability();
@@ -105,6 +106,29 @@ public class ItemYoyo extends ItemSword implements IYoyo
         tooltip.add(I18n.format("info.weight.name", getWeight(stack)));
         tooltip.add(I18n.format("info.length.name", getLength(stack)));
         tooltip.add(I18n.format("info.duration.name", ((float) getDuration(stack)) / 20F));
+    }
+    
+    public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot equipmentSlot, ItemStack stack)
+    {
+        Multimap<String, AttributeModifier> multimap = HashMultimap.create();
+    
+        if (equipmentSlot == EntityEquipmentSlot.MAINHAND || equipmentSlot == EntityEquipmentSlot.OFFHAND)
+        {
+            double damage = 0.0;
+    
+            if (this == Yoyos.SHEAR_YOYO) damage = ModConfig.vanillaYoyos.shearYoyo.damage;
+            if (this == Yoyos.STICKY_YOYO) damage =  ModConfig.vanillaYoyos.stickyYoyo.damage;
+            if (this == Yoyos.DIAMOND_YOYO) damage =  ModConfig.vanillaYoyos.diamondYoyo.damage;
+            if (this == Yoyos.GOLD_YOYO) damage =  ModConfig.vanillaYoyos.goldYoyo.damage;
+            if (this == Yoyos.IRON_YOYO) damage =  ModConfig.vanillaYoyos.ironYoyo.damage;
+            if (this == Yoyos.STONE_YOYO) damage =  ModConfig.vanillaYoyos.stoneYoyo.damage;
+            if (this == Yoyos.WOODEN_YOYO) damage =  ModConfig.vanillaYoyos.woodenYoyo.damage;
+            
+            multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", damage, 0));
+            multimap.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(ATTACK_SPEED_MODIFIER, "Weapon modifier", -2.4000000953674316D, 0));
+        }
+    
+        return multimap;
     }
     
     @Override

@@ -1,6 +1,8 @@
 package com.jozufozu.yoyos.common;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.SoundEvents;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.world.World;
 
 public class EntityStickyYoyo extends EntityYoyo
@@ -38,6 +40,9 @@ public class EntityStickyYoyo extends EntityYoyo
             
             if (!this.world.getCollisionBoxes(this, this.getEntityBoundingBox().grow(0.1)).isEmpty() && !this.isRetracting())
             {
+                if (this.motionX != 0 || this.motionY != 0 || this.motionZ != 0)
+                    world.playSound(null, posX, posY, posZ, SoundEvents.ENTITY_SLIME_DEATH, SoundCategory.PLAYERS, 0.7f, 3.0f);
+                
                 this.motionX = 0;
                 this.motionY = 0;
                 this.motionZ = 0;

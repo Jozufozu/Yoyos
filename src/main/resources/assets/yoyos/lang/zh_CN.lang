@@ -1,0 +1,66 @@
+item.wooden_yoyo.name=木质悠悠球
+item.stone_yoyo.name=石质悠悠球
+item.iron_yoyo.name=铁质悠悠球
+item.diamond_yoyo.name=钻石质悠悠球
+item.gold_yoyo.name=金质悠悠球
+item.shear_yoyo.name=铁质悠悠球（剪刀）
+item.sticky_yoyo.name=钻石质悠悠球（粘液）
+
+item.cord.name=捆线
+
+yoyos.config.vanilla=Vanilla Yoyos
+yoyos.config.enable=Enable
+yoyos.config.tinkers=Tinkers' Yoyos
+yoyos.config.swing=Yoyo Swinging
+
+yoyos.config.damage=伤害
+yoyos.config.weight=重量
+yoyos.config.length=长度
+yoyos.config.duration=持续时间
+
+info.weight.name=Weight: %s
+info.duration.name=Duration: %s seconds
+info.length.name=Length: %s blocks
+
+info.sticky.name=Sticks to blocks and acts like a rope swing.
+info.sticky.retraction.name=Hold %s to retract string.
+
+item.yoyo.name=Yoyo
+item.yoyo_axle.name=Axle
+item.yoyo_body.name=Body
+item.yoyo_cord.name=Cord
+
+item.yoyo.desc=The Yoyo is a ranged melee weapon allowing you to tear your opponents to shreds.\nIt is also a children's toy. Go figure.
+
+stat.axle.name=Axle
+stat.body.name=Body
+stat.cord.name=Cord
+
+stat.yoyo.duration.name=Duration
+stat.yoyo.duration.suffix=Seconds
+stat.yoyo.infinite.name=Infinite
+
+stat.body.weight.name=Weight
+stat.body.weight.desc=Base value for movement speed calculation.\nFinal value is the sum of all weights.
+
+stat.axle.friction.name=Friction
+stat.axle.friction.desc=Value used to calculate how long the yoyo can last.\nIf any part has 0 friction the yoyo can last forever.
+
+stat.cord.length.name=Length
+stat.cord.length.desc=How far away the yoyo will get from you.
+
+modifier.extension.name=Extension
+modifier.extension.desc=§oSize does matter!§r\nIncreases the length of the cord.
+
+modifier.lubricated.name=Lubricated
+modifier.lubricated.desc=§oRuns like dream.§r\nDecreases friction between the parts of the yoyo, lengthening it's duration.
+
+modifier.floating.name=Floating
+modifier.floating.desc=§oLook at the little guy!§r\nThe pufferfish acts like a balloon and makes the yoyo lighter.
+
+modifier.gardening.name=Shear
+modifier.gardening.desc=§oSnip, snip...§r\nCuts down grass and flowers and such. Also sheep. It shears sheep.
+
+gui.error.not_a_yoyo=%s can only be applied to yoyos!
+gui.error.too_light=Weighs too little!
+gui.error.frictionless=Already frictionless!

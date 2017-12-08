@@ -36,7 +36,7 @@ public class EntityStickyYoyo extends EntityYoyo
             
             if (this.thrower.isSneaking() && this.cordLength > 0.5) this.cordLength -= 0.1F;
             
-            if (this.isCollided && !this.isRetracting())
+            if (!this.world.getCollisionBoxes(this, this.getEntityBoundingBox().grow(0.1)).isEmpty() && !this.isRetracting())
             {
                 this.motionX = 0;
                 this.motionY = 0;

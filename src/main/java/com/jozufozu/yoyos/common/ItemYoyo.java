@@ -112,7 +112,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
     {
         Multimap<String, AttributeModifier> multimap = HashMultimap.create();
     
-        if (equipmentSlot == EntityEquipmentSlot.MAINHAND || equipmentSlot == EntityEquipmentSlot.OFFHAND)
+        if (equipmentSlot == EntityEquipmentSlot.MAINHAND)
         {
             double damage = 0.0;
     

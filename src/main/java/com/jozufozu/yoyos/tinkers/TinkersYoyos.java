@@ -6,10 +6,7 @@ import com.jozufozu.yoyos.common.CommonProxy;
 import com.jozufozu.yoyos.tinkers.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.BodyMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
-import com.jozufozu.yoyos.tinkers.modifiers.ModExtension;
-import com.jozufozu.yoyos.tinkers.modifiers.ModFloating;
-import com.jozufozu.yoyos.tinkers.modifiers.ModGardening;
-import com.jozufozu.yoyos.tinkers.modifiers.ModLubricated;
+import com.jozufozu.yoyos.tinkers.modifiers.*;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemFishFood;
@@ -31,7 +28,6 @@ import slimeknights.tconstruct.library.materials.Material;
 import slimeknights.tconstruct.library.modifiers.IModifier;
 import slimeknights.tconstruct.library.modifiers.Modifier;
 import slimeknights.tconstruct.library.tinkering.PartMaterialType;
-import slimeknights.tconstruct.library.tools.IPattern;
 import slimeknights.tconstruct.library.tools.Pattern;
 import slimeknights.tconstruct.library.tools.ToolCore;
 import slimeknights.tconstruct.library.tools.ToolPart;
@@ -47,7 +43,6 @@ public class TinkersYoyos
 {
     public static List<Item> modItems = Lists.newArrayList();
     
-    private static List<ToolCore> tools = Lists.newArrayList();
     private static List<ToolPart> toolParts = Lists.newArrayList();
     private static List<Pair<Item, ToolPart>> toolPartPatterns = Lists.newArrayList();
     
@@ -61,6 +56,7 @@ public class TinkersYoyos
     public static Modifier FLOATING;
     public static Modifier LUBRICATED;
     public static Modifier GARDENING;
+    public static Modifier STICKY;
     
     public static TinkersProxy proxy;
     
@@ -78,6 +74,7 @@ public class TinkersYoyos
         EXTENSION = new ModExtension();
         EXTENSION.addItem("string");
         EXTENSION.addItem("blockWool", 1, 4);
+        EXTENSION.addItem(Yoyos.CORD, 1, 8);
     
         FLOATING = new ModFloating(3);
         FLOATING.addItem(new ItemStack(Items.FISH, 1, ItemFishFood.FishType.PUFFERFISH.getMetadata()), 1, 1);
@@ -87,6 +84,9 @@ public class TinkersYoyos
     
         GARDENING = new ModGardening();
         GARDENING.addItem(Items.SHEARS);
+        
+        STICKY = new ModSticky();
+        STICKY.addItem("slimeball", 2, 1);
         
         for (Item item : TinkersYoyos.modItems)
         {
@@ -127,14 +127,14 @@ public class TinkersYoyos
     
     private static void registerToolParts()
     {
-        YOYO_AXLE = registerToolPart(new ToolPart(Material.VALUE_Fragment * 6), "yoyo_axle");
+        YOYO_AXLE = registerToolPart(new ToolPart(Material.VALUE_Ingot * 2), "yoyo_axle");
         YOYO_BODY = registerToolPart(new ToolPart(Material.VALUE_Ingot * 4), "yoyo_body");
-        YOYO_CORD = registerToolPart(new ToolPart(Material.VALUE_Ingot * 2), "yoyo_cord");
+        YOYO_CORD = registerToolPart(new ToolPart(Material.VALUE_Ingot * 3), "yoyo_cord");
     }
     
     private static void registerTools()
     {
-        YOYO = registerTool(new YoyoCore(), "yoyo");
+        YOYO = registerItem(new YoyoCore(), "yoyo");
     }
     
     private static void registerToolBuilding()
@@ -214,34 +214,21 @@ public class TinkersYoyos
         TinkerRegistry.addMaterialStats(TinkerMaterials.knightslime, new BodyMaterialStats(6.1F, 0.6F, 600), new AxleMaterialStats(2F, 0.3F), new CordMaterialStats(2.0F, 16F));
         
         TinkerRegistry.addMaterialStats(TinkerMaterials.slime, new BodyMaterialStats(1.2F, 0.6F, 1000), new AxleMaterialStats(2F, 0.3F), new CordMaterialStats(1.0F, 8F));
-        
+        //TinkerMaterials.slime.addTrait(null, YoyoMaterialTypes.BODY);
+
         TinkerRegistry.addMaterialStats(TinkerMaterials.slimevine_blue, new CordMaterialStats(1.5F, 10F));
         
         TinkerRegistry.addMaterialStats(TinkerMaterials.slimevine_purple, new CordMaterialStats(1.9F, 14F));
     }
     
-    private static <T extends ToolCore> T registerTool(T item, String name)
-    {
-        tools.add(item);
-        return registerItem(item, name);
-    }
-    
     private static ToolPart registerToolPart(ToolPart part, String name)
     {
-        return registerToolPart(part, name, TinkerTools.pattern);
-    }
-    
-    private static <T extends Item & IPattern> ToolPart registerToolPart(ToolPart part, String name, T pattern)
-    {
         ToolPart ret = registerItem(part, name);
-        
-        if (pattern != null)
-        {
-            toolPartPatterns.add(Pair.of(pattern, ret));
-        }
-        
+    
+        toolPartPatterns.add(Pair.of(TinkerTools.pattern, ret));
+    
         toolParts.add(ret);
-        
+    
         return ret;
     }
     
@@ -281,7 +268,7 @@ public class TinkersYoyos
         public void onModelRegistry(ModelRegistryEvent event)
         {
             toolParts.forEach(ModelRegisterUtil::registerPartModel);
-            tools.forEach(ModelRegisterUtil::registerToolModel);
+            ModelRegisterUtil.registerToolModel(YOYO);
     
             List<IModifier> yoyoMods = new ArrayList<>();
     
@@ -297,6 +284,7 @@ public class TinkersYoyos
             yoyoMods.add(LUBRICATED);
             yoyoMods.add(FLOATING);
             yoyoMods.add(GARDENING);
+            yoyoMods.add(STICKY);
     
             for (IModifier modifier : yoyoMods)
                 ModelRegisterUtil.registerModifierModel(modifier, new ResourceLocation(Yoyos.MODID, "models/item/modifiers/" + modifier.getIdentifier()));

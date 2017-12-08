@@ -61,6 +61,9 @@ modifier.floating.desc=§oLook at the little guy!§r\nThe pufferfish acts like a
 modifier.gardening.name=Shear
 modifier.gardening.desc=§oSnip, snip...§r\nCuts down grass and flowers and such. Also sheep. It shears sheep.
 
+modifier.sticky.name=Sticky
+modifier.sticky.desc=§oUm... I think it's stuck.§r\nSTicks to blocks and allows you to reel yourself in.
+
 gui.error.not_a_yoyo=%s can only be applied to yoyos!
 gui.error.too_light=Weighs too little!
 gui.error.frictionless=Already frictionless!

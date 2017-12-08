@@ -50,6 +50,9 @@ public class EntityStickyYoyo extends EntityYoyo
             if (!world.isRemote)
             {
                 doEntityCollisions(yoyo);
+                
+                if (this.gardening)
+                    garden(yoyo);
             }
             
             handleSwing();

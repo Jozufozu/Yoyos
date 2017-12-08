@@ -1,5 +1,6 @@
 package com.jozufozu.yoyos.tinkers;
 
+import com.jozufozu.yoyos.common.EntityStickyYoyo;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.IYoyo;
 import com.jozufozu.yoyos.network.MessageRetractYoYo;
@@ -138,7 +139,10 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
             {
                 worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_BOBBER_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
                 
-                worldIn.spawnEntity(new EntityYoyo(worldIn, playerIn));
+                if (TinkerUtil.getModifierTag(itemStackIn, "sticky").hasNoTags())
+                    worldIn.spawnEntity(new EntityYoyo(worldIn, playerIn));
+                else
+                    worldIn.spawnEntity(new EntityStickyYoyo(worldIn, playerIn));
                 
                 playerIn.swingArm(hand);
             }

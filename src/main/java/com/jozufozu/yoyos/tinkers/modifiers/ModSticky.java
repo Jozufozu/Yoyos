@@ -9,13 +9,13 @@ import slimeknights.tconstruct.library.modifiers.TinkerGuiException;
 import slimeknights.tconstruct.tools.modifiers.ToolModifier;
 
 /**
- * Allows for yoyos to cut down grass and flowers and such
+ * Sticks to blocks
  */
-public class ModGardening extends ToolModifier
+public class ModSticky extends ToolModifier
 {
-    public ModGardening()
+    public ModSticky()
     {
-        super("gardening", 0x838996);
+        super("sticky", 0x63BD74);
         
         addAspects(new ModifierAspect.DataAspect(this), new ModifierAspect.SingleAspect(this), ModifierAspect.freeModifier);
     }
@@ -24,16 +24,13 @@ public class ModGardening extends ToolModifier
     protected boolean canApplyCustom(ItemStack stack) throws TinkerGuiException
     {
         if (stack.getItem() != TinkersYoyos.YOYO)
-        {
-            throw new TinkerGuiException(Util.translateFormatted("gui.error.not_a_yoyo", Util.translate("modifier.gardening.name")));
-        }
-        
+            throw new TinkerGuiException(Util.translateFormatted("gui.error.not_a_yoyo", Util.translate("modifier.sticky.name")));
         return true;
     }
     
     @Override
     public void applyEffect(NBTTagCompound rootCompound, NBTTagCompound modifierTag)
     {
-        //And... we're done
+
     }
 }

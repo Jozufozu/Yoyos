@@ -241,7 +241,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             if (rayTraceResult != null) target = rayTraceResult.hitVec;
         }
     
-        Vec3d motionVec = target.subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / weight, 1.5));
+        Vec3d motionVec = target.subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / weight, 1.1));
     
         if (inWater) motionVec = motionVec.scale(0.3);
     
@@ -256,13 +256,13 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     public void handleSwing()
     {
         Vec3d thisPos = getPositionVector();
-        Vec3d throwerPos = thrower.getPositionVector();
+        Vec3d throwerPos = new Vec3d(thrower.posX, thrower.posY + thrower.height / 2, thrower.posZ);
     
         double distance = thisPos.distanceTo(throwerPos);
     
-        if (distance > cordLength + 2)
+        if (distance > cordLength + 1)
         {
-            Vec3d dif = getPositionVector().subtract(thrower.posX, thrower.posY + thrower.height / 2, thrower.posZ).scale(.01 * (distance - cordLength - 2));
+            Vec3d dif = getPositionVector().subtract(thrower.posX, thrower.posY + thrower.height / 2, thrower.posZ).scale(0.01 * (distance - cordLength - 1));
             thrower.addVelocity(dif.x, dif.y, dif.z);
             thrower.fallDistance = 0;
             if (isRetracting) setDead();

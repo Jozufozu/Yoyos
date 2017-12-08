@@ -29,7 +29,7 @@ public class ModConfig
     
     @Config.LangKey("yoyos.config.swing")
     @Config.Comment("Allows you to swing from yoyos when they get caught")
-    public static boolean yoyoSwing = true;
+    public static boolean yoyoSwing = false;
     
     public static class VanillaYoyos
     {

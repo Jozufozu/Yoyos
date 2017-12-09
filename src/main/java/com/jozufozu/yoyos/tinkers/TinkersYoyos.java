@@ -3,6 +3,7 @@ package com.jozufozu.yoyos.tinkers;
 import com.google.common.collect.Lists;
 import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.CommonProxy;
+import com.jozufozu.yoyos.tinkers.compat.PlusTiC;
 import com.jozufozu.yoyos.tinkers.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.BodyMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
@@ -109,6 +110,7 @@ public class TinkersYoyos
         MinecraftForge.EVENT_BUS.register(proxy);
     
         registerMaterialStats();
+        PlusTiC.addMaterials();
     
         proxy.preInit(event);
     }

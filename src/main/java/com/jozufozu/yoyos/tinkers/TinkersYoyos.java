@@ -21,9 +21,11 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.tuple.Pair;
+import slimeknights.mantle.client.book.repository.FileRepository;
 import slimeknights.tconstruct.common.ModelRegisterUtil;
 import slimeknights.tconstruct.library.TinkerRegistry;
 import slimeknights.tconstruct.library.TinkerRegistryClient;
+import slimeknights.tconstruct.library.book.TinkerBook;
 import slimeknights.tconstruct.library.client.ToolBuildGuiInfo;
 import slimeknights.tconstruct.library.materials.Material;
 import slimeknights.tconstruct.library.modifiers.IModifier;
@@ -66,7 +68,7 @@ public class TinkersYoyos
     {
         registerToolParts();
         registerTools();
-    
+        
         for (Pair<Item, ToolPart> toolPartPattern : toolPartPatterns)
         {
             registerStencil(toolPartPattern.getLeft(), toolPartPattern.getRight());
@@ -152,69 +154,44 @@ public class TinkersYoyos
         
         /*Metals*/
         TinkerRegistry.addMaterialStats(TinkerMaterials.bronze, new BodyMaterialStats(3.5F, 2F, 450), new AxleMaterialStats(0.5F, 1F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.copper, new BodyMaterialStats(3.0F, 1.9F, 210), new AxleMaterialStats(0.4F, 1F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.electrum, new BodyMaterialStats(3.0F, .3F, 50), new AxleMaterialStats(0.0F, 0.8F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.lead, new BodyMaterialStats(3.5F, 6F, 350), new AxleMaterialStats(1.6F, 0.7F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.silver, new BodyMaterialStats(5.0F, 1.7F, 250), new AxleMaterialStats(0.3F, 0.95F));
         
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.iron, new BodyMaterialStats(4.0F, 3.5F, 204), new AxleMaterialStats(0.9F, 0.85F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.pigiron, new BodyMaterialStats(4.5F, 3.7F, 380), new AxleMaterialStats(1.2F, 1.2F));
 
         /*Nether*/
         TinkerRegistry.addMaterialStats(TinkerMaterials.ardite, new BodyMaterialStats(3.6F, 3.2F, 990), new AxleMaterialStats(0.1F, 1.4F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.cobalt, new BodyMaterialStats(4.4F, 0.3F, 530), new AxleMaterialStats(0.4F, 2.3F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.manyullyn, new BodyMaterialStats(8.7F, 4.0F, 820), new AxleMaterialStats(0.1F, 1.2F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.firewood, new BodyMaterialStats(5.0F, 2.7F, 550), new AxleMaterialStats(3.8F, 0.95F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.netherrack, new BodyMaterialStats(3.0F, 3.4F, 230), new AxleMaterialStats(3.6F, 0.8F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.blaze, new AxleMaterialStats(0.2F, 0.8F));
 
         /*Naturals*/
         TinkerRegistry.addMaterialStats(TinkerMaterials.cactus, new AxleMaterialStats(2.5F, 0.6F), new BodyMaterialStats(3.4F, 0.8F, 210));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.flint, new AxleMaterialStats(0.0F, 0.2F), new BodyMaterialStats(2.9F, 0.2F, 150));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.prismarine, new AxleMaterialStats(0.7F, 0.9F), new BodyMaterialStats(6.0F, 1.3F, 430));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.endstone, new AxleMaterialStats(0.5F, 0.85F), new BodyMaterialStats(2.9F, 0.4F, 420));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.sponge, new AxleMaterialStats(4F, 1.2F), new BodyMaterialStats(0.0F, 0.3F, 1050));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.obsidian, new AxleMaterialStats(0.1F, 0.9F), new BodyMaterialStats(4.2F, 1.2F, 120));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.stone, new AxleMaterialStats(2.0F, 0.5F), new BodyMaterialStats(3.0F, 2.0F, 120));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.wood, new AxleMaterialStats(3.1F, 1.0F), new BodyMaterialStats(2.0F, 1.1F, 35));
 
         /*Misc*/
         TinkerRegistry.addMaterialStats(TinkerMaterials.paper, new BodyMaterialStats(1.5F, 0.1F, 5), new AxleMaterialStats(1.2F, 0.2F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.string, new CordMaterialStats(0.01F, 6F));
-        
-        TinkerRegistry.addMaterialStats(TinkerMaterials.bone, new BodyMaterialStats(2.5F, .3F, 200), new AxleMaterialStats(0.01F, 1.1F));
-        
+        TinkerRegistry.addMaterialStats(TinkerMaterials.bone, new BodyMaterialStats(2.5F, .3F, 200), new AxleMaterialStats(0.05F, 0.9F));
         TinkerRegistry.addMaterialStats(TinkerMaterials.ice, new BodyMaterialStats(4.5F, 0.9F, 20), new AxleMaterialStats(0.0F, 0.1F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.vine, new CordMaterialStats(1.2F, 8F));
 
 
         /*Slime*/
         TinkerRegistry.addMaterialStats(TinkerMaterials.blueslime, new BodyMaterialStats(1.2F, 0.6F, 800), new AxleMaterialStats(2F, 0.3F), new CordMaterialStats(1.0F, 8F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.magmaslime, new BodyMaterialStats(3.3F, 0.6F, 450), new AxleMaterialStats(1.3F, 0.3F), new CordMaterialStats(1.0F, 8F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.knightslime, new BodyMaterialStats(6.1F, 0.6F, 600), new AxleMaterialStats(2F, 0.3F), new CordMaterialStats(2.0F, 16F));
-        
         TinkerRegistry.addMaterialStats(TinkerMaterials.slime, new BodyMaterialStats(1.2F, 0.6F, 1000), new AxleMaterialStats(2F, 0.3F), new CordMaterialStats(1.0F, 8F));
         //TinkerMaterials.slime.addTrait(null, YoyoMaterialTypes.BODY);
 
@@ -296,6 +273,10 @@ public class TinkersYoyos
         public void init(FMLInitializationEvent event)
         {
             super.init(event);
+    
+            TinkerBook.INSTANCE.addRepository(new FileRepository(String.format("%s:%s", Yoyos.MODID, "book")));
+            TinkerBook.INSTANCE.addTransformer(new YoyoMaterialSectionTransformer());
+            
             ToolBuildGuiInfo info = new ToolBuildGuiInfo(YOYO);
             info.addSlotPosition(28, 62);
             info.addSlotPosition(8, 30);

@@ -44,6 +44,12 @@ public class ClientProxy extends CommonProxy
         RenderingRegistry.registerEntityRenderingHandler(EntityStickyYoyo.class, RenderYoYo::new);
     }
     
+    @Override
+    public boolean runningOnClient()
+    {
+        return true;
+    }
+    
     public static void registerModel(Item item)
     {
         ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(Yoyos.MODID + ":" + item.getUnlocalizedName().substring(5)));

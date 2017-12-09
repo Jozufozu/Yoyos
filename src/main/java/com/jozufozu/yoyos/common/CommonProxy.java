@@ -20,8 +20,8 @@ public abstract class CommonProxy
         YoyoNetwork.initialize();
     }
     
-    public static class ServerProxy extends CommonProxy
+    public boolean runningOnClient()
     {
-    
+        return false;
     }
 }

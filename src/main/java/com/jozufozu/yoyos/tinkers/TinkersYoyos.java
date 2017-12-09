@@ -2,7 +2,6 @@ package com.jozufozu.yoyos.tinkers;
 
 import com.google.common.collect.Lists;
 import com.jozufozu.yoyos.Yoyos;
-import com.jozufozu.yoyos.common.CommonProxy;
 import com.jozufozu.yoyos.tinkers.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.BodyMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
@@ -26,7 +25,6 @@ import slimeknights.tconstruct.library.TinkerRegistry;
 import slimeknights.tconstruct.library.TinkerRegistryClient;
 import slimeknights.tconstruct.library.book.TinkerBook;
 import slimeknights.tconstruct.library.client.ToolBuildGuiInfo;
-import slimeknights.tconstruct.library.events.MaterialEvent;
 import slimeknights.tconstruct.library.materials.Material;
 import slimeknights.tconstruct.library.modifiers.IModifier;
 import slimeknights.tconstruct.library.modifiers.Modifier;
@@ -101,19 +99,10 @@ public class TinkersYoyos
     
     public static void preInit(FMLPreInitializationEvent event)
     {
-        if (Yoyos.proxy instanceof CommonProxy.ServerProxy)
-        {
-            proxy = new TinkersProxy.TinkersServerProxy();
-        }
-        else
-        {
-            proxy = new TinkersClientProxy();
-        }
+        proxy = (Yoyos.proxy.runningOnClient() ? new TinkersClientProxy() : new TinkersProxy());
     
         MinecraftForge.EVENT_BUS.register(TinkersYoyos.class);
         MinecraftForge.EVENT_BUS.register(proxy);
-    
-        proxy.preInit(event);
     }
     
     public static void init(FMLInitializationEvent event)
@@ -125,13 +114,7 @@ public class TinkersYoyos
     
     public static void postInit(FMLPostInitializationEvent event)
     {
-        proxy.postInit(event);
-    }
-    
-    @SubscribeEvent
-    public static void onMaterial(MaterialEvent.MaterialRegisterEvent event)
-    {
-        Compatibility.addMaterialStats(event);
+        Compatibility.STATS.clear(); //Free up some space
     }
     
     private static void registerToolParts()

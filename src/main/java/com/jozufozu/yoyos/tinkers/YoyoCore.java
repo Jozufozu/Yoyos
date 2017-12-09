@@ -17,6 +17,7 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import slimeknights.tconstruct.common.ClientProxy;
 import slimeknights.tconstruct.library.Util;
 import slimeknights.tconstruct.library.materials.Material;
 import slimeknights.tconstruct.library.tinkering.Category;
@@ -28,6 +29,7 @@ import slimeknights.tconstruct.library.utils.TagUtil;
 import slimeknights.tconstruct.library.utils.TinkerUtil;
 import slimeknights.tconstruct.library.utils.ToolHelper;
 import slimeknights.tconstruct.library.utils.TooltipBuilder;
+import slimeknights.tconstruct.tools.TinkerMaterials;
 
 import java.util.List;
 
@@ -44,9 +46,8 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     @Override
     public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> subItems)
     {
-        super.getSubItems(tab, subItems);
         if (this.isInCreativeTab(tab)) {
-            addInfiTool(subItems, "InfiSpinner");
+            addDefaultSubItems(subItems, TinkerMaterials.string, null, null, null);
         }
     }
     
@@ -149,6 +150,18 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
         }
         
         return new ActionResult<>(EnumActionResult.SUCCESS, itemStackIn);
+    }
+    
+    @Override
+    @SideOnly(Side.CLIENT)
+    public Material getMaterialForPartForGuiRendering(int index) {
+        switch(index) {
+            case 0: return ClientProxy.RenderMaterialString;
+            case 1: return ClientProxy.RenderMaterials[2];
+            case 2: return ClientProxy.RenderMaterials[1];
+            case 3: return ClientProxy.RenderMaterials[0];
+            default: return super.getMaterialForPartForGuiRendering(index);
+        }
     }
     
     @Override

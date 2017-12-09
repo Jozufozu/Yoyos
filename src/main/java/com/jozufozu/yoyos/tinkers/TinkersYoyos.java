@@ -3,7 +3,6 @@ package com.jozufozu.yoyos.tinkers;
 import com.google.common.collect.Lists;
 import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.CommonProxy;
-import com.jozufozu.yoyos.tinkers.compat.PlusTiC;
 import com.jozufozu.yoyos.tinkers.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.BodyMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
@@ -27,6 +26,7 @@ import slimeknights.tconstruct.library.TinkerRegistry;
 import slimeknights.tconstruct.library.TinkerRegistryClient;
 import slimeknights.tconstruct.library.book.TinkerBook;
 import slimeknights.tconstruct.library.client.ToolBuildGuiInfo;
+import slimeknights.tconstruct.library.events.MaterialEvent;
 import slimeknights.tconstruct.library.materials.Material;
 import slimeknights.tconstruct.library.modifiers.IModifier;
 import slimeknights.tconstruct.library.modifiers.Modifier;
@@ -66,6 +66,8 @@ public class TinkersYoyos
     @SubscribeEvent
     public static void onRegistryRegister(RegistryEvent.Register<Item> event)
     {
+        registerMaterialStats();
+        Compatibility.registerMaterialStats();
         registerToolParts();
         registerTools();
         
@@ -111,9 +113,6 @@ public class TinkersYoyos
         MinecraftForge.EVENT_BUS.register(TinkersYoyos.class);
         MinecraftForge.EVENT_BUS.register(proxy);
     
-        registerMaterialStats();
-        PlusTiC.addMaterials();
-    
         proxy.preInit(event);
     }
     
@@ -127,6 +126,12 @@ public class TinkersYoyos
     public static void postInit(FMLPostInitializationEvent event)
     {
         proxy.postInit(event);
+    }
+    
+    @SubscribeEvent
+    public static void onMaterial(MaterialEvent.MaterialRegisterEvent event)
+    {
+        Compatibility.addMaterialStats(event);
     }
     
     private static void registerToolParts()
@@ -182,7 +187,7 @@ public class TinkersYoyos
 
         /*Misc*/
         TinkerRegistry.addMaterialStats(TinkerMaterials.paper, new BodyMaterialStats(1.5F, 0.1F, 5), new AxleMaterialStats(1.2F, 0.2F));
-        TinkerRegistry.addMaterialStats(TinkerMaterials.string, new CordMaterialStats(0.01F, 6F));
+        TinkerRegistry.addMaterialStats(TinkerMaterials.string, new CordMaterialStats(0.05F, 6F));
         TinkerRegistry.addMaterialStats(TinkerMaterials.bone, new BodyMaterialStats(2.5F, .3F, 200), new AxleMaterialStats(0.05F, 0.9F));
         TinkerRegistry.addMaterialStats(TinkerMaterials.ice, new BodyMaterialStats(4.5F, 0.9F, 20), new AxleMaterialStats(0.0F, 0.1F));
         TinkerRegistry.addMaterialStats(TinkerMaterials.vine, new CordMaterialStats(1.2F, 8F));

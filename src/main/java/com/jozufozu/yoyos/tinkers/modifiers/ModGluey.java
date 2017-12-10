@@ -43,7 +43,7 @@ public class ModGluey extends ToolModifier
     {
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(rootCompound, Tags.TOOL_DATA));
     
-        toolData.attack *= 0.3f;
+        toolData.attack *= 0.7f;
     
         TagUtil.setToolTag(rootCompound, toolData.get());
     }

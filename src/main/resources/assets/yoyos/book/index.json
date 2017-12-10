@@ -1,5 +1,14 @@
 [
   {
+    "name": "yoyoinfo",
+    "data": "sections/yoyoinfo.json",
+    "icon": {
+      "item": {
+        "id": "minecraft:string"
+      }
+    }
+  },
+  {
     "name": "yoyomaterials",
     "icon": {
       "item": {

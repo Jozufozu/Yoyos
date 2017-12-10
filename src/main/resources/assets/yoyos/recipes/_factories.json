@@ -1,0 +1,5 @@
+{
+    "conditions": {
+        "is_mod_loaded": "com.jozufozu.yoyos.common.IsModLoadedConditionFactory"
+    }
+}

@@ -45,6 +45,9 @@ public class ModLubricated extends ToolModifier
         ModifierNBT.IntegerNBT data = ModifierNBT.readInteger(modifierTag);
         
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(rootCompound, Tags.TOOL_DATA));
+        
+        if (toolData.duration == 0) toolData.duration = 1;
+        
         float friction = 100 / toolData.duration;
         
         for (int i = data.level; i > 0; i--)

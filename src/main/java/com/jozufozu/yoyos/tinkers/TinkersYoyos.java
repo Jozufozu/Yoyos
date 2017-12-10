@@ -8,6 +8,8 @@ import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.YoyoMaterialTypes;
 import com.jozufozu.yoyos.tinkers.modifiers.*;
 import com.jozufozu.yoyos.tinkers.traits.TraitSticky;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemFishFood;
@@ -20,12 +22,19 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.tuple.Pair;
+import slimeknights.mantle.client.book.BookLoader;
+import slimeknights.mantle.client.book.BookTransformer;
+import slimeknights.mantle.client.book.data.BookData;
 import slimeknights.mantle.client.book.repository.FileRepository;
 import slimeknights.tconstruct.common.ModelRegisterUtil;
 import slimeknights.tconstruct.library.TinkerRegistry;
 import slimeknights.tconstruct.library.TinkerRegistryClient;
-import slimeknights.tconstruct.library.book.TinkerBook;
+import slimeknights.tconstruct.library.book.sectiontransformer.MaterialSectionTransformer;
+import slimeknights.tconstruct.library.book.sectiontransformer.ModifierSectionTransformer;
+import slimeknights.tconstruct.library.client.CustomFontRenderer;
 import slimeknights.tconstruct.library.client.ToolBuildGuiInfo;
 import slimeknights.tconstruct.library.materials.Material;
 import slimeknights.tconstruct.library.modifiers.IModifier;
@@ -51,6 +60,8 @@ public class TinkersYoyos
     private static List<ToolPart> toolParts = Lists.newArrayList();
     private static List<Pair<Item, ToolPart>> toolPartPatterns = Lists.newArrayList();
     
+    public static Item BOOK;
+    
     public static ToolPart YOYO_AXLE;
     public static ToolPart YOYO_BODY;
     public static ToolPart YOYO_CORD;
@@ -73,6 +84,8 @@ public class TinkersYoyos
         Compatibility.registerMaterialStats();
         registerToolParts();
         registerTools();
+        
+        BOOK = registerItem(new ItemYoyoBook(), "book");
         
         for (Pair<Item, ToolPart> toolPartPattern : toolPartPatterns)
         {
@@ -241,8 +254,11 @@ public class TinkersYoyos
         return item;
     }
     
+    @SideOnly(Side.CLIENT)
     public static class TinkersClientProxy extends TinkersProxy
     {
+        public final static BookData INSTANCE = BookLoader.registerBook("yoyos", false, false);
+        
         @SubscribeEvent
         public void onModelRegistry(ModelRegistryEvent event)
         {
@@ -263,7 +279,7 @@ public class TinkersYoyos
             yoyoMods.add(LUBRICATED);
             yoyoMods.add(FLOATING);
             yoyoMods.add(GARDENING);
-            yoyoMods.add(STICKY);
+            yoyoMods.add(GLUEY);
     
             for (IModifier modifier : yoyoMods)
                 ModelRegisterUtil.registerModifierModel(modifier, new ResourceLocation(Yoyos.MODID, "models/item/modifiers/" + modifier.getIdentifier()));
@@ -273,9 +289,23 @@ public class TinkersYoyos
         public void init(FMLInitializationEvent event)
         {
             super.init(event);
+            
+            Minecraft mc = Minecraft.getMinecraft();
+            FontRenderer bookRenderer = new CustomFontRenderer(mc.gameSettings,
+                    new ResourceLocation("textures/font/ascii.png"),
+                    mc.renderEngine);
+            bookRenderer.setUnicodeFlag(true);
+            if(mc.gameSettings.language != null) {
+                bookRenderer.setBidiFlag(mc.getLanguageManager().isCurrentLanguageBidirectional());
+            }
+            INSTANCE.fontRenderer = bookRenderer;
     
-            TinkerBook.INSTANCE.addRepository(new FileRepository(String.format("%s:%s", Yoyos.MODID, "book")));
-            TinkerBook.INSTANCE.addTransformer(new YoyoMaterialSectionTransformer());
+            INSTANCE.addRepository(new FileRepository(String.format("%s:%s", Yoyos.MODID, "book")));
+            INSTANCE.addTransformer(new MaterialSectionTransformer());
+            INSTANCE.addTransformer(new ModifierSectionTransformer());
+            INSTANCE.addTransformer(BookTransformer.IndexTranformer());
+            INSTANCE.addTransformer(new YoyoMaterialSectionTransformer());
+            
             
             ToolBuildGuiInfo info = new ToolBuildGuiInfo(YOYO);
             info.addSlotPosition(28, 62);

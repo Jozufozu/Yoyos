@@ -5,6 +5,7 @@ import com.jozufozu.yoyos.tinkers.materials.YoyoNBT;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import slimeknights.tconstruct.library.Util;
+import slimeknights.tconstruct.library.modifiers.IToolMod;
 import slimeknights.tconstruct.library.modifiers.ModifierAspect;
 import slimeknights.tconstruct.library.modifiers.TinkerGuiException;
 import slimeknights.tconstruct.library.utils.TagUtil;
@@ -14,20 +15,26 @@ import slimeknights.tconstruct.tools.modifiers.ToolModifier;
 /**
  * Sticks to blocks
  */
-public class ModSticky extends ToolModifier
+public class ModGluey extends ToolModifier
 {
-    public ModSticky()
+    public ModGluey()
     {
-        super("sticky", 0x63BD74);
+        super("gluey", 0x63BD74);
         
         addAspects(new ModifierAspect.DataAspect(this), new ModifierAspect.SingleAspect(this), ModifierAspect.freeModifier);
+    }
+    
+    @Override
+    public boolean canApplyTogether(IToolMod otherModifier)
+    {
+        return otherModifier != TinkersYoyos.STICKY;
     }
     
     @Override
     protected boolean canApplyCustom(ItemStack stack) throws TinkerGuiException
     {
         if (stack.getItem() != TinkersYoyos.YOYO)
-            throw new TinkerGuiException(Util.translateFormatted("gui.error.not_a_yoyo", Util.translate("modifier.sticky.name")));
+            throw new TinkerGuiException(Util.translateFormatted("gui.error.not_a_yoyo", Util.translate("modifier.gluey.name")));
         return true;
     }
     

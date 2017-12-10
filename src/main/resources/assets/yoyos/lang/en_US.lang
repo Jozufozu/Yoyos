@@ -62,7 +62,10 @@ modifier.gardening.name=Shear
 modifier.gardening.desc=§oSnip, snip...§r\nCuts down grass and flowers and such. Also sheep. It shears sheep.
 
 modifier.sticky.name=Sticky
-modifier.sticky.desc=§oUm... I think it's stuck.§r\nSTicks to blocks and allows you to reel yourself in.
+modifier.sticky.desc=§oI... I can't get it off.§r\nSticks to blocks and allows you to reel yourself in.
+
+modifier.gluey.name=Gluey
+modifier.gluey.desc=§oSafe, Non-toxic§r\nSticks to blocks and allows you to reel yourself in, at the cost of damage.
 
 gui.error.not_a_yoyo=%s can only be applied to yoyos!
 gui.error.too_light=Weighs too little!

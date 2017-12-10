@@ -12,6 +12,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
@@ -139,11 +140,12 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
             else if (ToolHelper.getCurrentDurability(itemStackIn) > 0)
             {
                 worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_BOBBER_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
-                
-                if (TinkerUtil.getModifierTag(itemStackIn, "sticky").hasNoTags())
-                    worldIn.spawnEntity(new EntityYoyo(worldIn, playerIn));
-                else
+    
+                NBTTagCompound root = TagUtil.getTagSafe(itemStackIn);
+                if (TinkerUtil.hasTrait(root, "sticky") || TinkerUtil.hasModifier(root, "gluey"))
                     worldIn.spawnEntity(new EntityStickyYoyo(worldIn, playerIn));
+                else
+                    worldIn.spawnEntity(new EntityYoyo(worldIn, playerIn));
                 
                 playerIn.swingArm(hand);
             }

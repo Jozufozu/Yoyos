@@ -5,7 +5,9 @@ import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.tinkers.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.BodyMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
+import com.jozufozu.yoyos.tinkers.materials.YoyoMaterialTypes;
 import com.jozufozu.yoyos.tinkers.modifiers.*;
+import com.jozufozu.yoyos.tinkers.traits.TraitSticky;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemFishFood;
@@ -32,6 +34,8 @@ import slimeknights.tconstruct.library.tinkering.PartMaterialType;
 import slimeknights.tconstruct.library.tools.Pattern;
 import slimeknights.tconstruct.library.tools.ToolCore;
 import slimeknights.tconstruct.library.tools.ToolPart;
+import slimeknights.tconstruct.library.traits.AbstractTrait;
+import slimeknights.tconstruct.library.traits.ITrait;
 import slimeknights.tconstruct.tools.TinkerMaterials;
 import slimeknights.tconstruct.tools.TinkerModifiers;
 import slimeknights.tconstruct.tools.TinkerTools;
@@ -57,7 +61,8 @@ public class TinkersYoyos
     public static Modifier FLOATING;
     public static Modifier LUBRICATED;
     public static Modifier GARDENING;
-    public static Modifier STICKY;
+    public static Modifier GLUEY;
+    public static AbstractTrait STICKY = new TraitSticky();
     
     public static TinkersProxy proxy;
     
@@ -88,8 +93,8 @@ public class TinkersYoyos
         GARDENING = new ModGardening();
         GARDENING.addItem(Items.SHEARS);
         
-        STICKY = new ModSticky();
-        STICKY.addItem("slimeball", 2, 1);
+        GLUEY = new ModGluey();
+        GLUEY.addItem("slimeball", 2, 1);
         
         for (Item item : TinkersYoyos.modItems)
         {
@@ -115,6 +120,10 @@ public class TinkersYoyos
     public static void postInit(FMLPostInitializationEvent event)
     {
         Compatibility.STATS.clear(); //Free up some space
+    
+        for (Material material : TinkerRegistry.getAllMaterials())
+            for (ITrait trait : material.getAllTraitsForStats(YoyoMaterialTypes.HEAD))
+                material.addTrait(trait, YoyoMaterialTypes.BODY);
     }
     
     private static void registerToolParts()
@@ -181,7 +190,10 @@ public class TinkersYoyos
         TinkerRegistry.addMaterialStats(TinkerMaterials.magmaslime, new BodyMaterialStats(3.3F, 0.6F, 450), new AxleMaterialStats(1.3F, 0.3F), new CordMaterialStats(1.0F, 8F));
         TinkerRegistry.addMaterialStats(TinkerMaterials.knightslime, new BodyMaterialStats(6.1F, 0.6F, 600), new AxleMaterialStats(2F, 0.3F), new CordMaterialStats(2.0F, 16F));
         TinkerRegistry.addMaterialStats(TinkerMaterials.slime, new BodyMaterialStats(1.2F, 0.6F, 1000), new AxleMaterialStats(2F, 0.3F), new CordMaterialStats(1.0F, 8F));
-        //TinkerMaterials.slime.addTrait(null, YoyoMaterialTypes.BODY);
+        TinkerMaterials.slime.addTrait(STICKY, YoyoMaterialTypes.BODY);
+        TinkerMaterials.blueslime.addTrait(STICKY, YoyoMaterialTypes.BODY);
+        TinkerMaterials.magmaslime.addTrait(STICKY, YoyoMaterialTypes.BODY);
+        TinkerMaterials.knightslime.addTrait(STICKY, YoyoMaterialTypes.BODY);
 
         TinkerRegistry.addMaterialStats(TinkerMaterials.slimevine_blue, new CordMaterialStats(1.5F, 10F));
         

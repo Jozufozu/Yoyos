@@ -29,7 +29,7 @@ public class ItemYoyoBook extends Item {
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
         ItemStack itemStack = playerIn.getHeldItem(handIn);
         if(worldIn.isRemote) {
-            TinkersYoyos.TinkersClientProxy.INSTANCE.openGui(itemStack);
+            TinkersClientProxy.INSTANCE.openGui(itemStack);
         }
         return new ActionResult<>(EnumActionResult.SUCCESS, itemStack);
     }

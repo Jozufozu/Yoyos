@@ -28,7 +28,7 @@ public class Yoyos
     public static final String NAME = "Yoyos";
     public static final String VERSION = "@VERSION@";
     
-    @SidedProxy(clientSide = "com.jozufozu.yoyos.client.ClientProxy", serverSide = "com.jozufozu.yoyos.common.CommonProxy$ServerProxy")
+    @SidedProxy(clientSide = "com.jozufozu.yoyos.client.ClientProxy", serverSide = "com.jozufozu.yoyos.common.CommonProxy")
     public static CommonProxy proxy;
     
     public static Item CORD;

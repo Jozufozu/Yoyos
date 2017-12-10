@@ -248,7 +248,7 @@ public class TinkersYoyos
             throw new IllegalArgumentException(String.format("Unlocalized names need to be all lowercase! Item: %s", name));
         }
         
-        item.setUnlocalizedName(name);
+        item.setUnlocalizedName(String.format("%s.%s", Yoyos.MODID, name));
         item.setRegistryName(new ResourceLocation(Yoyos.MODID, name));
         modItems.add(item);
         return item;
@@ -264,6 +264,7 @@ public class TinkersYoyos
         {
             toolParts.forEach(ModelRegisterUtil::registerPartModel);
             ModelRegisterUtil.registerToolModel(YOYO);
+            ModelRegisterUtil.registerItemModel(BOOK);
     
             List<IModifier> yoyoMods = new ArrayList<>();
     

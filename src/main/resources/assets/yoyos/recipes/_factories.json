@@ -1,5 +1,6 @@
 {
     "conditions": {
-        "is_mod_loaded": "com.jozufozu.yoyos.common.IsModLoadedConditionFactory"
+        "is_mod_loaded": "com.jozufozu.yoyos.common.conditions.IsModLoadedConditionFactory",
+        "are_yoyos_enabled": "com.jozufozu.yoyos.common.conditions.AreYoyosEnabledFactory"
     }
 }

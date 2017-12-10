@@ -1,5 +1,10 @@
 {
   "type": "forge:ore_shaped",
+  "conditions": [
+    {
+      "type": "yoyos:are_yoyos_enabled"
+    }
+  ],
   "pattern": [
     "SYS"
   ],

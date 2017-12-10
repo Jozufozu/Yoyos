@@ -1,4 +1,4 @@
-package com.jozufozu.yoyos.common;
+package com.jozufozu.yoyos.common.conditions;
 
 import com.google.gson.JsonObject;
 import net.minecraft.util.JsonUtils;

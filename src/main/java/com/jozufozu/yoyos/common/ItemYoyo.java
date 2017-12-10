@@ -49,7 +49,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
         this.material = material;
         this.gardening = gardening;
         
-        this.setUnlocalizedName(name);
+        this.setUnlocalizedName(String.format("%s.%s", Yoyos.MODID, name));
         this.setRegistryName(Yoyos.MODID, name);
         
         if (!gardening) this.setCreativeTab(CreativeTabs.COMBAT);

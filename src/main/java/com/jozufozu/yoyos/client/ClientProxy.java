@@ -52,6 +52,6 @@ public class ClientProxy extends CommonProxy
     
     public static void registerModel(Item item)
     {
-        ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(Yoyos.MODID + ":" + item.getUnlocalizedName().substring(5)));
+        ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
     }
 }

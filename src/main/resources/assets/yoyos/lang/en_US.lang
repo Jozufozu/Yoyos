@@ -1,12 +1,12 @@
-item.wooden_yoyo.name=Wooden Yoyo
-item.stone_yoyo.name=Stone Yoyo
-item.iron_yoyo.name=Iron Yoyo
-item.diamond_yoyo.name=Diamond Yoyo
-item.gold_yoyo.name=Gold Yoyo
-item.shear_yoyo.name=Shear Yoyo
-item.sticky_yoyo.name=Sticky Yoyo
+item.yoyos.wooden_yoyo.name=Wooden Yoyo
+item.yoyos.stone_yoyo.name=Stone Yoyo
+item.yoyos.iron_yoyo.name=Iron Yoyo
+item.yoyos.diamond_yoyo.name=Diamond Yoyo
+item.yoyos.gold_yoyo.name=Gold Yoyo
+item.yoyos.shear_yoyo.name=Shear Yoyo
+item.yoyos.sticky_yoyo.name=Sticky Yoyo
 
-item.cord.name=Cord
+item.yoyos.cord.name=Cord
 
 yoyos.config.vanilla=Vanilla Yoyos
 yoyos.config.enable=Enable
@@ -25,12 +25,15 @@ info.length.name=Length: %s blocks
 info.sticky.name=Sticks to blocks and acts like a rope swing.
 info.sticky.retraction.name=Hold %s to retract string.
 
-item.yoyo.name=Yoyo
-item.yoyo_axle.name=Axle
-item.yoyo_body.name=Body
-item.yoyo_cord.name=Cord
+item.yoyos.book.name=Yoyos and You
+item.yoyos.book.tooltip=How to become a master thrower\nby Jozufozu
 
-item.yoyo.desc=The Yoyo is a ranged melee weapon allowing you to tear your opponents to shreds.\nIt is also a children's toy. Go figure.
+item.yoyos.yoyo.name=Yoyo
+item.yoyos.yoyo_axle.name=Axle
+item.yoyos.yoyo_body.name=Body
+item.yoyos.yoyo_cord.name=Cord
+
+item.yoyos.yoyo.desc=The Yoyo is a ranged melee weapon allowing you to tear your opponents to shreds.\nIt is also a children's toy. Go figure.
 
 stat.axle.name=Axle
 stat.body.name=Body

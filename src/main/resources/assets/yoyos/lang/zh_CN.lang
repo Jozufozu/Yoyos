@@ -1,12 +1,12 @@
-item.wooden_yoyo.name=木质悠悠球
-item.stone_yoyo.name=石质悠悠球
-item.iron_yoyo.name=铁质悠悠球
-item.diamond_yoyo.name=钻石质悠悠球
-item.gold_yoyo.name=金质悠悠球
-item.shear_yoyo.name=铁质悠悠球（剪刀）
-item.sticky_yoyo.name=钻石质悠悠球（粘液）
+item.yoyos.wooden_yoyo.name=木质悠悠球
+item.yoyos.stone_yoyo.name=石质悠悠球
+item.yoyos.iron_yoyo.name=铁质悠悠球
+item.yoyos.diamond_yoyo.name=钻石质悠悠球
+item.yoyos.gold_yoyo.name=金质悠悠球
+item.yoyos.shear_yoyo.name=铁质悠悠球（剪刀）
+item.yoyos.sticky_yoyo.name=钻石质悠悠球（粘液）
 
-item.cord.name=捆绳
+item.yoyos.cord.name=捆绳
 
 yoyos.config.vanilla=Vanilla Yoyos
 yoyos.config.enable=Enable
@@ -25,12 +25,15 @@ info.length.name=长度：%s个方块
 info.sticky.name=具有粘液性的悠悠球会黏着在方块上持续滚动。
 info.sticky.retraction.name=保持%s以收回悠悠球。
 
-item.yoyo.name=悠悠球
-item.yoyo_axle.name=轮轴
-item.yoyo_body.name=外壳
-item.yoyo_cord.name=捆绳
+item.yoyos.book.name=悠悠球和你
+item.yoyos.book.tooltip=如何成为高手\nby Jozufozu
 
-item.yoyo.desc=悠悠球是一种远程武器，你可以利用它来撕裂你的对手。\n当然，它也是一种儿童玩具。你可以去了解与它相关的知识。
+item.yoyos.yoyo.name=悠悠球
+item.yoyos.yoyo_axle.name=轮轴
+item.yoyos.yoyo_body.name=外壳
+item.yoyos.yoyo_cord.name=捆绳
+
+item.yoyos.yoyo.desc=悠悠球是一种远程武器，你可以利用它来撕裂你的对手。\n当然，它也是一种儿童玩具。你可以去了解与它相关的知识。
 
 stat.axle.name=轮轴
 stat.body.name=外壳

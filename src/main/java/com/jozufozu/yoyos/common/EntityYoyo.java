@@ -26,6 +26,7 @@ import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.FakePlayer;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.registry.IThrowableEntity;
 import slimeknights.tconstruct.library.utils.TagUtil;
 import slimeknights.tconstruct.library.utils.TinkerUtil;
@@ -246,7 +247,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     
         Vec3d motionVec = target.subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / weight, 1.1));
     
-        if (inWater && !TinkerUtil.hasTrait(TagUtil.getTagSafe(this.yoyoStack), TinkerTraits.aquadynamic.identifier))
+        if (inWater && (!Loader.isModLoaded("tconstruct") || !TinkerUtil.hasTrait(TagUtil.getTagSafe(this.yoyoStack), TinkerTraits.aquadynamic.identifier)))
             motionVec = motionVec.scale(0.3);
     
         motionX = motionVec.x;

@@ -3,15 +3,15 @@ item.yoyos.stone_yoyo.name=石质悠悠球
 item.yoyos.iron_yoyo.name=铁质悠悠球
 item.yoyos.diamond_yoyo.name=钻石质悠悠球
 item.yoyos.gold_yoyo.name=金质悠悠球
-item.yoyos.shear_yoyo.name=铁质悠悠球（剪刀）
-item.yoyos.sticky_yoyo.name=钻石质悠悠球（粘液）
+item.yoyos.shear_yoyo.name=裁剪悠悠球
+item.yoyos.sticky_yoyo.name=粘性悠悠球
 
 item.yoyos.cord.name=捆绳
 
-yoyos.config.vanilla=Vanilla Yoyos
-yoyos.config.enable=Enable
-yoyos.config.tinkers=Tinkers' Yoyos
-yoyos.config.swing=Yoyo Swinging
+yoyos.config.vanilla=原版悠悠球
+yoyos.config.enable=启用
+yoyos.config.tinkers=匠魂悠悠球
+yoyos.config.swing=悠悠球摆动
 
 yoyos.config.damage=伤害
 yoyos.config.weight=重量
@@ -25,8 +25,8 @@ info.length.name=长度：%s个方块
 info.sticky.name=具有粘液性的悠悠球会黏着在方块上持续滚动。
 info.sticky.retraction.name=保持%s以收回悠悠球。
 
-item.yoyos.book.name=悠悠球和你
-item.yoyos.book.tooltip=如何成为高手\nby Jozufozu
+item.yoyos.book.name=悠悠球手册
+item.yoyos.book.tooltip=从入门到精通\nby Jozufozu
 
 item.yoyos.yoyo.name=悠悠球
 item.yoyos.yoyo_axle.name=轮轴
@@ -63,6 +63,12 @@ modifier.floating.desc=§o仲夏夜之梦！§r\n悠悠球将便得如气球一�
 
 modifier.gardening.name=裁剪
 modifier.gardening.desc=§o精湛的牧羊人...§r\n收割所到之处的草与花，它甚至可以进行修剪羊毛。
+
+modifier.sticky.name=粘性
+modifier.sticky.desc=§o我...我无法理解§r\n黏着在方块上，从而带动玩家进行远程移动。
+
+modifier.gluey.name=凝胶
+modifier.gluey.desc=§o安全，无毒§r\n黏着在方块上，从而带动玩家进行远程移动；但会损耗耐久。
 
 gui.error.not_a_yoyo=%s只能用于悠悠球！
 gui.error.too_light=重量实在太轻了！

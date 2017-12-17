@@ -690,6 +690,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     
     public void handleBlockBreaking(IYoyo yoyo, BlockPos pos, Block block, IBlockState state)
     {
+        if (block == Blocks.AIR)
+            return;
+        
         if (block instanceof IShearable)
         {
             IShearable shearable = (IShearable) block;
@@ -716,9 +719,11 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                 world.playSound(null, pos, block.getSoundType(state, world, pos, this).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
                 block.removedByPlayer(state, world, pos, thrower, true);
                 world.playEvent(2001, pos, Block.getStateId(state));
+                return;
             }
         }
-        else if (block != Blocks.AIR && block instanceof BlockBush)
+        
+        if (block instanceof BlockBush)
         {
             block.harvestBlock(world, thrower, pos, state, world.getTileEntity(pos), yoyoStack);
             

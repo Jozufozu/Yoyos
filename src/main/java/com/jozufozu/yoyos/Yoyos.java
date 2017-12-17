@@ -19,6 +19,8 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 
+import java.io.File;
+
 @Mod(name = Yoyos.NAME, modid = Yoyos.MODID, version = Yoyos.VERSION, dependencies = "after:tconstruct;after:plustic", acceptedMinecraftVersions = "[1.12, 1.13)")
 public class Yoyos
 {
@@ -31,6 +33,8 @@ public class Yoyos
     
     @SidedProxy(clientSide = "com.jozufozu.yoyos.client.ClientProxy", serverSide = "com.jozufozu.yoyos.common.CommonProxy")
     public static CommonProxy proxy;
+    
+    public static File CONFIG_DIR;
     
     public static Item CORD;
     
@@ -79,6 +83,8 @@ public class Yoyos
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event)
     {
+        CONFIG_DIR = new File(event.getModConfigurationDirectory(), "/" + MODID);
+        
         MinecraftForge.EVENT_BUS.register(proxy);
         proxy.preInit(event);
         

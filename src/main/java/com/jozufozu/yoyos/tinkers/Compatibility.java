@@ -4,10 +4,7 @@ import com.google.common.collect.Sets;
 import com.jozufozu.yoyos.tinkers.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.BodyMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.YoyoMaterialTypes;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import slimeknights.tconstruct.library.TinkerRegistry;
-import slimeknights.tconstruct.library.events.MaterialEvent;
 import slimeknights.tconstruct.library.materials.HandleMaterialStats;
 import slimeknights.tconstruct.library.materials.HeadMaterialStats;
 import slimeknights.tconstruct.library.materials.IMaterialStats;
@@ -26,7 +23,6 @@ public class Compatibility
     
     public static void registerMaterialStats()
     {
-        MinecraftForge.EVENT_BUS.register(Compatibility.class);
         addBodies();
         addAxles();
     }
@@ -137,31 +133,8 @@ public class Compatibility
     
     }
     
-    @SubscribeEvent
-    public static void addMaterialStats(MaterialEvent.MaterialRegisterEvent event)
-    {
-        Set<IMaterialStats> stats = STATS.get(event.material.identifier);
-        
-        if (stats == null) return;
-    
-        for (IMaterialStats stat : stats)
-        {
-            TinkerRegistry.addMaterialStats(event.material, stat);
-        }
-    }
-    
     public static void tryAddStats(String identifier, IMaterialStats stats, IMaterialStats... stats2)
     {
-        Material material = TinkerRegistry.getMaterial(identifier);
-        if (material != Material.UNKNOWN)
-        {
-            TinkerRegistry.addMaterialStats(material, stats, stats2);
-            return;
-        }
-        
-        //Sometimes materials don't like to exist
-        //This is a way of waiting patiently for them to exist
-        //It's super hacky, but it works
         Set<IMaterialStats> statsSet = STATS.getOrDefault(identifier, Sets.newHashSet());
         
         statsSet.add(stats);

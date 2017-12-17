@@ -9,8 +9,6 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-import java.util.List;
-
 public class MessageCollectedDrops implements IMessage
 {
     private int yoyoID;
@@ -18,12 +16,12 @@ public class MessageCollectedDrops implements IMessage
     
     public MessageCollectedDrops() {}
     
-    public MessageCollectedDrops(EntityYoyo yoyo, List<EntityItem> drops)
+    public MessageCollectedDrops(EntityYoyo yoyo)
     {
         this.yoyoID = yoyo.getEntityId();
-        this.dropIDs = new int[drops.size()];
-        for (int i = 0; i < drops.size(); i++)
-            this.dropIDs[i] = drops.get(i).getEntityId();
+        this.dropIDs = new int[yoyo.collectedDrops.size()];
+        for (int i = 0; i < yoyo.collectedDrops.size(); i++)
+            this.dropIDs[i] = yoyo.collectedDrops.get(i).getEntityId();
     }
     
     @Override

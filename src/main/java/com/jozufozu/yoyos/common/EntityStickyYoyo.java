@@ -63,7 +63,6 @@ public class EntityStickyYoyo extends EntityYoyo
             }
             
             handleSwing();
-            
             if (collecting)
                 updateCapturedDrops();
         }

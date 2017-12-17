@@ -24,7 +24,9 @@ public class EntityStickyYoyo extends EntityYoyo
         {
             this.setFlag(6, this.isGlowing());
         }
-        
+        if (this.firstUpdate)
+            loadOldDrops();
+    
         this.onEntityUpdate();
         
         if (this.thrower != null && !thrower.isDead)
@@ -61,6 +63,9 @@ public class EntityStickyYoyo extends EntityYoyo
             }
             
             handleSwing();
+            
+            if (collecting)
+                updateCapturedDrops();
         }
         else this.setDead();
     }

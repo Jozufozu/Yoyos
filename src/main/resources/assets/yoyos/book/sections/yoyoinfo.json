@@ -22,6 +22,10 @@
   },
   {
     "type": "modifier",
+    "data": "modifiers/collecting.json"
+  },
+  {
+    "type": "modifier",
     "data": "modifiers/lubricated.json"
   }
 ]

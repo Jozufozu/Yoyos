@@ -8,6 +8,7 @@ import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.YoyoMaterialTypes;
 import com.jozufozu.yoyos.tinkers.modifiers.*;
 import com.jozufozu.yoyos.tinkers.traits.TraitSticky;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemFishFood;
@@ -55,6 +56,8 @@ public class TinkersYoyos
     public static Modifier LUBRICATED;
     public static Modifier GARDENING;
     public static Modifier GLUEY;
+    public static Modifier COLLECTING;
+    
     public static AbstractTrait STICKY = new TraitSticky();
     
     public static TinkersProxy proxy;
@@ -76,7 +79,7 @@ public class TinkersYoyos
     
         EXTENSION = new ModExtension();
         EXTENSION.addItem("string");
-        EXTENSION.addItem("blockWool", 1, 4);
+        EXTENSION.addItem(new ItemStack(Blocks.WOOL), 1, 4);
         EXTENSION.addItem(Yoyos.CORD, 1, 8);
     
         FLOATING = new ModFloating(3);
@@ -87,6 +90,9 @@ public class TinkersYoyos
     
         GARDENING = new ModGardening();
         GARDENING.addItem(Items.SHEARS);
+        
+        COLLECTING = new ModCollecting();
+        COLLECTING.addItem(Blocks.HOPPER, 1);
         
         GLUEY = new ModGluey();
         GLUEY.addItem("slimeball", 2, 1);

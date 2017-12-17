@@ -21,7 +21,7 @@ public class ModExtension extends ToolModifier
     {
         super("extension", 0x4FDCFF);
         
-        addAspects(new ModifierAspect.MultiAspect(this, 10, 16, 1));
+        addAspects(new ModifierAspect.MultiAspect(this, 10, 8, 1));
     }
     
     @Override
@@ -38,7 +38,7 @@ public class ModExtension extends ToolModifier
         ModifierNBT.IntegerNBT data = ModifierNBT.readInteger(modifierTag);
         
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(rootCompound, Tags.TOOL_DATA));
-        toolData.chordLength += data.level;
+        toolData.chordLength += data.level * 2;
         
         TagUtil.setToolTag(rootCompound, toolData.get());
     }

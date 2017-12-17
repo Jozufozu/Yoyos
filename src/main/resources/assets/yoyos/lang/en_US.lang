@@ -8,6 +8,8 @@ item.yoyos.sticky_yoyo.name=Sticky Yoyo
 
 item.yoyos.cord.name=Cord
 
+enchantment.collecting=Collecting
+
 yoyos.config.vanilla=Vanilla Yoyos
 yoyos.config.enable=Enable
 yoyos.config.tinkers=Tinkers' Yoyos
@@ -69,6 +71,9 @@ modifier.sticky.desc=§oI... I can't get it off.§r\nSticks to blocks and allows
 
 modifier.gluey.name=Gluey
 modifier.gluey.desc=§oSafe, Non-toxic§r\nSticks to blocks and allows you to reel yourself in, at the cost of damage.
+
+modifier.collecting.name=Collecting
+modifier.collecting.desc=§oGotta catch 'em all!'§r\nPicks up any items it makes drop.
 
 gui.error.not_a_yoyo=%s can only be applied to yoyos!
 gui.error.too_light=Weighs too little!

@@ -16,6 +16,7 @@ public class YoyoNetwork
     public static void initialize()
     {
         registerMessage(MessageRetractYoYo.class, MessageRetractYoYo.Handler.class, Side.CLIENT);
+        registerMessage(MessageCollectedDrops.class, MessageCollectedDrops.Handler.class, Side.CLIENT);
     }
     
     public static <REQ extends IMessage, REPLY extends IMessage> void registerMessage(Class<REQ> requestMessageType, Class<? extends IMessageHandler<REQ, REPLY>> messageHandler, Side side)

@@ -186,6 +186,12 @@ public class ItemYoyo extends ItemSword implements IYoyo
     }
     
     @Override
+    public boolean collecting(ItemStack yoyo)
+    {
+        return EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo) > 0;
+    }
+    
+    @Override
     public void damageItem(ItemStack yoyo, EntityLivingBase player)
     {
         yoyo.damageItem(1, player);

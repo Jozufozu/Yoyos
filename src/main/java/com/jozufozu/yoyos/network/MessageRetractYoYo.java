@@ -11,28 +11,28 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 public class MessageRetractYoYo implements IMessage
 {
     
-    private int entityID;
+    private int yoyoID;
     private boolean retracting;
     
     public MessageRetractYoYo() {}
     
     public MessageRetractYoYo(EntityYoyo yoYo)
     {
-        this.entityID = yoYo.getEntityId();
+        this.yoyoID = yoYo.getEntityId();
         this.retracting = yoYo.isRetracting();
     }
     
     @Override
     public void fromBytes(ByteBuf buf)
     {
-        this.entityID = buf.readInt();
+        this.yoyoID = buf.readInt();
         this.retracting = buf.readBoolean();
     }
     
     @Override
     public void toBytes(ByteBuf buf)
     {
-        buf.writeInt(this.entityID);
+        buf.writeInt(this.yoyoID);
         buf.writeBoolean(this.retracting);
     }
     
@@ -45,7 +45,7 @@ public class MessageRetractYoYo implements IMessage
             {
                 Minecraft mc = Minecraft.getMinecraft();
                 
-                Entity maybeYoYo = mc.world.getEntityByID(message.entityID);
+                Entity maybeYoYo = mc.world.getEntityByID(message.yoyoID);
                 
                 if (maybeYoYo != null && maybeYoYo instanceof EntityYoyo)
                 {

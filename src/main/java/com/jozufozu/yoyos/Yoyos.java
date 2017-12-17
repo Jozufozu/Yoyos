@@ -1,13 +1,14 @@
 package com.jozufozu.yoyos;
 
-import com.jozufozu.yoyos.common.CommonProxy;
-import com.jozufozu.yoyos.common.ItemStickyYoyo;
-import com.jozufozu.yoyos.common.ItemYoyo;
-import com.jozufozu.yoyos.common.ModConfig;
+import com.jozufozu.yoyos.common.*;
 import com.jozufozu.yoyos.tinkers.TinkersYoyos;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnumEnchantmentType;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
@@ -42,6 +43,9 @@ public class Yoyos
     
     public static Item STICKY_YOYO;
     
+    public static Enchantment COLLECTING;
+    public static EnumEnchantmentType YOYO_ENCHANTMENT_TYPE = EnumHelper.addEnchantmentType("collecting", item -> item instanceof IYoyo);
+    
     public Yoyos()
     {
         MinecraftForge.EVENT_BUS.register(this);
@@ -63,6 +67,13 @@ public class Yoyos
         registry.register(GOLD_YOYO = new ItemYoyo("gold_yoyo", Item.ToolMaterial.GOLD));
         registry.register(SHEAR_YOYO = new ItemYoyo("shear_yoyo", Item.ToolMaterial.IRON, true));
         registry.register(STICKY_YOYO = new ItemStickyYoyo());
+    }
+    
+    @SubscribeEvent
+    public void registerEnchantment(RegistryEvent.Register<Enchantment> event)
+    {
+        COLLECTING = new EnchantmentCollecting(Enchantment.Rarity.UNCOMMON, YOYO_ENCHANTMENT_TYPE, new EntityEquipmentSlot[]{EntityEquipmentSlot.MAINHAND, EntityEquipmentSlot.OFFHAND});
+        event.getRegistry().register(COLLECTING);
     }
     
     @Mod.EventHandler

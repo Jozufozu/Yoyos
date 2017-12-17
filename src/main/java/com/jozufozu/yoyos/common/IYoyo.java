@@ -9,7 +9,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public interface IYoyo
 {
-    
     float getWeight(ItemStack yoyo);
     
     float getLength(ItemStack yoyo);
@@ -19,6 +18,8 @@ public interface IYoyo
     int getAttackSpeed(ItemStack yoyo);
     
     boolean gardening(ItemStack yoyo);
+    
+    boolean collecting(ItemStack yoyo);
     
     void damageItem(ItemStack yoyo, EntityLivingBase player);
     

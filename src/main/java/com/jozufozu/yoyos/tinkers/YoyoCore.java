@@ -1,5 +1,6 @@
 package com.jozufozu.yoyos.tinkers;
 
+import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.EntityStickyYoyo;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.IYoyo;
@@ -7,6 +8,7 @@ import com.jozufozu.yoyos.network.MessageRetractYoYo;
 import com.jozufozu.yoyos.network.YoyoNetwork;
 import com.jozufozu.yoyos.tinkers.materials.*;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -194,6 +196,12 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     public boolean gardening(ItemStack yoyo)
     {
         return !TinkerUtil.getModifierTag(yoyo, "gardening").hasNoTags();
+    }
+    
+    @Override
+    public boolean collecting(ItemStack yoyo)
+    {
+        return EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo) > 0;
     }
     
     @Override

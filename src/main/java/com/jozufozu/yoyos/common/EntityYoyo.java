@@ -107,6 +107,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         
         Vec3d handPos = getPlayerHandPos(1);
         setPosition(handPos.x, handPos.y, handPos.z);
+        
+        if (!world.getCollisionBoxes(this, this.getEntityBoundingBox()).isEmpty())
+            setPosition(player.posX, player.posY + player.height * 0.85, player.posZ);
     }
     
     @SubscribeEvent(priority = EventPriority.LOWEST)

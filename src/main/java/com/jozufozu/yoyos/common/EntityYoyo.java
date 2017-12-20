@@ -1,6 +1,7 @@
 package com.jozufozu.yoyos.common;
 
 import com.google.common.base.Predicates;
+import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.network.MessageCollectedDrops;
 import com.jozufozu.yoyos.network.YoyoNetwork;
 import net.minecraft.block.Block;
@@ -16,10 +17,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Enchantments;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTUtil;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.*;
@@ -44,16 +43,14 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 @Mod.EventBusSubscriber
 public class EntityYoyo extends Entity implements IThrowableEntity
 {
-    
     public static final HashMap<Entity, EntityYoyo> CASTERS = new HashMap<>();
     
     protected static final int MAX_RETRACT_TIME = 40;
-    public ArrayList<EntityItem> collectedDrops = new ArrayList<>();
+    public ArrayList<ItemStack> collectedDrops = new ArrayList<>();
     protected EntityPlayer thrower;
     protected ItemStack yoyoStack = ItemStack.EMPTY;
     protected EnumHand hand;
@@ -76,7 +73,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     protected boolean shouldGetStats = true;
     
     protected boolean needCollectedSync;
-    private ArrayList<UUID> oldDrops = new ArrayList<>();
     
     public EntityYoyo(World world)
     {
@@ -127,6 +123,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         if (!yoyo.collecting) return;
         
         event.getDrops().forEach(yoyo::collectDrop);
+        event.setCanceled(true);
     }
     
     @SubscribeEvent
@@ -212,8 +209,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     @Override
     public void onUpdate()
     {
-        if (this.firstUpdate) loadOldDrops();
-        
         super.onUpdate();
         
         if (thrower != null && !thrower.isDead)
@@ -222,7 +217,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             
             if (yoyo == null) return;
             
-            if (duration != -1 && ticksExisted >= duration) forceRetract();
+            if (duration >= 0 && ticksExisted >= duration) this.forceRetract();
             
             //handle position
             updatePosition();
@@ -256,7 +251,13 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         
         int currentSlot = hand == EnumHand.MAIN_HAND ? thrower.inventory.currentItem : -2;
         
-        if (!CASTERS.containsKey(thrower) || yoyoStack == null || (lastSlot != -1 && lastSlot != currentSlot) || yoyoStack.getMaxDamage() - yoyoStack.getItemDamage() <= 0 || !(yoyoStack.getItem() instanceof IYoyo))
+        if (!CASTERS.containsKey(thrower) || yoyoStack == null || !(yoyoStack.getItem() instanceof IYoyo) || (lastSlot != -1 && lastSlot != currentSlot))
+        {
+            setDead();
+            return null;
+        }
+        
+        if (yoyoStack.getMaxDamage() < yoyoStack.getItemDamage() && yoyoStack.getItem() != Yoyos.CREATIVE_YOYO)
         {
             setDead();
             return null;
@@ -340,7 +341,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     
         List<AxisAlignedBB> collisionBoxes = this.world.getCollisionBoxes(this, union);
         
-        int steps = 100;
+        int steps = 50;
         int step = 0;
     
         this.world.profiler.startSection("tracingMotion");
@@ -380,31 +381,45 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     
     protected void collectDrop(ItemStack stack)
     {
-        collectDrop(this.entityDropItem(stack, 0));
+        this.collectedDrops.add(stack);
+        this.needCollectedSync = true;
     }
     
     protected void collectDrop(@Nullable EntityItem drop)
     {
         if (drop == null) return;
         
-        drop.setNoGravity(true);
-        drop.motionX = 0;
-        drop.motionY = 0;
-        drop.motionZ = 0;
-        drop.setNoDespawn();
-        drop.setPositionAndUpdate(this.posX, -1, this.posZ);
-        this.collectedDrops.add(drop);
-        this.needCollectedSync = true;
+        collectDrop(drop.getItem());
+        drop.setInfinitePickupDelay();
+        drop.setItem(ItemStack.EMPTY);
+        drop.setDead();
     }
     
     protected void updateCapturedDrops()
     {
-        this.collectedDrops.removeIf(drop -> drop.isDead);
-        this.collectedDrops.forEach(drop -> drop.setPositionAndUpdate(this.posX, -1, this.posZ));
-        
-        if (!this.world.isRemote)
+        if (!this.world.isRemote && !this.collectedDrops.isEmpty())
         {
-            if (this.needCollectedSync) YoyoNetwork.INSTANCE.sendToAll(new MessageCollectedDrops(this));
+            ArrayList<ItemStack> combined = new ArrayList<>();
+    
+            for (ItemStack collectedDrop : this.collectedDrops)
+            {
+                for (ItemStack stack : combined)
+                {
+                    if (collectedDrop.isItemEqual(stack) && collectedDrop.areCapsCompatible(stack))
+                    {
+                        int toAdd = Math.min(64 - stack.getCount(), collectedDrop.getCount());
+                        stack.grow(toAdd);
+                        collectedDrop.shrink(toAdd);
+                    }
+                }
+                
+                if (!collectedDrop.isEmpty())
+                    combined.add(collectedDrop);
+            }
+            
+            this.collectedDrops = combined;
+            
+            if (this.needCollectedSync || this.ticksExisted % 10 == 0) YoyoNetwork.INSTANCE.sendToAll(new MessageCollectedDrops(this));
             
             this.needCollectedSync = false;
         }
@@ -476,6 +491,12 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             
             for (ItemStack stack : drops)
             {
+                if (collecting)
+                {
+                    collectDrop(stack);
+                    continue;
+                }
+                
                 EntityItem ent = entity.entityDropItem(stack, 1.0F);
                 
                 if (ent == null) continue;
@@ -483,8 +504,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                 ent.motionY += rand.nextFloat() * 0.05F;
                 ent.motionX += (rand.nextFloat() - rand.nextFloat()) * 0.1F;
                 ent.motionZ += (rand.nextFloat() - rand.nextFloat()) * 0.1F;
-                
-                if (collecting) collectDrop(ent);
             }
             
             if (!thrower.isCreative()) yoyo.damageItem(yoyoStack, thrower);
@@ -528,6 +547,12 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                 List<ItemStack> drops = shearable.onSheared(yoyoStack, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyoStack));
                 for (ItemStack drop : drops)
                 {
+                    if (collecting)
+                    {
+                        collectDrop(drop);
+                        continue;
+                    }
+                    
                     float f = 0.7F;
                     double d = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
                     double d1 = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
@@ -535,8 +560,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                     EntityItem entityitem = new EntityItem(world, (double) pos.getX() + d, (double) pos.getY() + d1, (double) pos.getZ() + d2, drop);
                     entityitem.setDefaultPickupDelay();
                     thrower.world.spawnEntity(entityitem);
-                    
-                    if (collecting) collectDrop(entityitem);
                 }
                 
                 if (!thrower.isCreative()) yoyo.damageItem(yoyoStack, thrower);
@@ -567,41 +590,30 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         super.setDead();
         CASTERS.remove(thrower, this);
         
-        if (!collecting) return;
+        if (this.collectedDrops.isEmpty())
+            return;
         
-        this.collectedDrops.forEach(drop -> {
-            drop.setNoGravity(false);
-            
-            if (this.world.isRemote)
-                drop.setDead();
-            else
-                drop.setPositionAndUpdate(this.posX, this.posY, this.posZ);
-        });
-        this.collectedDrops.clear();
-    }
-    
-    protected void loadOldDrops()
-    {
-        if (oldDrops.isEmpty()) return;
-        
-        for (int j2 = 0; j2 < this.world.loadedEntityList.size(); ++j2)
+        if (!world.isRemote)
         {
-            Entity entity = this.world.loadedEntityList.get(j2);
-            
-            if (entity instanceof EntityItem && oldDrops.contains(entity.getUniqueID()))
-            {
-                collectDrop(((EntityItem) entity));
-            }
+            this.collectedDrops.forEach(drop -> {
+                EntityItem item = new EntityItem(this.world, this.posX, this.posY, this.posZ, drop);
+                item.motionX = 0;
+                item.motionY = 0;
+                item.motionZ = 0;
+                item.setPickupDelay(0);
+                world.spawnEntity(item);
+            });
         }
+        this.collectedDrops.clear();
     }
     
     @Override
     protected void readEntityFromNBT(@Nonnull NBTTagCompound compound)
     {
         NBTTagList list = compound.getTagList("collectedDrops", Constants.NBT.TAG_COMPOUND);
-        
-        for (NBTBase nbtBase : list)
-            if (nbtBase instanceof NBTTagCompound) oldDrops.add(NBTUtil.getUUIDFromTag(((NBTTagCompound) nbtBase)));
+    
+        for (int i = 0; i < list.tagCount(); i++)
+            this.collectedDrops.add(new ItemStack(list.getCompoundTagAt(i)));
     }
     
     @Override
@@ -609,8 +621,8 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     {
         NBTTagList collected = new NBTTagList();
         
-        for (EntityItem entityItem : this.collectedDrops)
-            collected.appendTag(NBTUtil.createUUIDTag(entityItem.getUniqueID()));
+        for (ItemStack itemStack : this.collectedDrops)
+            collected.appendTag(itemStack.serializeNBT());
         
         compound.setTag("collectedDrops", collected);
     }

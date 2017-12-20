@@ -24,8 +24,6 @@ public class EntityStickyYoyo extends EntityYoyo
         {
             this.setFlag(6, this.isGlowing());
         }
-        if (this.firstUpdate)
-            loadOldDrops();
     
         this.onEntityUpdate();
         
@@ -36,7 +34,7 @@ public class EntityStickyYoyo extends EntityYoyo
     
             if (yoyo == null) return;
             
-            if (duration != -1 && this.ticksExisted >= duration) this.forceRetract();
+            if (duration >= 0 && this.ticksExisted >= duration) this.forceRetract();
             
             if (this.thrower.isSneaking() && this.cordLength > 0.5) this.cordLength -= 0.1F;
             

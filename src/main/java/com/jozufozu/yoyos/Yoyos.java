@@ -38,6 +38,7 @@ public class Yoyos
     
     public static Item CORD;
     
+    public static Item CREATIVE_YOYO;
     public static Item WOODEN_YOYO;
     public static Item STONE_YOYO;
     public static Item IRON_YOYO;
@@ -64,6 +65,7 @@ public class Yoyos
         if (!ModConfig.vanillaYoyos.enable)
             return;
         
+        registry.register(CREATIVE_YOYO = new ItemYoyo("creative_yoyo", Item.ToolMaterial.GOLD).setMaxDamage(0));
         registry.register(WOODEN_YOYO = new ItemYoyo("wooden_yoyo", Item.ToolMaterial.WOOD));
         registry.register(STONE_YOYO = new ItemYoyo("stone_yoyo", Item.ToolMaterial.STONE));
         registry.register(IRON_YOYO = new ItemYoyo("iron_yoyo", Item.ToolMaterial.IRON));
@@ -99,7 +101,7 @@ public class Yoyos
     {
         proxy.init(event);
         
-        if (Loader.isModLoaded("tconstruct") && ModConfig.tinkersYoyos)
+        if (Loader.isModLoaded("tconstruct") &&  ModConfig.tinkersYoyos)
         {
             TinkersYoyos.init(event);
         }
@@ -108,7 +110,7 @@ public class Yoyos
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event)
     {
-        if (Loader.isModLoaded("tconstruct") && ModConfig.tinkersYoyos)
+        if (Loader.isModLoaded("tconstruct") &&  ModConfig.tinkersYoyos)
         {
             TinkersYoyos.postInit(event);
         }

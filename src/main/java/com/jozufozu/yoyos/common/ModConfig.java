@@ -20,16 +20,38 @@ public class ModConfig
         }
     }
     
+    @Config.LangKey("yoyos.config.swing")
+    @Config.Comment("Allows you to swing from yoyos when they get caught")
+    public static boolean yoyoSwing = true;
+    
     @Config.LangKey("yoyos.config.vanilla")
     public static VanillaYoyos vanillaYoyos = new VanillaYoyos();
     
     @Config.LangKey("yoyos.config.tinkers")
     @Config.Comment("If enabled and Tinkers' Construct is installed, adds customizable yoyos")
+    @Config.RequiresMcRestart
     public static boolean tinkersYoyos = true;
     
-    @Config.LangKey("yoyos.config.swing")
-    @Config.Comment("Allows you to swing from yoyos when they get caught")
-    public static boolean yoyoSwing = true;
+    @Config.LangKey("yoyos.config.materials")
+    public static TinkersMaterials tinkersMaterials = new TinkersMaterials();
+    
+    public static class TinkersMaterials
+    {
+        @Config.LangKey("yoyos.config.materials.tinkers")
+        @Config.Comment("Whether or not to load \"vanilla\" Tinkers' material stats for yoyos")
+        @Config.RequiresMcRestart
+        public boolean loadTinkersMaterials = true;
+    
+        @Config.LangKey("yoyos.config.materials.plustic")
+        @Config.Comment("Whether or not to load additional material stats for yoyos")
+        @Config.RequiresMcRestart
+        public boolean loadPlusTiCMaterials = true;
+    
+        @Config.LangKey("yoyos.config.materials.custom")
+        @Config.Comment("Whether or not to load custom, configurable material stats for yoyos")
+        @Config.RequiresMcRestart
+        public boolean loadCustomMaterials = true;
+    }
     
     public static class VanillaYoyos
     {
@@ -38,20 +60,22 @@ public class ModConfig
         @Config.RequiresMcRestart
         public boolean enable = true;
         
-        @Config.LangKey("item.wooden_yoyo.name")
+        @Config.LangKey("item.yoyos.wooden_yoyo.name")
         public YoyoSettings woodenYoyo = new YoyoSettings(2.2f, 6.0f, 100, 3.0f);
-        @Config.LangKey("item.stone_yoyo.name")
+        @Config.LangKey("item.yoyos.stone_yoyo.name")
         public YoyoSettings stoneYoyo = new YoyoSettings(4.0f, 7.0f, 200, 4.0f);
-        @Config.LangKey("item.iron_yoyo.name")
+        @Config.LangKey("item.yoyos.iron_yoyo.name")
         public YoyoSettings ironYoyo = new YoyoSettings(5.0f, 8.0f, 300, 5.0f);
-        @Config.LangKey("item.shear_yoyo.name")
+        @Config.LangKey("item.yoyos.shear_yoyo.name")
         public YoyoSettings shearYoyo = new YoyoSettings(5.1f, 8.0f, 300, 5.5f);
-        @Config.LangKey("item.gold_yoyo.name")
+        @Config.LangKey("item.yoyos.gold_yoyo.name")
         public YoyoSettings goldYoyo = new YoyoSettings(5.5f, 11.0f, 600, 3.0f);
-        @Config.LangKey("item.diamond_yoyo.name")
+        @Config.LangKey("item.yoyos.diamond_yoyo.name")
         public YoyoSettings diamondYoyo = new YoyoSettings(1.7f, 9.0f, 400, 6.0f);
-        @Config.LangKey("item.sticky_yoyo.name")
+        @Config.LangKey("item.yoyos.sticky_yoyo.name")
         public YoyoSettings stickyYoyo = new YoyoSettings(1.7f, 9.0f, 400, 0.0f);
+        @Config.LangKey("item.yoyos.creative_yoyo.name")
+        public YoyoSettings creativeYoyo = new YoyoSettings(0.9f, 24.0f, -1, 9001.0f);
         
         public static class YoyoSettings
         {

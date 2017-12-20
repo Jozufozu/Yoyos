@@ -61,6 +61,12 @@ public class ItemYoyo extends ItemSword implements IYoyo
         return ImmutableSet.of("yoyo");
     }
     
+    @Override
+    public boolean hasEffect(ItemStack stack)
+    {
+        return super.hasEffect(stack) || this == Yoyos.CREATIVE_YOYO;
+    }
+    
     public int getItemEnchantability()
     {
         return this.material.getEnchantability();
@@ -86,7 +92,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
                 YoyoNetwork.INSTANCE.sendToAll(new MessageRetractYoYo(entityYoyo));
                 playerIn.swingArm(hand);
             }
-            else if (itemStack.getItemDamage() < itemStack.getMaxDamage())
+            else if (itemStack.getItemDamage() <= itemStack.getMaxDamage() || this == Yoyos.CREATIVE_YOYO)
             {
                 worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_BOBBER_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
                 
@@ -105,7 +111,13 @@ public class ItemYoyo extends ItemSword implements IYoyo
         super.addInformation(stack, worldIn, tooltip, flagIn);
         tooltip.add(I18n.format("info.weight.name", getWeight(stack)));
         tooltip.add(I18n.format("info.length.name", getLength(stack)));
-        tooltip.add(I18n.format("info.duration.name", ((float) getDuration(stack)) / 20F));
+    
+        int duration = getDuration(stack);
+        Object arg = (duration < 0 ? I18n.format("stat.yoyo.infinite.name") : ((float) duration) / 20F);
+        tooltip.add(I18n.format("info.duration.name", arg));
+        
+        if (stack.isItemEnchanted())
+            tooltip.add("");
     }
     
     public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot equipmentSlot, ItemStack stack)
@@ -123,6 +135,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
             if (this == Yoyos.IRON_YOYO) damage =  ModConfig.vanillaYoyos.ironYoyo.damage;
             if (this == Yoyos.STONE_YOYO) damage =  ModConfig.vanillaYoyos.stoneYoyo.damage;
             if (this == Yoyos.WOODEN_YOYO) damage =  ModConfig.vanillaYoyos.woodenYoyo.damage;
+            if (this == Yoyos.CREATIVE_YOYO) damage =  ModConfig.vanillaYoyos.creativeYoyo.damage;
             
             multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", damage, 0));
             multimap.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(ATTACK_SPEED_MODIFIER, "Weapon modifier", -2.4000000953674316D, 0));
@@ -141,6 +154,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
         if (this == Yoyos.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.weight;
         if (this == Yoyos.STONE_YOYO) return ModConfig.vanillaYoyos.stoneYoyo.weight;
         if (this == Yoyos.WOODEN_YOYO) return ModConfig.vanillaYoyos.woodenYoyo.weight;
+        if (this == Yoyos.CREATIVE_YOYO) return ModConfig.vanillaYoyos.creativeYoyo.weight;
         
         return 1.0f;
     }
@@ -155,6 +169,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
         if (this == Yoyos.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.length;
         if (this == Yoyos.STONE_YOYO) return ModConfig.vanillaYoyos.stoneYoyo.length;
         if (this == Yoyos.WOODEN_YOYO) return ModConfig.vanillaYoyos.woodenYoyo.length;
+        if (this == Yoyos.CREATIVE_YOYO) return ModConfig.vanillaYoyos.creativeYoyo.length;
     
         return 1.0f;
     }
@@ -169,6 +184,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
         if (this == Yoyos.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.duration;
         if (this == Yoyos.STONE_YOYO) return ModConfig.vanillaYoyos.stoneYoyo.duration;
         if (this == Yoyos.WOODEN_YOYO) return ModConfig.vanillaYoyos.woodenYoyo.duration;
+        if (this == Yoyos.CREATIVE_YOYO) return ModConfig.vanillaYoyos.creativeYoyo.duration;
     
         return 10;
     }
@@ -188,7 +204,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
     @Override
     public boolean collecting(ItemStack yoyo)
     {
-        return EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo) > 0;
+        return this == Yoyos.CREATIVE_YOYO || EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo) > 0;
     }
     
     @Override

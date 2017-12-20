@@ -3,6 +3,7 @@ package com.jozufozu.yoyos.tinkers;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.jozufozu.yoyos.Yoyos;
+import com.jozufozu.yoyos.common.ModConfig;
 import com.jozufozu.yoyos.tinkers.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.BodyMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
@@ -22,6 +23,7 @@ import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import org.apache.commons.lang3.tuple.Pair;
+import slimeknights.mantle.util.RecipeMatch;
 import slimeknights.tconstruct.library.TinkerRegistry;
 import slimeknights.tconstruct.library.events.MaterialEvent;
 import slimeknights.tconstruct.library.materials.IMaterialStats;
@@ -69,10 +71,19 @@ public class TinkersYoyos
     @SubscribeEvent
     public static void onRegistryRegister(RegistryEvent.Register<Item> event)
     {
-        registerMaterialStats();
-        Compatibility.registerMaterialStats();
-        ConfigMaterials.load();
+        Material.UNKNOWN.addStats(new BodyMaterialStats(1F, 2F, 400));
+        Material.UNKNOWN.addStats(new AxleMaterialStats(0.5F, 1F));
+        Material.UNKNOWN.addStats(new CordMaterialStats(0.2F, 5F));
+        
+        if (ModConfig.tinkersMaterials.loadTinkersMaterials)
+            registerMaterialStats();
+        if (ModConfig.tinkersMaterials.loadPlusTiCMaterials)
+            Compatibility.registerMaterialStats();
+        if (ModConfig.tinkersMaterials.loadCustomMaterials)
+            ConfigMaterials.load();
+        
         processAdditionalMaterials();
+        ConfigMaterials.save(MASTER_STATS);
     
         Iterator<Map.Entry<String, Set<IMaterialStats>>> iterator = MASTER_STATS.entrySet().iterator();
         while (iterator.hasNext())
@@ -119,7 +130,7 @@ public class TinkersYoyos
         GARDENING.addItem(Items.SHEARS);
         
         COLLECTING = new ModCollecting();
-        COLLECTING.addItem(Blocks.HOPPER, 1);
+        COLLECTING.addRecipeMatch(RecipeMatch.of(Lists.newArrayList(new ItemStack(Blocks.HOPPER), new ItemStack(Blocks.CHEST))));
         
         GLUEY = new ModGluey();
         GLUEY.addItem("slimeball", 2, 1);
@@ -187,10 +198,6 @@ public class TinkersYoyos
     
     private static void registerMaterialStats()
     {
-        Material.UNKNOWN.addStats(new BodyMaterialStats(1F, 2F, 400));
-        Material.UNKNOWN.addStats(new AxleMaterialStats(0.5F, 1F));
-        Material.UNKNOWN.addStats(new CordMaterialStats(0.2F, 5F));
-        
         /*Metals*/
         addMaterialStats(TinkerMaterials.bronze, new BodyMaterialStats(3.5F, 2F, 450), new AxleMaterialStats(0.5F, 1F));
         addMaterialStats(TinkerMaterials.copper, new BodyMaterialStats(3.0F, 1.9F, 210), new AxleMaterialStats(0.4F, 1F));

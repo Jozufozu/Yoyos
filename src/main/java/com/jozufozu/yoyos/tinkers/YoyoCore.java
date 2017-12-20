@@ -104,7 +104,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
         info.addDurability(!detailed);
         info.addAttack();
         info.add(CordMaterialStats.formatLength(nbt.chordLength));
-        if (nbt.duration == -1)
+        if (nbt.duration < 0)
         {
             info.add(String.format("%s: %s%s", Util.translate(YoyoNBT.LOC_Duration), AxleMaterialStats.COLOR_Friction, Util.translate(YoyoNBT.LOC_Infinite)) + TextFormatting.RESET);
         }

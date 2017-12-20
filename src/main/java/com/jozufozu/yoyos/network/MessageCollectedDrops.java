@@ -4,24 +4,27 @@ import com.jozufozu.yoyos.common.EntityYoyo;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.item.EntityItem;
+import net.minecraft.item.ItemStack;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
+import java.util.Collections;
+
 public class MessageCollectedDrops implements IMessage
 {
     private int yoyoID;
-    private int[] dropIDs;
+    private ItemStack[] drops;
     
     public MessageCollectedDrops() {}
     
     public MessageCollectedDrops(EntityYoyo yoyo)
     {
         this.yoyoID = yoyo.getEntityId();
-        this.dropIDs = new int[yoyo.collectedDrops.size()];
+        this.drops = new ItemStack[yoyo.collectedDrops.size()];
         for (int i = 0; i < yoyo.collectedDrops.size(); i++)
-            this.dropIDs[i] = yoyo.collectedDrops.get(i).getEntityId();
+            this.drops[i] = yoyo.collectedDrops.get(i);
     }
     
     @Override
@@ -30,20 +33,19 @@ public class MessageCollectedDrops implements IMessage
         this.yoyoID = buf.readInt();
         int length = buf.readInt();
     
-        this.dropIDs = new int[length];
+        this.drops = new ItemStack[length];
         for (int i = 0; i < length; i++)
-            this.dropIDs[i] = buf.readInt();
+            this.drops[i] = ByteBufUtils.readItemStack(buf);
     }
     
     @Override
     public void toBytes(ByteBuf buf)
     {
         buf.writeInt(yoyoID);
-        buf.writeInt(dropIDs.length);
-        for (int dropID : dropIDs)
-        {
-            buf.writeInt(dropID);
-        }
+        buf.writeInt(drops.length);
+    
+        for (ItemStack drop : drops)
+            ByteBufUtils.writeItemStack(buf, drop);
     }
     
     public static class Handler implements IMessageHandler<MessageCollectedDrops, IMessage>
@@ -62,15 +64,7 @@ public class MessageCollectedDrops implements IMessage
                     EntityYoyo yoyo = (EntityYoyo) maybeYoYo;
     
                     yoyo.collectedDrops.clear();
-                    for (int dropID : message.dropIDs)
-                    {
-                        Entity maybeItem = mc.world.getEntityByID(dropID);
-    
-                        if (maybeItem != null && maybeItem instanceof EntityItem)
-                        {
-                            yoyo.collectedDrops.add(((EntityItem) maybeItem));
-                        }
-                    }
+                    Collections.addAll(yoyo.collectedDrops, message.drops);
                 }
             });
             return null;

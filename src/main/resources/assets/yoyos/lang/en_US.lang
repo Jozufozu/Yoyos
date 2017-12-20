@@ -5,6 +5,7 @@ item.yoyos.diamond_yoyo.name=Diamond Yoyo
 item.yoyos.gold_yoyo.name=Gold Yoyo
 item.yoyos.shear_yoyo.name=Shear Yoyo
 item.yoyos.sticky_yoyo.name=Sticky Yoyo
+item.yoyos.creative_yoyo.name=Rainbowyo
 
 item.yoyos.cord.name=Cord
 
@@ -14,6 +15,11 @@ yoyos.config.vanilla=Vanilla Yoyos
 yoyos.config.enable=Enable
 yoyos.config.tinkers=Tinkers' Yoyos
 yoyos.config.swing=Yoyo Swinging
+
+yoyos.config.materials=Yoyo Materials
+yoyos.config.materials.tinkers=Load Tinkers' Materials
+yoyos.config.materials.plustic=Load PlusTiC Materials
+yoyos.config.materials.custom=Load Custom Materials
 
 yoyos.config.damage=Damage
 yoyos.config.weight=Weight
@@ -73,7 +79,7 @@ modifier.gluey.name=Gluey
 modifier.gluey.desc=§oSafe, Non-toxic§r\nSticks to blocks and allows you to reel yourself in, at the cost of damage.
 
 modifier.collecting.name=Collecting
-modifier.collecting.desc=§oGotta catch 'em all!'§r\nPicks up any items it makes drop.
+modifier.collecting.desc=§oGotta catch 'em all!§r\nPicks up any items it makes drop.
 
 gui.error.not_a_yoyo=%s can only be applied to yoyos!
 gui.error.too_light=Weighs too little!

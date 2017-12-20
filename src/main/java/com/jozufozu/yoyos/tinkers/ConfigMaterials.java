@@ -17,6 +17,7 @@ import slimeknights.tconstruct.library.materials.IMaterialStats;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -26,6 +27,58 @@ public class ConfigMaterials
     public static final Logger LOG = LogManager.getLogger("Yoyo Materials");
     
     public static final HashMap<String, Set<IMaterialStats>> STATS = new HashMap<>();
+    
+    public static void save(HashMap<String, Set<IMaterialStats>> statSet)
+    {
+        File materialsLoc = new File(Yoyos.CONFIG_DIR, "/materials");
+        materialsLoc.mkdirs();
+        
+        statSet.forEach(((material, stats) ->
+        {
+            File materialSave = new File(materialsLoc, material + ".json");
+            
+            if (materialSave.exists())
+                return;
+            
+            JsonObject materialJson = new JsonObject();
+    
+            for (IMaterialStats stat : stats)
+            {
+                JsonObject statJson = new JsonObject();
+                
+                if (stat instanceof BodyMaterialStats)
+                {
+                    statJson.addProperty("attack", ((BodyMaterialStats) stat).attack);
+                    statJson.addProperty("weight", ((BodyMaterialStats) stat).weight);
+                    statJson.addProperty("durability", ((BodyMaterialStats) stat).durability);
+                }
+                else if (stat instanceof AxleMaterialStats)
+                {
+                    statJson.addProperty("friction", ((AxleMaterialStats) stat).friction);
+                    statJson.addProperty("modifier", ((AxleMaterialStats) stat).modifier);
+                }
+                else if (stat instanceof CordMaterialStats)
+                {
+                    statJson.addProperty("friction", ((CordMaterialStats) stat).friction);
+                    statJson.addProperty("length", ((CordMaterialStats) stat).length);
+                }
+                
+                materialJson.add(stat.getIdentifier(), statJson);
+            }
+            
+            try
+            {
+                try (FileWriter writer = new FileWriter(materialSave))
+                {
+                    writer.write(GSON.toJson(materialJson));
+                }
+            }
+            catch (Exception e)
+            {
+                LOG.error(String.format("Error writing material \"%s\" to file: ", material), e);
+            }
+        }));
+    }
     
     public static void load()
     {
@@ -43,15 +96,8 @@ public class ConfigMaterials
             return;
         
         for (File file1 : files)
-        {
-            if (file1 == null)
-                continue;
-            
-            if (file1.isDirectory())
-                loadMaterialsInDirectoryRecursive(file1);
-            else if (file1.getAbsolutePath().endsWith(".json"))
+            if (file1 != null && file1.getAbsolutePath().endsWith(".json"))
                 loadMaterialStatsFromFile(file1);
-        }
     }
     
     public static void loadMaterialStatsFromFile(File file)
@@ -98,7 +144,7 @@ public class ConfigMaterials
         }
         catch (Exception e)
         {
-            LOG.error("Error reading file: " + file.getName());
+            LOG.error(String.format("Error reading material \"%s\" from file: ", name), e);
         }
     }
     

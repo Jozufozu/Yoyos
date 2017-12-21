@@ -16,10 +16,7 @@ yoyos.config.enable=Enable
 yoyos.config.tinkers=Tinkers' Yoyos
 yoyos.config.swing=Yoyo Swinging
 
-yoyos.config.materials=Yoyo Materials
-yoyos.config.materials.tinkers=Load Tinkers' Materials
-yoyos.config.materials.plustic=Load PlusTiC Materials
-yoyos.config.materials.custom=Load Custom Materials
+yoyos.config.materials=Configurable Material Stats
 
 yoyos.config.damage=Damage
 yoyos.config.weight=Weight

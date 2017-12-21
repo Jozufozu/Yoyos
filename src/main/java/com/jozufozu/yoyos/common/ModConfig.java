@@ -33,25 +33,9 @@ public class ModConfig
     public static boolean tinkersYoyos = true;
     
     @Config.LangKey("yoyos.config.materials")
-    public static TinkersMaterials tinkersMaterials = new TinkersMaterials();
-    
-    public static class TinkersMaterials
-    {
-        @Config.LangKey("yoyos.config.materials.tinkers")
-        @Config.Comment("Whether or not to load \"vanilla\" Tinkers' material stats for yoyos")
-        @Config.RequiresMcRestart
-        public boolean loadTinkersMaterials = true;
-    
-        @Config.LangKey("yoyos.config.materials.plustic")
-        @Config.Comment("Whether or not to load additional material stats for yoyos")
-        @Config.RequiresMcRestart
-        public boolean loadPlusTiCMaterials = true;
-    
-        @Config.LangKey("yoyos.config.materials.custom")
-        @Config.Comment("Whether or not to load custom, configurable material stats for yoyos")
-        @Config.RequiresMcRestart
-        public boolean loadCustomMaterials = true;
-    }
+    @Config.Comment({"If enabled, saves materials into a config folder.", "Allows for editing, addition, and removal of stats for yoyos."})
+    @Config.RequiresMcRestart
+    public static boolean configMaterials = false;
     
     public static class VanillaYoyos
     {

@@ -120,7 +120,7 @@ public class TinkersYoyos
         GARDENING.addItem(Items.SHEARS);
         
         COLLECTING = new ModCollecting();
-        COLLECTING.addRecipeMatch(RecipeMatch.of(Lists.newArrayList(new ItemStack(Blocks.HOPPER), new ItemStack(Blocks.CHEST))));
+        COLLECTING.addRecipeMatch(new RecipeMatch.ItemCombination(1, new ItemStack(Blocks.HOPPER), new ItemStack(Blocks.CHEST)));
         
         GLUEY = new ModGluey();
         GLUEY.addItem("slimeball", 2, 1);

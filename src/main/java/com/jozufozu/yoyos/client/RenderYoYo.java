@@ -68,10 +68,13 @@ public class RenderYoYo extends Render<EntityYoyo>
         float pitch = ageInTicks * multiplier;
        
         GlStateManager.pushMatrix();
-        //face away from player
-        GlStateManager.rotate(90 - yaw, 0, 1, 0);
-        //spin around
-        GlStateManager.rotate(180 - pitch, 0, 0, 1);
+        
+        if (entity.isGardening())
+            GlStateManager.rotate(90, 1, 0, 0);         //be flat, like a lawnmower
+        else
+            GlStateManager.rotate(90 - yaw, 0, 1, 0);   //face away from player
+        
+        GlStateManager.rotate(180 - pitch, 0, 0, 1);    //spin around
         
         if (this.renderOutlines)
         {
@@ -83,7 +86,7 @@ public class RenderYoYo extends Render<EntityYoyo>
         
         GlStateManager.popMatrix();
     
-        if (!entity.collectedDrops.isEmpty())
+        if (entity.isCollecting() && !entity.collectedDrops.isEmpty())
         {
             boolean boundTexture = false;
             if (this.bindEntityTexture(entity))

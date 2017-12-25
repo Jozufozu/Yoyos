@@ -190,6 +190,16 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         return duration;
     }
     
+    public boolean isGardening()
+    {
+        return gardening;
+    }
+    
+    public boolean isCollecting()
+    {
+        return collecting;
+    }
+    
     @Override
     protected void entityInit()
     {

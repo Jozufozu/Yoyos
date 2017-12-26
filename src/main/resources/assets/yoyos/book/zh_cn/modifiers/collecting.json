@@ -1,0 +1,15 @@
+{
+  "modifier": "collecting",
+  "text": [
+    {
+      "text": "漏斗真的很适合收集东西，我真的想把它与我的悠悠球融合..."
+    }
+  ],
+  "effects": [
+    "悠悠球会收集掉落物",
+    "只能强化一次"
+  ],
+  "demoTool": [
+    "yoyos:yoyo"
+  ]
+}

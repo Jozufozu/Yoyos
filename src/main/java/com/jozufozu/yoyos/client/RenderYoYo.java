@@ -49,8 +49,6 @@ public class RenderYoYo extends Render<EntityYoyo>
         Profiler mcProfiler = Minecraft.getMinecraft().mcProfiler;
         mcProfiler.startSection("renderYoyo");
         
-        float ageInTicks = entity.ticksExisted + partialTicks;
-        
         GlStateManager.pushMatrix();
         GlStateManager.translate(x, y + entity.height / 2, z);
         GlStateManager.scale(.5, .5, .5);
@@ -58,14 +56,6 @@ public class RenderYoYo extends Render<EntityYoyo>
         Vec3d pointer = entity.getPlayerHandPos(partialTicks).subtract(entity.posX, entity.posY + entity.height / 2, entity.posZ).normalize();
         
         float yaw = (float) (Math.atan2(pointer.x, pointer.z) * -180 / Math.PI);
-        float multiplier = 35;
-        
-        if (entity.getDuration() != -1)
-        {
-            multiplier *= 2 - ageInTicks / ((float) entity.getDuration());
-        }
-        
-        float pitch = ageInTicks * multiplier;
        
         GlStateManager.pushMatrix();
         
@@ -74,7 +64,7 @@ public class RenderYoYo extends Render<EntityYoyo>
         else
             GlStateManager.rotate(90 - yaw, 0, 1, 0);   //face away from player
         
-        GlStateManager.rotate(180 - pitch, 0, 0, 1);    //spin around
+        GlStateManager.rotate(180 - entity.getRotation(entity.ticksExisted, partialTicks), 0, 0, 1);    //spin around
         
         if (this.renderOutlines)
         {

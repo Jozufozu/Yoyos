@@ -10,6 +10,7 @@ item.yoyos.creative_yoyo.name=Rainbowyo
 item.yoyos.cord.name=Cord
 
 entity.yoyo.throw.subtitle=Yoyo thrown
+entity.yoyo.stick.subtitle=Yoyo sticks
 
 enchantment.yoyos.collecting=Collecting
 yoyos.jei.info.collecting=This enchantment allows yoyos to pick up items.

@@ -752,6 +752,17 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         return new Vec3d(posX - throwerLookOffsetX * side * 0.4D - throwerLookOffsetZ * 0.5D * throwerLookWidth, posY + this.thrower.eyeHeight * 0.85D - throwerLookOffsetY * 0.5D - 0.25D, posZ - throwerLookOffsetZ * side * 0.4D + throwerLookOffsetX * 0.5D * throwerLookWidth);
     }
 
+    public float getRotation(int age, float partialTicks)
+    {
+        float ageInTicks = age + partialTicks;
+        float multiplier = 35;
+
+        if (this.duration != -1)
+            multiplier *= 2 - ageInTicks / ((float) this.duration);
+
+        return ageInTicks * multiplier;
+    }
+
     protected void forceRetract()
     {
         canCancelRetract = false;

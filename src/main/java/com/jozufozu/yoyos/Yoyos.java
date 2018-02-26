@@ -53,6 +53,7 @@ public class Yoyos
     public static EnumEnchantmentType YOYO_ENCHANTMENT_TYPE = EnumHelper.addEnchantmentType("collecting", item -> item instanceof IYoyo);
 
     public static SoundEvent YOYO_THROW;
+    public static SoundEvent YOYO_STICK;
 
     public Yoyos()
     {
@@ -100,6 +101,11 @@ public class Yoyos
         YOYO_THROW = new SoundEvent(name);
         YOYO_THROW.setRegistryName(name);
         event.getRegistry().register(YOYO_THROW);
+
+        name = new ResourceLocation(MODID, "entity.yoyo.stick");
+        YOYO_STICK = new SoundEvent(name);
+        YOYO_STICK.setRegistryName(name);
+        event.getRegistry().register(YOYO_STICK);
     }
 
     @Mod.EventHandler

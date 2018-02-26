@@ -3,5 +3,10 @@
         "category": "entities",
         "sounds": [{ "type": "event", "name": "minecraft:entity.bobber.throw" }],
         "subtitle": "entity.yoyo.throw.subtitle"
+    },
+    "entity.yoyo.stick": {
+        "category": "entities",
+        "sounds": [{ "type": "event", "name": "minecraft:entity.slime.squish" }],
+        "subtitle": "entity.yoyo.stick.subtitle"
     }
 }

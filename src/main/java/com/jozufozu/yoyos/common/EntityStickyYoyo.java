@@ -1,7 +1,7 @@
 package com.jozufozu.yoyos.common;
 
+import com.jozufozu.yoyos.Yoyos;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.world.World;
 
@@ -16,6 +16,9 @@ public class EntityStickyYoyo extends EntityYoyo
     {
         super(world, player);
     }
+
+    private boolean stuck = false;
+    private int stuckSince = 0;
 
     @Override
     public void onUpdate()
@@ -37,17 +40,23 @@ public class EntityStickyYoyo extends EntityYoyo
 
             if (!this.world.getCollisionBoxes(this, this.getEntityBoundingBox().grow(0.1)).isEmpty() && !this.isRetracting())
             {
-                if (this.motionX != 0 || this.motionY != 0 || this.motionZ != 0)
-                    world.playSound(null, posX, posY, posZ, SoundEvents.ENTITY_SLIME_DEATH, SoundCategory.PLAYERS, 0.7f, 3.0f);
-
                 this.motionX = 0;
                 this.motionY = 0;
                 this.motionZ = 0;
+
+                if (!stuck)
+                {
+                    stuckSince = this.ticksExisted;
+                    world.playSound(null, posX, posY, posZ, Yoyos.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f);
+                }
+                stuck = true;
             }
             else
             {
                 if (duration >= 0 && this.ticksExisted >= duration) this.forceRetract();
                 updatePosition();
+
+                stuck = false;
             }
 
             if (!world.isRemote)
@@ -63,5 +72,11 @@ public class EntityStickyYoyo extends EntityYoyo
                 updateCapturedDrops();
         }
         else this.setDead();
+    }
+
+    @Override
+    public float getRotation(int age, float partialTicks)
+    {
+        return stuck ? super.getRotation(stuckSince, 0) : super.getRotation(age - stuckSince, partialTicks);
     }
 }

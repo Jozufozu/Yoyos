@@ -30,9 +30,7 @@ public class YoyoNBT extends ToolNBT
         this.leastFriction = Math.min(leastFriction, this.leastFriction);
     }
     
-    public YoyoNBT()
-    {
-    }
+    public YoyoNBT() { }
     
     public YoyoNBT(NBTTagCompound tag)
     {
@@ -65,7 +63,6 @@ public class YoyoNBT extends ToolNBT
      */
     public YoyoNBT core(AxleMaterialStats... cores)
     {
-        
         for (AxleMaterialStats core : cores)
         {
             this.friction += core.friction;

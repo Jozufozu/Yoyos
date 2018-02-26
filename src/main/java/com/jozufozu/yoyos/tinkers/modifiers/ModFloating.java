@@ -34,9 +34,8 @@ public class ModFloating extends ToolModifier
         
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(stack.getTagCompound(), Tags.TOOL_DATA));
         if (toolData.weight <= 0.1)
-        {
             throw new TinkerGuiException(Util.translateFormatted("gui.error.too_light"));
-        }
+
         return true;
     }
     

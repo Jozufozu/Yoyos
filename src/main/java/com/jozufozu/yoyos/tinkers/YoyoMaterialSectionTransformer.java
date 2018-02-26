@@ -27,82 +27,81 @@ import java.util.stream.Collectors;
 
 /**
  * Does the same thing as {@link slimeknights.tconstruct.library.book.sectiontransformer.BowMaterialSectionTransformer}
- * But with Yoyos
+ * but with Yoyos
  */
 @SideOnly(Side.CLIENT)
 public class YoyoMaterialSectionTransformer extends SectionTransformer
 {
-    private static final List<String> MATERIAL_TYPES_ON_DISPLAY = ImmutableList.of(
-            YoyoMaterialTypes.BODY, YoyoMaterialTypes.AXLE, YoyoMaterialTypes.CORD
-    );
-    
-    public YoyoMaterialSectionTransformer() {
+    private static final String[] MATERIAL_TYPES_ON_DISPLAY = new String[]{ YoyoMaterialTypes.BODY, YoyoMaterialTypes.AXLE, YoyoMaterialTypes.CORD };
+
+    public YoyoMaterialSectionTransformer()
+    {
         super("yoyomaterials");
     }
-    
+
     @Override
-    public void transform(BookData book, SectionData data) {
+    public void transform(BookData book, SectionData data)
+    {
         ContentListing listing = new ContentListing();
         listing.title = book.translate(sectionName);
-        
+
         addPage(data, sectionName, "", listing);
-        
+
         // don't do stuff during preinit etc, we only want to fill it once everything is added
-        if(!Loader.instance().hasReachedState(LoaderState.POSTINITIALIZATION)) {
+        if (!Loader.instance().hasReachedState(LoaderState.POSTINITIALIZATION))
             return;
-        }
-        
-        MATERIAL_TYPES_ON_DISPLAY.forEach(type -> {
+
+        for (String type : MATERIAL_TYPES_ON_DISPLAY)
+        {
             int pageIndex = data.pages.size();
             generateContent(type, data);
-            if(pageIndex < data.pages.size()) {
+
+            if (pageIndex < data.pages.size())
                 listing.addEntry(getStatName(type), data.pages.get(pageIndex));
-            }
-        });
+        }
     }
-    
-    protected String getStatName(String type) {
+
+    protected String getStatName(String type)
+    {
         return Material.UNKNOWN.getStats(type).getLocalizedName();
     }
-    
-    protected List<ContentPageIconList> generateContent(String materialType, SectionData data) {
+
+    protected List<ContentPageIconList> generateContent(String materialType, SectionData data)
+    {
         List<Material> materialList = TinkerRegistry.getAllMaterials().stream()
                                                     .filter(m -> !m.isHidden())
                                                     .filter(Material::hasItems)
                                                     .filter(material -> material.hasStats(materialType))
                                                     .collect(Collectors.toList());
-        
-        if(materialList.size() == 0) {
-            return ImmutableList.of();
-        }
-        
+
+        if (materialList.size() == 0) return ImmutableList.of();
+
         List<ContentPageIconList> contentPages = ContentPageIconList.getPagesNeededForItemCount(materialList.size(), data, getStatName(materialType));
         ListIterator<ContentPageIconList> iter = contentPages.listIterator();
         ContentPageIconList currentOverview = iter.next();
-        
+
         // we want all the same, because it looks really weird otherwise :I
         contentPages.forEach(p -> p.maxScale = 1f);
-        
-        for(List<Material> materials : Lists.partition(materialList, 3)) {
+
+        for (List<Material> materials : Lists.partition(materialList, 3))
+        {
             ContentSingleStatMultMaterial content = new ContentSingleStatMultMaterial(materials, materialType);
             String id = materialType + "_" + materials.stream().map(Material::getIdentifier).collect(Collectors.joining("_"));
             PageData page = addPage(data, id, ContentSingleStatMultMaterial.ID, content);
-            
-            for(Material material : materials) {
+
+            for (Material material : materials)
+            {
                 SizedBookElement icon;
-                if(material.getRepresentativeItem() != null) {
+                if (material.getRepresentativeItem() != null)
                     icon = new ElementItem(0, 0, 1f, material.getRepresentativeItem());
-                }
-                else {
+                else
                     icon = new ElementImage(ImageData.MISSING);
-                }
-                
-                if(!currentOverview.addLink(icon, material.getLocalizedNameColored(), page)) {
+
+                if (!currentOverview.addLink(icon, material.getLocalizedNameColored(), page))
                     currentOverview = iter.next();
-                }
             }
         }
-        
+
         return contentPages;
     }
 }

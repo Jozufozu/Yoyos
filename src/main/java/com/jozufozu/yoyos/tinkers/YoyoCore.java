@@ -49,9 +49,8 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     @Override
     public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> subItems)
     {
-        if (this.isInCreativeTab(tab)) {
+        if (this.isInCreativeTab(tab))
             addDefaultSubItems(subItems, TinkerMaterials.string, null, null, null);
-        }
     }
     
     @Override
@@ -104,23 +103,19 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
         info.addDurability(!detailed);
         info.addAttack();
         info.add(CordMaterialStats.formatLength(nbt.chordLength));
+
         if (nbt.duration < 0)
-        {
             info.add(String.format("%s: %s%s", Util.translate(YoyoNBT.LOC_Duration), AxleMaterialStats.COLOR_Friction, Util.translate(YoyoNBT.LOC_Infinite)) + TextFormatting.RESET);
-        }
         else
             info.add(String.format("%s: %s%s %s", Util.translate(YoyoNBT.LOC_Duration), AxleMaterialStats.COLOR_Friction, Util.df.format(nbt.duration / 20F), Util.translate(YoyoNBT.LOC_Suffix)) + TextFormatting.RESET);
+
         info.add(BodyMaterialStats.formatWeight(nbt.weight));
         
         if (ToolHelper.getFreeModifiers(stack) > 0)
-        {
             info.addFreeModifiers();
-        }
         
         if (detailed)
-        {
             info.addModifierInfo();
-        }
         
         return info.getTooltip();
     }
@@ -144,6 +139,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
                 worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_BOBBER_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
     
                 NBTTagCompound root = TagUtil.getTagSafe(itemStackIn);
+
                 if (TinkerUtil.hasTrait(root, "sticky") || TinkerUtil.hasModifier(root, "gluey"))
                     worldIn.spawnEntity(new EntityStickyYoyo(worldIn, playerIn));
                 else
@@ -158,8 +154,10 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     
     @Override
     @SideOnly(Side.CLIENT)
-    public Material getMaterialForPartForGuiRendering(int index) {
-        switch(index) {
+    public Material getMaterialForPartForGuiRendering(int index)
+    {
+        switch(index)
+        {
             case 0: return ClientProxy.RenderMaterialString;
             case 1: return ClientProxy.RenderMaterials[2];
             case 2: return ClientProxy.RenderMaterials[1];

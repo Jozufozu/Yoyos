@@ -33,9 +33,8 @@ public class ModLubricated extends ToolModifier
         
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(stack.getTagCompound(), Tags.TOOL_DATA));
         if (toolData.duration == -1)
-        {
             throw new TinkerGuiException(Util.translateFormatted("gui.error.frictionless"));
-        }
+
         return true;
     }
     

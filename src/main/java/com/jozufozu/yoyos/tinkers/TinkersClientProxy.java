@@ -66,9 +66,9 @@ public class TinkersClientProxy extends TinkersProxy
                 new ResourceLocation("textures/font/ascii.png"),
                 mc.renderEngine);
         bookRenderer.setUnicodeFlag(true);
-        if(mc.gameSettings.language != null) {
+        if(mc.gameSettings.language != null)
             bookRenderer.setBidiFlag(mc.getLanguageManager().isCurrentLanguageBidirectional());
-        }
+
         INSTANCE.fontRenderer = bookRenderer;
         
         INSTANCE.addRepository(new FileRepository(String.format("%s:%s", Yoyos.MODID, "book")));

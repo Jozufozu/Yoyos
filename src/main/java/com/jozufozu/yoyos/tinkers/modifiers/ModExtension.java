@@ -29,6 +29,7 @@ public class ModExtension extends ToolModifier
     {
         if (stack.getItem() != TinkersYoyos.YOYO)
             throw new TinkerGuiException(Util.translateFormatted("gui.error.not_a_yoyo", Util.translate("modifier.extension.name")));
+
         return true;
     }
     

@@ -27,9 +27,7 @@ public class ModGardening extends ToolModifier
     protected boolean canApplyCustom(ItemStack stack) throws TinkerGuiException
     {
         if (stack.getItem() != TinkersYoyos.YOYO)
-        {
             throw new TinkerGuiException(Util.translateFormatted("gui.error.not_a_yoyo", Util.translate("modifier.gardening.name")));
-        }
         
         return true;
     }

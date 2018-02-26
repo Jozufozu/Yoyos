@@ -126,9 +126,7 @@ public class TinkersYoyos
         GLUEY.addItem("slimeball", 2, 1);
         
         for (Item item : TinkersYoyos.modItems)
-        {
             event.getRegistry().register(item);
-        }
     }
     
     @SubscribeEvent

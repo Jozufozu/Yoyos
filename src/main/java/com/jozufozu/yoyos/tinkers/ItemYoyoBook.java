@@ -28,16 +28,15 @@ public class ItemYoyoBook extends Item {
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand handIn) {
         ItemStack itemStack = playerIn.getHeldItem(handIn);
-        if(worldIn.isRemote) {
+        if(worldIn.isRemote)
             TinkersClientProxy.INSTANCE.openGui(itemStack);
-        }
+
         return new ActionResult<>(EnumActionResult.SUCCESS, itemStack);
     }
     
     @Override
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
-        if(I18n.canTranslate(super.getUnlocalizedName(stack) + ".tooltip")) {
+        if(I18n.canTranslate(super.getUnlocalizedName(stack) + ".tooltip"))
             tooltip.addAll(LocUtils.getTooltips(TextFormatting.GRAY.toString() + LocUtils.translateRecursive(super.getUnlocalizedName(stack) + ".tooltip")));
-        }
     }
 }

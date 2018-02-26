@@ -1,31 +1,31 @@
 [
-  {
-    "name": "yoyo",
-    "type": "tool",
-    "data": "yoyo.json"
-  },
-  {
-    "type": "modifier",
-    "data": "modifiers/extension.json"
-  },
-  {
-    "type": "modifier",
-    "data": "modifiers/floating.json"
-  },
-  {
-    "type": "modifier",
-    "data": "modifiers/gardening.json"
-  },
-  {
-    "type": "modifier",
-    "data": "modifiers/gluey.json"
-  },
-  {
-    "type": "modifier",
-    "data": "modifiers/collecting.json"
-  },
-  {
-    "type": "modifier",
-    "data": "modifiers/lubricated.json"
-  }
+    {
+        "name": "yoyo",
+        "type": "tool",
+        "data": "yoyo.json"
+    },
+    {
+        "type": "modifier",
+        "data": "modifiers/extension.json"
+    },
+    {
+        "type": "modifier",
+        "data": "modifiers/floating.json"
+    },
+    {
+        "type": "modifier",
+        "data": "modifiers/gardening.json"
+    },
+    {
+        "type": "modifier",
+        "data": "modifiers/gluey.json"
+    },
+    {
+        "type": "modifier",
+        "data": "modifiers/collecting.json"
+    },
+    {
+        "type": "modifier",
+        "data": "modifiers/lubricated.json"
+    }
 ]

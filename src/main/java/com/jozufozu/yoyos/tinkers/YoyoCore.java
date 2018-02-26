@@ -15,7 +15,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -160,14 +159,17 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
             }
             else if (ToolHelper.getCurrentDurability(itemStackIn) > 0)
             {
-                worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_BOBBER_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
-    
                 NBTTagCompound root = TagUtil.getTagSafe(itemStackIn);
 
+                EntityYoyo yoyo;
                 if (TinkerUtil.hasTrait(root, "sticky") || TinkerUtil.hasModifier(root, "gluey"))
-                    worldIn.spawnEntity(new EntityStickyYoyo(worldIn, playerIn));
+                    yoyo = new EntityStickyYoyo(worldIn, playerIn);
                 else
-                    worldIn.spawnEntity(new EntityYoyo(worldIn, playerIn));
+                    yoyo = new EntityYoyo(worldIn, playerIn);
+
+                worldIn.spawnEntity(yoyo);
+
+                worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
                 
                 playerIn.swingArm(hand);
             }

@@ -1,19 +1,15 @@
 {
-  "type": "minecraft:crafting_shapeless",
-  "conditions": [
-    {
-      "type": "yoyos:are_yoyos_enabled"
+    "type": "minecraft:crafting_shapeless",
+    "conditions": [{ "type": "yoyos:are_yoyos_enabled" }],
+    "ingredients": [
+        {
+            "item": "yoyos:iron_yoyo"
+        },
+        {
+            "item": "minecraft:shears"
+        }
+    ],
+    "result": {
+        "item": "yoyos:shear_yoyo"
     }
-  ],
-  "ingredients": [
-    {
-      "item": "yoyos:iron_yoyo"
-    },
-    {
-      "item": "minecraft:shears"
-    }
-  ],
-  "result": {
-    "item": "yoyos:shear_yoyo"
-  }
 }

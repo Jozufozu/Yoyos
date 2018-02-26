@@ -1,17 +1,17 @@
 {
-  "type": "forge:ore_shaped",
-  "pattern": [
-    "CCC",
-    "C C",
-    "CCC"
-  ],
-  "key": {
-    "C": {
-      "type": "forge:ore_dict",
-      "ore": "string"
+    "type": "forge:ore_shaped",
+    "pattern": [
+        "CCC",
+        "C C",
+        "CCC"
+    ],
+    "key": {
+        "C": {
+            "type": "forge:ore_dict",
+            "ore": "string"
+        }
+    },
+    "result": {
+        "item": "yoyos:cord"
     }
-  },
-  "result": {
-    "item": "yoyos:cord"
-  }
 }

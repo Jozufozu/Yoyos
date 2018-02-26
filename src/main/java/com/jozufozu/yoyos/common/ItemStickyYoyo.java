@@ -1,11 +1,11 @@
 package com.jozufozu.yoyos.common;
 
+import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.network.MessageRetractYoYo;
 import com.jozufozu.yoyos.network.YoyoNetwork;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
@@ -41,9 +41,10 @@ public class ItemStickyYoyo extends ItemYoyo
             }
             else if (itemStackIn.getItemDamage() < itemStackIn.getMaxDamage())
             {
-                worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_BOBBER_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
-                
-                worldIn.spawnEntity(new EntityStickyYoyo(worldIn, playerIn));
+                EntityStickyYoyo yoyo = new EntityStickyYoyo(worldIn, playerIn);
+                worldIn.spawnEntity(yoyo);
+
+                worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
                 
                 playerIn.swingArm(hand);
             }

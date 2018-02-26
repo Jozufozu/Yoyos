@@ -1,19 +1,19 @@
 [
-  {
-    "name": "yoyoinfo",
-    "data": "sections/yoyoinfo.json",
-    "icon": {
-      "item": {
-        "id": "minecraft:string"
-      }
+    {
+        "name": "yoyoinfo",
+        "data": "sections/yoyoinfo.json",
+        "icon": {
+            "item": {
+                "id": "minecraft:string"
+            }
+        }
+    },
+    {
+        "name": "yoyomaterials",
+        "icon": {
+            "item": {
+                "id": "yoyos:iron_yoyo"
+            }
+        }
     }
-  },
-  {
-    "name": "yoyomaterials",
-    "icon": {
-      "item": {
-        "id": "yoyos:iron_yoyo"
-      }
-    }
-  }
 ]

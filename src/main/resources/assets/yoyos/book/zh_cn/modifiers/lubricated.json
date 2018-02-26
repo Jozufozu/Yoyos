@@ -1,15 +1,15 @@
 {
-  "modifier": "lubricated",
-  "text": [
-    {
-      "text": "一个有趣的事件：墨囊不仅可以用于写作，甚至可以用来攻击，似乎可以减少轮轴间的摩擦力增加持续时间"
-    }
-  ],
-  "effects": [
-    "延长运转时间",
-    "多个等级"
-  ],
-  "demoTool": [
-    "yoyos:yoyo"
-  ]
+    "modifier": "lubricated",
+    "text": [
+        {
+            "text": "一个有趣的事件：墨囊不仅可以用于写作，甚至可以用来攻击，似乎可以减少轮轴间的摩擦力增加持续时间"
+        }
+    ],
+    "effects": [
+        "延长运转时间",
+        "多个等级"
+    ],
+    "demoTool": [
+        "yoyos:yoyo"
+    ]
 }

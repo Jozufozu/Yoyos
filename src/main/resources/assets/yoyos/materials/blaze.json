@@ -1,6 +1,6 @@
 {
-  "axle": {
-    "friction": 0.2,
-    "modifier": 0.8
-  }
+    "axle": {
+        "friction": 0.2,
+        "modifier": 0.8
+    }
 }

@@ -1,29 +1,17 @@
 {
-  "type": "forge:ore_shaped",
-  "conditions": [
-    {
-      "type": "yoyos:are_yoyos_enabled"
-    }
-  ],
-  "pattern": [
-    " X ",
-    "XSX",
-    "CX "
-  ],
-  "key": {
-    "S": {
-      "type": "forge:ore_dict",
-      "ore": "stickWood"
+    "type": "forge:ore_shaped",
+    "conditions": [{ "type": "yoyos:are_yoyos_enabled" }],
+    "pattern": [
+        " X ",
+        "XSX",
+        "CX "
+    ],
+    "key": {
+        "S": { "type": "forge:ore_dict", "ore": "stickWood" },
+        "X": { "type": "forge:ore_dict", "ore": "gemDiamond" },
+        "C": { "item": "yoyos:cord" }
     },
-    "X": {
-      "type": "forge:ore_dict",
-      "ore": "gemDiamond"
-    },
-    "C": {
-      "item": "yoyos:cord"
+    "result": {
+        "item": "yoyos:diamond_yoyo"
     }
-  },
-  "result": {
-    "item": "yoyos:diamond_yoyo"
-  }
 }

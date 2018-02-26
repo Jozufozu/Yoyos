@@ -94,9 +94,10 @@ public class ItemYoyo extends ItemSword implements IYoyo
             }
             else if (itemStack.getItemDamage() <= itemStack.getMaxDamage() || this == Yoyos.CREATIVE_YOYO)
             {
-                worldIn.playSound(null, playerIn.posX, playerIn.posY, playerIn.posZ, SoundEvents.ENTITY_BOBBER_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
-                
-                worldIn.spawnEntity(new EntityYoyo(worldIn, playerIn));
+                EntityYoyo yoyo = new EntityYoyo(worldIn, playerIn);
+                worldIn.spawnEntity(yoyo);
+
+                worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
                 
                 playerIn.swingArm(hand);
             }

@@ -7,6 +7,8 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnumEnchantmentType;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.event.RegistryEvent;
@@ -50,6 +52,8 @@ public class Yoyos
     public static Enchantment COLLECTING;
     public static EnumEnchantmentType YOYO_ENCHANTMENT_TYPE = EnumHelper.addEnchantmentType("collecting", item -> item instanceof IYoyo);
 
+    public static SoundEvent YOYO_THROW;
+
     public Yoyos()
     {
         MinecraftForge.EVENT_BUS.register(this);
@@ -87,6 +91,15 @@ public class Yoyos
         CreativeTabs.COMBAT.setRelevantEnchantmentTypes(enchantmentTypes);
 
         event.getRegistry().register(COLLECTING);
+    }
+
+    @SubscribeEvent
+    public void registerSounds(RegistryEvent.Register<SoundEvent> event)
+    {
+        ResourceLocation name = new ResourceLocation(MODID, "entity.yoyo.throw");
+        YOYO_THROW = new SoundEvent(name);
+        YOYO_THROW.setRegistryName(name);
+        event.getRegistry().register(YOYO_THROW);
     }
 
     @Mod.EventHandler

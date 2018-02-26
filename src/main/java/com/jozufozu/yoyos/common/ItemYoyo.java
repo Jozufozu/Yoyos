@@ -124,7 +124,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
     {
         Multimap<String, AttributeModifier> multimap = HashMultimap.create();
     
-        if (equipmentSlot == EntityEquipmentSlot.MAINHAND)
+        if (equipmentSlot == EntityEquipmentSlot.MAINHAND || equipmentSlot == EntityEquipmentSlot.OFFHAND)
         {
             double damage = 0.0;
     
@@ -227,13 +227,9 @@ public class ItemYoyo extends ItemSword implements IYoyo
                 float attackModifier;
                 
                 if (targetEntity instanceof EntityLivingBase)
-                {
-                    attackModifier = EnchantmentHelper.getModifierForCreature(attacker.getHeldItemMainhand(), ((EntityLivingBase) targetEntity).getCreatureAttribute());
-                }
+                    attackModifier = EnchantmentHelper.getModifierForCreature(stack, ((EntityLivingBase) targetEntity).getCreatureAttribute());
                 else
-                {
-                    attackModifier = EnchantmentHelper.getModifierForCreature(attacker.getHeldItemMainhand(), EnumCreatureAttribute.UNDEFINED);
-                }
+                    attackModifier = EnchantmentHelper.getModifierForCreature(stack, EnumCreatureAttribute.UNDEFINED);
                 
                 float attackStrength = attacker.getCooledAttackStrength(0.5F);
                 damage = damage * (0.2F + attackStrength * attackStrength * 0.8F);
@@ -250,9 +246,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
                     critical = critical && !attacker.isSprinting();
                     
                     if (critical)
-                    {
                         damage *= 1.5F;
-                    }
                     
                     damage = damage + attackModifier;
                     
@@ -281,13 +275,9 @@ public class ItemYoyo extends ItemSword implements IYoyo
                         if (knockbackModifier > 0)
                         {
                             if (targetEntity instanceof EntityLivingBase)
-                            {
                                 ((EntityLivingBase) targetEntity).knockBack(attacker, (float) knockbackModifier * 0.5F, (double) MathHelper.sin(attacker.rotationYaw * 0.017453292F), (double) (-MathHelper.cos(attacker.rotationYaw * 0.017453292F)));
-                            }
                             else
-                            {
                                 targetEntity.addVelocity((double) (-MathHelper.sin(attacker.rotationYaw * 0.017453292F) * (float) knockbackModifier * 0.5F), 0.1D, (double) (MathHelper.cos(attacker.rotationYaw * 0.017453292F) * (float) knockbackModifier * 0.5F));
-                            }
                         }
                         
                         if (targetEntity instanceof EntityPlayerMP && targetEntity.velocityChanged)
@@ -308,29 +298,20 @@ public class ItemYoyo extends ItemSword implements IYoyo
                         if (!critical)
                         {
                             if (flag)
-                            {
                                 attacker.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_STRONG, attacker.getSoundCategory(), 1.0F, 1.0F);
-                            }
                             else
-                            {
                                 attacker.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, attacker.getSoundCategory(), 1.0F, 1.0F);
-                            }
                         }
                         
                         if (attackModifier > 0.0F)
-                        {
                             attacker.onEnchantmentCritical(targetEntity);
-                        }
                         
                         attacker.setLastAttackedEntity(targetEntity);
                         
                         if (targetEntity instanceof EntityLivingBase)
-                        {
                             EnchantmentHelper.applyThornEnchantments((EntityLivingBase) targetEntity, attacker);
-                        }
                         
                         EnchantmentHelper.applyArthropodEnchantments(attacker, targetEntity);
-                        ItemStack itemstack1 = attacker.getHeldItemMainhand();
                         Entity entity = targetEntity;
                         
                         if (targetEntity instanceof IEntityMultiPart)
@@ -338,19 +319,17 @@ public class ItemYoyo extends ItemSword implements IYoyo
                             IEntityMultiPart ientitymultipart = (IEntityMultiPart) targetEntity;
                             
                             if (ientitymultipart instanceof EntityLivingBase)
-                            {
                                 entity = (EntityLivingBase) ientitymultipart;
-                            }
                         }
                         
-                        if (itemstack1 != ItemStack.EMPTY && entity instanceof EntityLivingBase)
+                        if (stack != ItemStack.EMPTY && entity instanceof EntityLivingBase)
                         {
-                            itemstack1.hitEntity((EntityLivingBase) entity, attacker);
+                            stack.hitEntity((EntityLivingBase) entity, attacker);
                             
-                            if (itemstack1.getCount() <= 0)
+                            if (stack.getCount() <= 0)
                             {
                                 attacker.setHeldItem(EnumHand.MAIN_HAND, ItemStack.EMPTY);
-                                ForgeEventFactory.onPlayerDestroyItem(attacker, itemstack1, EnumHand.MAIN_HAND);
+                                ForgeEventFactory.onPlayerDestroyItem(attacker, stack, EnumHand.MAIN_HAND);
                             }
                         }
                         
@@ -360,9 +339,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
                             attacker.addStat(StatList.DAMAGE_DEALT, Math.round(f5 * 10.0F));
                             
                             if (fireAspect > 0)
-                            {
                                 targetEntity.setFire(fireAspect * 4);
-                            }
                             
                             if (attacker.world instanceof WorldServer && f5 > 2.0F)
                             {
@@ -378,9 +355,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
                         attacker.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_NODAMAGE, attacker.getSoundCategory(), 1.0F, 1.0F);
                         
                         if (setEntityOnFire)
-                        {
                             targetEntity.extinguish();
-                        }
                     }
                 }
             }

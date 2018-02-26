@@ -19,6 +19,8 @@ yoyos.config.swing=Yoyo Swinging
 
 yoyos.config.materials=Configurable Material Stats
 
+yoyos.config.tinkers.tool_station=Tool Station Crafting
+
 yoyos.config.damage=Damage
 yoyos.config.weight=Weight
 yoyos.config.length=Length

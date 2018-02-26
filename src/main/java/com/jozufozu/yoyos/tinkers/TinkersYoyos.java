@@ -2,6 +2,7 @@ package com.jozufozu.yoyos.tinkers;
 
 import com.google.common.collect.Lists;
 import com.jozufozu.yoyos.Yoyos;
+import com.jozufozu.yoyos.common.ModConfig;
 import com.jozufozu.yoyos.tinkers.materials.AxleMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.BodyMaterialStats;
 import com.jozufozu.yoyos.tinkers.materials.CordMaterialStats;
@@ -188,6 +189,9 @@ public class TinkersYoyos
     
     private static void registerToolBuilding()
     {
+        if (ModConfig.stationCrafting)
+            TinkerRegistry.registerToolStationCrafting(YOYO);
+
         TinkerRegistry.registerToolForgeCrafting(YOYO);
     }
     

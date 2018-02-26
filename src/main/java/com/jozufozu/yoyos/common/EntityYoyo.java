@@ -467,14 +467,19 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         boolean hit = false;
         boolean returned = false;
 
-        AxisAlignedBB now = getEntityBoundingBox().grow(0.1);
+        AxisAlignedBB now = getEntityBoundingBox().grow(0.2);
         AxisAlignedBB then = now.offset(lastTickPosX - posX, lastTickPosY - posY, lastTickPosZ - posZ);
 
         Vec3d[] corners1 = getCorners(then);
         Vec3d[] corners2 = getCorners(now);
 
+        // The better collision detection is actually worse with items.
+        // If we collected items before the collision test
+        // fast yoyos would be able to pick things up through thick walls.
+        if (this.collecting) world.getEntitiesWithinAABB(EntityItem.class, now).forEach(this::collectDrop);
+
         AxisAlignedBB union = now.union(then);
-        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(this, union);
+        List<Entity> entities = world.getEntitiesInAABBexcluding(this, union, entity -> !(entity instanceof EntityItem));
         for (Entity entity : entities)
         {
             if (entity == thrower)
@@ -506,9 +511,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
             if (!passed) continue;
 
-            if (this.collecting && entity instanceof EntityItem)
-                collectDrop(((EntityItem) entity));
-
             if (entity instanceof EntityLivingBase)
             {
                 if (gardening && entity instanceof IShearable)
@@ -539,7 +541,8 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                     new Vec3d(box.minX, box.minY, box.maxZ),
                     new Vec3d(box.maxX, box.minY, box.maxZ),
                     new Vec3d(box.minX, box.maxY, box.maxZ),
-                    new Vec3d(box.maxX, box.maxY, box.maxZ)
+                    new Vec3d(box.maxX, box.maxY, box.maxZ),
+                    box.getCenter()
                 };
     }
 

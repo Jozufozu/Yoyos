@@ -21,16 +21,21 @@ public class ModConfig
     }
     
     @Config.LangKey("yoyos.config.swing")
-    @Config.Comment("Allows you to swing from yoyos when they get caught")
+    @Config.Comment("Allows you to swing from yoyos when they get caught.")
     public static boolean yoyoSwing = true;
     
     @Config.LangKey("yoyos.config.vanilla")
     public static VanillaYoyos vanillaYoyos = new VanillaYoyos();
     
     @Config.LangKey("yoyos.config.tinkers")
-    @Config.Comment("If enabled and Tinkers' Construct is installed, adds customizable yoyos")
+    @Config.Comment("Add customizable yoyos if Tinkers' Construct is installed.")
     @Config.RequiresMcRestart
     public static boolean tinkersYoyos = true;
+
+    @Config.LangKey("yoyos.config.tinkers.tool_station")
+    @Config.Comment("Allows yoyos to be crafted in the Tinkers' Construct Tool Station.")
+    @Config.RequiresMcRestart
+    public static boolean stationCrafting = false;
     
     @Config.LangKey("yoyos.config.materials")
     @Config.Comment({"If enabled, saves materials into a config folder.", "Allows for editing, addition, and removal of stats for yoyos."})

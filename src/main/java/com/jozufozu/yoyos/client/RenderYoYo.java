@@ -100,9 +100,10 @@ public class RenderYoYo extends Render<EntityYoyo>
             GlStateManager.enableBlend();
             RenderHelper.enableStandardItemLighting();
             GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-    
+
+            int i = 0;
             for (ItemStack drop : entity.collectedDrops)
-                doRenderItem(entity, drop, partialTicks);
+                doRenderItem(i++, entity, drop, partialTicks);
     
             GlStateManager.disableRescaleNormal();
             GlStateManager.disableBlend();
@@ -233,11 +234,15 @@ public class RenderYoYo extends Render<EntityYoyo>
         return i;
     }
     
-    public void doRenderItem(EntityYoyo yoyo, ItemStack itemStack, float partialTicks)
+    public void doRenderItem(int i, EntityYoyo yoyo, ItemStack itemStack, float partialTicks)
     {
         GlStateManager.pushMatrix();
-        
-        this.random.setSeed(itemStack.isEmpty() ? 187 : Item.getIdFromItem(itemStack.getItem()) + itemStack.getMetadata());
+
+        long seed = Item.getIdFromItem(itemStack.getItem()) << 16;
+        seed |= itemStack.getMetadata() << 12;
+        seed |= i;
+
+        this.random.setSeed(seed);
         
         IBakedModel ibakedmodel = this.itemRenderer.getItemModelWithOverrides(itemStack, yoyo.world, null);
         int modelCount = this.transformModelCount(yoyo, itemStack, partialTicks, ibakedmodel);

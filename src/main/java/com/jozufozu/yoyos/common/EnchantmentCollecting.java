@@ -11,7 +11,7 @@ public class EnchantmentCollecting extends Enchantment
     public EnchantmentCollecting(Rarity rarityIn, EnumEnchantmentType typeIn, EntityEquipmentSlot[] slots)
     {
         super(rarityIn, typeIn, slots);
-        this.setName("collecting");
+        this.setName("yoyos.collecting");
         this.setRegistryName(new ResourceLocation(Yoyos.MODID, "collecting"));
     }
 }

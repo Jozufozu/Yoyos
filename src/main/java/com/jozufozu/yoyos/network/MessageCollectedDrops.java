@@ -10,6 +10,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 
 public class MessageCollectedDrops implements IMessage
@@ -51,6 +52,7 @@ public class MessageCollectedDrops implements IMessage
     public static class Handler implements IMessageHandler<MessageCollectedDrops, IMessage>
     {
         @Override
+        @Nullable
         public IMessage onMessage(MessageCollectedDrops message, MessageContext ctx)
         {
             Minecraft.getMinecraft().addScheduledTask(() ->
@@ -59,10 +61,11 @@ public class MessageCollectedDrops implements IMessage
                 
                 Entity maybeYoYo = mc.world.getEntityByID(message.yoyoID);
                 
-                if (maybeYoYo != null && maybeYoYo instanceof EntityYoyo)
+                if (maybeYoYo instanceof EntityYoyo)
                 {
                     EntityYoyo yoyo = (EntityYoyo) maybeYoYo;
-    
+
+                    // We trust that the drops are condensed
                     yoyo.collectedDrops.clear();
                     Collections.addAll(yoyo.collectedDrops, message.drops);
                 }

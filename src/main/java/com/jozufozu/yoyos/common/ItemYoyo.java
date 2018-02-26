@@ -109,12 +109,12 @@ public class ItemYoyo extends ItemSword implements IYoyo
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn)
     {
         super.addInformation(stack, worldIn, tooltip, flagIn);
-        tooltip.add(I18n.format("info.weight.name", getWeight(stack)));
-        tooltip.add(I18n.format("info.length.name", getLength(stack)));
+        tooltip.add(I18n.format("yoyos.info.weight.name", getWeight(stack)));
+        tooltip.add(I18n.format("yoyos.info.length.name", getLength(stack)));
     
         int duration = getDuration(stack);
         Object arg = (duration < 0 ? I18n.format("stat.yoyo.infinite.name") : ((float) duration) / 20F);
-        tooltip.add(I18n.format("info.duration.name", arg));
+        tooltip.add(I18n.format("yoyos.info.duration.name", arg));
         
         if (stack.isItemEnchanted())
             tooltip.add("");

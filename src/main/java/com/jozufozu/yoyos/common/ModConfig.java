@@ -74,8 +74,8 @@ public class ModConfig
             public float length;
     
             @Config.LangKey("yoyos.config.duration")
-            @Config.Comment("How long the yoyo can stay out (in ticks)")
-            @Config.RangeInt(min = 0)
+            @Config.Comment({"How long the yoyo can stay out (in ticks)", "-1 means infinite duration"})
+            @Config.RangeInt(min = -1)
             public int duration;
     
             @Config.LangKey("yoyos.config.damage")

@@ -11,12 +11,12 @@ public class EntityStickyYoyo extends EntityYoyo
     {
         super(world);
     }
-    
+
     public EntityStickyYoyo(World world, EntityPlayer player)
     {
         super(world, player);
     }
-    
+
     @Override
     public void onUpdate()
     {
@@ -24,42 +24,40 @@ public class EntityStickyYoyo extends EntityYoyo
         {
             this.setFlag(6, this.isGlowing());
         }
-    
+
         this.onEntityUpdate();
-        
+
         if (this.thrower != null && !thrower.isDead)
         {
-    
             IYoyo yoyo = checkThrowerAndGetStats();
-    
+
             if (yoyo == null) return;
-            
-            if (duration >= 0 && this.ticksExisted >= duration) this.forceRetract();
-            
+
             if (this.thrower.isSneaking() && this.cordLength > 0.5) this.cordLength -= 0.1F;
-            
+
             if (!this.world.getCollisionBoxes(this, this.getEntityBoundingBox().grow(0.1)).isEmpty() && !this.isRetracting())
             {
                 if (this.motionX != 0 || this.motionY != 0 || this.motionZ != 0)
                     world.playSound(null, posX, posY, posZ, SoundEvents.ENTITY_SLIME_DEATH, SoundCategory.PLAYERS, 0.7f, 3.0f);
-                
+
                 this.motionX = 0;
                 this.motionY = 0;
                 this.motionZ = 0;
             }
             else
             {
+                if (duration >= 0 && this.ticksExisted >= duration) this.forceRetract();
                 updatePosition();
             }
-            
+
             if (!world.isRemote)
             {
                 doEntityCollisions(yoyo);
-                
+
                 if (this.gardening)
                     garden(yoyo);
             }
-            
+
             handleSwing();
             if (collecting)
                 updateCapturedDrops();

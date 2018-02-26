@@ -57,7 +57,7 @@ public class ItemStickyYoyo extends ItemYoyo
     {
         super.addInformation(stack, worldIn, tooltip, flagIn);
         tooltip.add("");
-        tooltip.add(I18n.format("info.sticky.name"));
-        tooltip.add(I18n.format("info.sticky.retraction.name", new TextComponentKeybind("key.sneak").getUnformattedText()));
+        tooltip.add(I18n.format("yoyos.info.sticky.name"));
+        tooltip.add(I18n.format("yoyos.info.sticky.retraction.name", new TextComponentKeybind("key.sneak").getUnformattedText()));
     }
 }

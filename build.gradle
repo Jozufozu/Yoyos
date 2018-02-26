@@ -42,7 +42,7 @@ repositories {
 
 dependencies {
     deobfCompile "slimeknights.mantle:Mantle:1.12-${project.mantleVersion}"
-    deobfCompile "slimeknights:TConstruct:1.12-${project.tconVersion}"
+    deobfCompile "slimeknights:TConstruct:1.12.2-${project.tconVersion}"
 
     deobfProvided "mezz.jei:jei_${project.mcVersion}:${project.jeiVersion}:api"
     runtime "mezz.jei:jei_${project.mcVersion}:${project.jeiVersion}"

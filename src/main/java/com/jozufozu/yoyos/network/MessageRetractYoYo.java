@@ -8,6 +8,8 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
+import javax.annotation.Nullable;
+
 public class MessageRetractYoYo implements IMessage
 {
     
@@ -39,6 +41,7 @@ public class MessageRetractYoYo implements IMessage
     public static class Handler implements IMessageHandler<MessageRetractYoYo, IMessage>
     {
         @Override
+        @Nullable
         public IMessage onMessage(MessageRetractYoYo message, MessageContext ctx)
         {
             Minecraft.getMinecraft().addScheduledTask(() ->
@@ -47,7 +50,7 @@ public class MessageRetractYoYo implements IMessage
                 
                 Entity maybeYoYo = mc.world.getEntityByID(message.yoyoID);
                 
-                if (maybeYoYo != null && maybeYoYo instanceof EntityYoyo)
+                if (maybeYoYo instanceof EntityYoyo)
                 {
                     ((EntityYoyo) maybeYoYo).setRetracting(message.retracting);
                 }

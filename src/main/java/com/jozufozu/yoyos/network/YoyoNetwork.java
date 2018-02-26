@@ -19,7 +19,7 @@ public class YoyoNetwork
         registerMessage(MessageCollectedDrops.class, MessageCollectedDrops.Handler.class, Side.CLIENT);
     }
     
-    public static <REQ extends IMessage, REPLY extends IMessage> void registerMessage(Class<REQ> requestMessageType, Class<? extends IMessageHandler<REQ, REPLY>> messageHandler, Side side)
+    private static <REQ extends IMessage, REPLY extends IMessage> void registerMessage(Class<REQ> requestMessageType, Class<? extends IMessageHandler<REQ, REPLY>> messageHandler, Side side)
     {
         INSTANCE.registerMessage(messageHandler, requestMessageType, ID++, side);
     }

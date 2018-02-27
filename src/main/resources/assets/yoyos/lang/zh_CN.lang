@@ -10,7 +10,7 @@ item.yoyos.creative_yoyo.name=彩虹悠悠球
 item.yoyos.cord.name=捆绳
 
 entity.yoyo.throw.subtitle=悠悠球
-entity.yoyo.stick.subtitle=捆绳
+entity.yoyo.stick.subtitle=粘住的悠悠球
 
 enchantment.yoyos.collecting=收集
 yoyos.jei.info.collecting=此效果允许让悠悠球吸收周围物品。

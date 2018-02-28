@@ -544,7 +544,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                     new Vec3d(box.maxX, box.minY, box.maxZ),
                     new Vec3d(box.minX, box.maxY, box.maxZ),
                     new Vec3d(box.maxX, box.maxY, box.maxZ),
-                    box.getCenter()
+                    new Vec3d(box.minX + (box.maxX - box.minX) * 0.5D, box.minY + (box.maxY - box.minY) * 0.5D, box.minZ + (box.maxZ - box.minZ) * 0.5D)
                 };
     }
 

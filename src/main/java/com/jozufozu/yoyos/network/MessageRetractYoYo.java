@@ -20,22 +20,22 @@ public class MessageRetractYoYo implements IMessage
     
     public MessageRetractYoYo(EntityYoyo yoYo)
     {
-        this.yoyoID = yoYo.getEntityId();
-        this.retracting = yoYo.isRetracting();
+        yoyoID = yoYo.getEntityId();
+        retracting = yoYo.isRetracting();
     }
     
     @Override
     public void fromBytes(ByteBuf buf)
     {
-        this.yoyoID = buf.readInt();
-        this.retracting = buf.readBoolean();
+        yoyoID = buf.readInt();
+        retracting = buf.readBoolean();
     }
     
     @Override
     public void toBytes(ByteBuf buf)
     {
-        buf.writeInt(this.yoyoID);
-        buf.writeBoolean(this.retracting);
+        buf.writeInt(yoyoID);
+        buf.writeBoolean(retracting);
     }
     
     public static class Handler implements IMessageHandler<MessageRetractYoYo, IMessage>

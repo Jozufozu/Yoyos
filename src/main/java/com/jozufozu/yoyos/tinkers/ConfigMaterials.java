@@ -37,8 +37,8 @@ import java.util.function.BiConsumer;
 
 public class ConfigMaterials
 {
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    public static final Logger LOG = LogManager.getLogger("Yoyo Materials");
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Logger LOG = LogManager.getLogger("Yoyo Materials");
     
     public static void dumpMissing(File saveLoc)
     {
@@ -78,22 +78,22 @@ public class ConfigMaterials
     }
     
     @Nullable
-    public static JsonObject dumpMissingBodyStats(Material material)
+    private static JsonObject dumpMissingBodyStats(Material material)
     {
         HeadMaterialStats head = material.getStats(YoyoMaterialTypes.HEAD);
         if (head == null || material.getStats(YoyoMaterialTypes.BODY) != null)
             return null;
-        
+
         JsonObject statJson = new JsonObject();
         statJson.addProperty("attack", head.attack);
         statJson.addProperty("weight", 0);
         statJson.addProperty("durability", head.durability);
-        
+
         return statJson;
     }
     
     @Nullable
-    public static JsonObject dumpMissingAxleStats(Material material)
+    private static JsonObject dumpMissingAxleStats(Material material)
     {
         HandleMaterialStats handle = material.getStats(YoyoMaterialTypes.HANDLE);
         if (handle == null || material.getStats(YoyoMaterialTypes.AXLE) != null)
@@ -137,8 +137,8 @@ public class ConfigMaterials
             resourceMaterialsFor(ConfigMaterials::processJson);
         }
     }
-    
-    public static void resourceMaterialsFor(BiConsumer<String, JsonObject> action)
+
+    private static void resourceMaterialsFor(BiConsumer<String, JsonObject> action)
     {
         FileSystem filesystem = null;
     
@@ -184,17 +184,17 @@ public class ConfigMaterials
                 }
             }
         }
-        catch (IOException | URISyntaxException urisyntaxexception)
+        catch (IOException | URISyntaxException e)
         {
-            LOG.error("Couldn't get a list of all material files", urisyntaxexception);
+            LOG.error("Couldn't get a list of all material files", e);
         }
         finally
         {
             IOUtils.closeQuietly(filesystem);
         }
     }
-    
-    public static void loadConfigMaterials(File file)
+
+    private static void loadConfigMaterials(File file)
     {
         File[] files = file.listFiles();
         
@@ -205,8 +205,8 @@ public class ConfigMaterials
             if (file1 != null && file1.getAbsolutePath().endsWith(".json"))
                 loadMaterialStatsFromFile(file1);
     }
-    
-    public static void loadMaterialStatsFromFile(File file)
+
+    private static void loadMaterialStatsFromFile(File file)
     {
         String name = file.getName();
     
@@ -227,12 +227,12 @@ public class ConfigMaterials
             LOG.error(String.format("Error reading material \"%s\" from file: ", name), e);
         }
     }
-    
-    public static void processJson(String name, JsonObject materialStats)
+
+    private static void processJson(String name, JsonObject materialStats)
     {
         try
         {
-            addStats(name, readBodyFromMaterial(materialStats));
+            addStats(name, BodyMaterialStats.deserialize(materialStats));
         }
         catch (JsonParseException e)
         {
@@ -241,7 +241,7 @@ public class ConfigMaterials
     
         try
         {
-            addStats(name, readAxleFromMaterial(materialStats));
+            addStats(name, AxleMaterialStats.deserialize(materialStats));
         }
         catch (JsonParseException e)
         {
@@ -250,15 +250,15 @@ public class ConfigMaterials
     
         try
         {
-            addStats(name, readCordFromMaterial(materialStats));
+            addStats(name, CordMaterialStats.deserialize(materialStats));
         }
         catch (JsonParseException e)
         {
             LOG.error(String.format("Error parsing cord stats for material \"%s\", ", name), e);
         }
     }
-    
-    public static void addStats(String material, @Nullable IMaterialStats stats)
+
+    private static void addStats(String material, @Nullable IMaterialStats stats)
     {
         if (stats == null)
             return;
@@ -269,48 +269,5 @@ public class ConfigMaterials
     
         if (!TinkersYoyos.MASTER_STATS.containsKey(material))
             TinkersYoyos.MASTER_STATS.put(material, statsSet);
-    }
-    
-    @Nullable
-    public static BodyMaterialStats readBodyFromMaterial(JsonObject material) throws JsonParseException
-    {
-        if (!JsonUtils.hasField(material, "body"))
-            return null;
-    
-        JsonObject body = JsonUtils.getJsonObject(material, "body");
-        
-        float attack = JsonUtils.getFloat(body, "attack");
-        float weight = JsonUtils.getFloat(body, "weight");
-        int durability = JsonUtils.getInt(body, "durability");
-        
-        return new BodyMaterialStats(attack, weight, durability);
-    }
-    
-    @Nullable
-    public static CordMaterialStats readCordFromMaterial(JsonObject material) throws JsonParseException
-    {
-        if (!JsonUtils.hasField(material, "cord"))
-            return null;
-        
-        JsonObject cord = JsonUtils.getJsonObject(material, "cord");
-        
-        float friction = JsonUtils.getFloat(cord, "friction");
-        float length = JsonUtils.getFloat(cord, "length");
-        
-        return new CordMaterialStats(friction, length);
-    }
-    
-    @Nullable
-    public static AxleMaterialStats readAxleFromMaterial(JsonObject material) throws JsonParseException
-    {
-        if (!JsonUtils.hasField(material, "axle"))
-            return null;
-        
-        JsonObject axle = JsonUtils.getJsonObject(material, "axle");
-        
-        float friction = JsonUtils.getFloat(axle, "friction");
-        float modifier = JsonUtils.getFloat(axle, "modifier");
-        
-        return new AxleMaterialStats(friction, modifier);
     }
 }

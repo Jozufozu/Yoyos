@@ -106,7 +106,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         Vec3d handPos = getPlayerHandPos(1);
         setPosition(handPos.x, handPos.y, handPos.z);
 
-        if (!world.getCollisionBoxes(this, this.getEntityBoundingBox()).isEmpty())
+        if (!world.getCollisionBoxes(this, getEntityBoundingBox()).isEmpty())
             setPosition(player.posX, player.posY + player.height * 0.85, player.posZ);
     }
 
@@ -231,7 +231,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
             if (yoyo == null) return;
 
-            if (duration >= 0 && ticksExisted >= duration) this.forceRetract();
+            if (duration >= 0 && ticksExisted >= duration) forceRetract();
 
             //handle position
             updatePosition();
@@ -325,9 +325,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             if (rayTraceResult != null) target = rayTraceResult.hitVec;
         }
 
-        Vec3d motionVec = target.subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / weight, 1.1));
+        Vec3d motionVec = target.subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / weight, 1.0));
 
-        if (inWater && (!Loader.isModLoaded("tconstruct") || !TinkerUtil.hasTrait(TagUtil.getTagSafe(this.yoyoStack), TinkerTraits.aquadynamic.identifier)))
+        if (inWater && (!Loader.isModLoaded("tconstruct") || !TinkerUtil.hasTrait(TagUtil.getTagSafe(yoyoStack), TinkerTraits.aquadynamic.identifier)))
             motionVec = motionVec.scale(0.3);
 
         motionX = motionVec.x;
@@ -341,23 +341,23 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     @Override
     public void move(MoverType type, double x, double y, double z)
     {
-        this.world.profiler.startSection("move");
-        AxisAlignedBB entityBoundingBox = this.getEntityBoundingBox();
+        world.profiler.startSection("move");
+        AxisAlignedBB entityBoundingBox = getEntityBoundingBox();
         AxisAlignedBB targetBoundingBox = entityBoundingBox.offset(x, y, z);
-        if (this.noClip)
+        if (noClip)
         {
-            this.setEntityBoundingBox(targetBoundingBox);
-            this.resetPositionToBB();
+            setEntityBoundingBox(targetBoundingBox);
+            resetPositionToBB();
             return;
         }
 
         AxisAlignedBB union = targetBoundingBox.union(entityBoundingBox);
 
-        List<AxisAlignedBB> collisionBoxes = this.world.getCollisionBoxes(this, union);
+        List<AxisAlignedBB> collisionBoxes = world.getCollisionBoxes(this, union);
 
         final int steps = 50;
 
-        this.world.profiler.startSection("tracingMotion");
+        world.profiler.startSection("tracingMotion");
         for (int step = 0; step < steps; step++)
         {
             double dx = x / steps;
@@ -385,24 +385,24 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                 }
             }
         }
-        this.world.profiler.endSection();
+        world.profiler.endSection();
 
-        this.setEntityBoundingBox(entityBoundingBox);
-        this.resetPositionToBB();
-        this.world.profiler.endSection();
+        setEntityBoundingBox(entityBoundingBox);
+        resetPositionToBB();
+        world.profiler.endSection();
     }
 
     protected void collectDrop(ItemStack stack)
     {
-        this.collectedDrops.add(stack);
-        this.needCollectedSync = true;
+        collectedDrops.add(stack);
+        needCollectedSync = true;
     }
 
     protected void collectDrop(@Nullable EntityItem drop)
     {
         if (drop == null) return;
 
-        world.playSound(null, drop.posX, drop.posY, drop.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2F, ((this.rand.nextFloat() - this.rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+        world.playSound(null, drop.posX, drop.posY, drop.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2F, ((rand.nextFloat() - rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
         collectDrop(drop.getItem());
         drop.setInfinitePickupDelay();
         drop.setItem(ItemStack.EMPTY);
@@ -411,9 +411,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
     protected void updateCapturedDrops()
     {
-        if (!this.world.isRemote && !this.collectedDrops.isEmpty() && (this.needCollectedSync || this.ticksExisted % 10 == 0))
+        if (!world.isRemote && !collectedDrops.isEmpty() && (needCollectedSync || ticksExisted % 10 == 0))
         {
-            Iterator<ItemStack> iterator = this.collectedDrops.iterator();
+            Iterator<ItemStack> iterator = collectedDrops.iterator();
 
             int iterIndex = 0;
 
@@ -425,7 +425,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                 {
                     int forIndex = 0;
 
-                    for (ItemStack stack : this.collectedDrops)
+                    for (ItemStack stack : collectedDrops)
                     {
                         if (forIndex++ == iterIndex) break;
 
@@ -444,7 +444,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
             YoyoNetwork.INSTANCE.sendToAll(new MessageCollectedDrops(this));
 
-            this.needCollectedSync = false;
+            needCollectedSync = false;
         }
     }
 
@@ -476,9 +476,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         Vec3d[] corners2 = getCorners(now);
 
         // The better collision detection is actually worse with items.
-        // If we collected items before the collision test
+        // If we collected items before the collision test,
         // fast yoyos would be able to pick things up through thick walls.
-        if (this.collecting) world.getEntitiesWithinAABB(EntityItem.class, now).forEach(this::collectDrop);
+        if (collecting) world.getEntitiesWithinAABB(EntityItem.class, now).forEach(this::collectDrop);
 
         AxisAlignedBB union = now.union(then);
         List<Entity> entities = world.getEntitiesInAABBexcluding(this, union, entity -> !(entity instanceof EntityItem));
@@ -486,7 +486,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         {
             if (entity == thrower)
             {
-                if (this.isRetracting)
+                if (isRetracting)
                 {
                     returned = true; // We found our home, but we might still want to kill stuff
                     setPosition(thrower.posX, thrower.posY + 0.8, thrower.posZ); // Make sure the collected drops actually get to us
@@ -501,17 +501,17 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             // We draw 8 lines between the corners of our last bounding box and our current bounding box,
             // if even one of them hits the entity's bounding box, we know that we would have collided with it.
             AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
-            boolean passed = false;
+            boolean intersects = false;
             for (int i = 0; i < 8; i++)
             {
                 if (intersectsRay(entityBoundingBox, corners1[i], corners2[i]))
                 {
-                    passed = true;
+                    intersects = true;
                     break;
                 }
             }
 
-            if (!passed) continue;
+            if (!intersects) continue;
 
             if (entity instanceof EntityLivingBase)
             {
@@ -521,7 +521,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                 }
                 else if (attackCool >= maxCool)
                 {
-                    yoyo.attack(entity, yoyoStack, thrower, this);
+                    yoyo.attack(entity, yoyoStack, thrower, this, hand);
                     hit = true;
                 }
             }
@@ -551,27 +551,27 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     private static boolean intersectsRay(final AxisAlignedBB b, final Vec3d origin, final Vec3d to)
     {
         // I have no idea why this works but I found it online and it does
-        Vec3d dir_inv = new Vec3d(1d / (to.x - origin.x), 1d / (to.y - origin.y), 1d / (to.z - origin.z));
+        Vec3d dirInv = new Vec3d(1d / (to.x - origin.x), 1d / (to.y - origin.y), 1d / (to.z - origin.z));
 
-        double t1 = (b.minX - origin.x) * dir_inv.x;
-        double t2 = (b.maxX - origin.x) * dir_inv.x;
+        double t1 = (b.minX - origin.x) * dirInv.x;
+        double t2 = (b.maxX - origin.x) * dirInv.x;
 
-        double tmin = Math.min(t1, t2);
-        double tmax = Math.max(t1, t2);
+        double min = Math.min(t1, t2);
+        double max = Math.max(t1, t2);
 
-        t1 = (b.minY - origin.y) * dir_inv.y;
-        t2 = (b.maxY - origin.y) * dir_inv.y;
+        t1 = (b.minY - origin.y) * dirInv.y;
+        t2 = (b.maxY - origin.y) * dirInv.y;
 
-        tmin = Math.max(tmin, Math.min(t1, t2));
-        tmax = Math.min(tmax, Math.max(t1, t2));
+        min = Math.max(min, Math.min(t1, t2));
+        max = Math.min(max, Math.max(t1, t2));
 
-        t1 = (b.minZ - origin.z) * dir_inv.z;
-        t2 = (b.maxZ - origin.z) * dir_inv.z;
+        t1 = (b.minZ - origin.z) * dirInv.z;
+        t2 = (b.maxZ - origin.z) * dirInv.z;
 
-        tmin = Math.max(tmin, Math.min(t1, t2));
-        tmax = Math.min(tmax, Math.max(t1, t2));
+        min = Math.max(min, Math.min(t1, t2));
+        max = Math.min(max, Math.max(t1, t2));
 
-        return tmax > Math.max(tmin, 0.0);
+        return max > Math.max(min, 0.0);
     }
 
     protected void shearEntity(IYoyo yoyo, Entity entity)
@@ -609,7 +609,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     {
         BlockPos pos = getPosition();
 
-        AxisAlignedBB entityBox = this.getEntityBoundingBox().grow(0.1);
+        AxisAlignedBB entityBox = getEntityBoundingBox().grow(0.1);
 
         for (BlockPos.MutableBlockPos checkPos : BlockPos.getAllInBoxMutable(pos.add(-1, -1, -1), pos.add(1, 1, 1)))
         {
@@ -679,14 +679,14 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         super.setDead();
         CASTERS.remove(thrower, this);
 
-        if (this.collectedDrops.isEmpty())
+        if (collectedDrops.isEmpty())
             return;
 
         if (!world.isRemote)
         {
-            for (ItemStack drop : this.collectedDrops)
+            for (ItemStack drop : collectedDrops)
             {
-                EntityItem item = new EntityItem(this.world, this.posX, this.posY, this.posZ, drop);
+                EntityItem item = new EntityItem(world, posX, posY, posZ, drop);
                 item.motionX = 0;
                 item.motionY = 0;
                 item.motionZ = 0;
@@ -694,17 +694,17 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                 world.spawnEntity(item);
             }
         }
-        this.collectedDrops.clear();
+        collectedDrops.clear();
     }
 
     @Override
     protected void readEntityFromNBT(@Nonnull NBTTagCompound compound)
     {
-        this.collectedDrops.clear();
+        collectedDrops.clear();
         NBTTagList list = compound.getTagList("collectedDrops", Constants.NBT.TAG_COMPOUND);
 
         for (int i = 0; i < list.tagCount(); i++)
-            this.collectedDrops.add(new ItemStack(list.getCompoundTagAt(i)));
+            collectedDrops.add(new ItemStack(list.getCompoundTagAt(i)));
     }
 
     @Override
@@ -712,7 +712,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     {
         NBTTagList collected = new NBTTagList();
 
-        for (ItemStack itemStack : this.collectedDrops)
+        for (ItemStack itemStack : collectedDrops)
             collected.appendTag(itemStack.serializeNBT());
 
         compound.setTag("collectedDrops", collected);
@@ -720,26 +720,26 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
     public Vec3d getPlayerHandPos(float partialTicks)
     {
-        if (this.thrower == null)
+        if (thrower == null)
         {
-            return new Vec3d(this.posX, this.posY, this.posZ);
+            return new Vec3d(posX, posY, posZ);
         }
 
-        float yaw = this.thrower.rotationYaw;
-        float pitch = this.thrower.rotationPitch;
+        float yaw = thrower.rotationYaw;
+        float pitch = thrower.rotationPitch;
 
-        double posX = this.thrower.posX;
-        double posY = this.thrower.posY;
-        double posZ = this.thrower.posZ;
+        double posX = thrower.posX;
+        double posY = thrower.posY;
+        double posZ = thrower.posZ;
 
         if (partialTicks != 1)
         {
-            yaw = (float) (interpolateValue(this.thrower.prevRotationYaw, this.thrower.rotationYaw, partialTicks));
-            pitch = (float) (interpolateValue(this.thrower.prevRotationPitch, this.thrower.rotationPitch, partialTicks));
+            yaw = (float) (interpolateValue(thrower.prevRotationYaw, thrower.rotationYaw, partialTicks));
+            pitch = (float) (interpolateValue(thrower.prevRotationPitch, thrower.rotationPitch, partialTicks));
 
-            posX = interpolateValue(this.thrower.prevPosX, this.thrower.posX, (double) partialTicks);
-            posY = interpolateValue(this.thrower.prevPosY, this.thrower.posY, (double) partialTicks);
-            posZ = interpolateValue(this.thrower.prevPosZ, this.thrower.posZ, (double) partialTicks);
+            posX = interpolateValue(thrower.prevPosX, thrower.posX, (double) partialTicks);
+            posY = interpolateValue(thrower.prevPosY, thrower.posY, (double) partialTicks);
+            posZ = interpolateValue(thrower.prevPosZ, thrower.posZ, (double) partialTicks);
         }
 
         double throwerLookOffsetX = Math.cos(yaw * 0.01745329238474369D);
@@ -747,9 +747,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         double throwerLookOffsetY = Math.sin(pitch * 0.01745329238474369D);
         double throwerLookWidth = Math.cos(pitch * 0.01745329238474369D);
 
-        float side = this.hand == EnumHand.MAIN_HAND || this.hand == null ? 1 : -1;
+        float side = hand == EnumHand.MAIN_HAND || hand == null ? 1 : -1;
 
-        return new Vec3d(posX - throwerLookOffsetX * side * 0.4D - throwerLookOffsetZ * 0.5D * throwerLookWidth, posY + this.thrower.eyeHeight * 0.85D - throwerLookOffsetY * 0.5D - 0.25D, posZ - throwerLookOffsetZ * side * 0.4D + throwerLookOffsetX * 0.5D * throwerLookWidth);
+        return new Vec3d(posX - throwerLookOffsetX * side * 0.4D - throwerLookOffsetZ * 0.5D * throwerLookWidth, posY + thrower.eyeHeight * 0.85D - throwerLookOffsetY * 0.5D - 0.25D, posZ - throwerLookOffsetZ * side * 0.4D + throwerLookOffsetX * 0.5D * throwerLookWidth);
     }
 
     public float getRotation(int age, float partialTicks)
@@ -757,8 +757,8 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         float ageInTicks = age + partialTicks;
         float multiplier = 35;
 
-        if (this.duration != -1)
-            multiplier *= 2 - ageInTicks / ((float) this.duration);
+        if (duration != -1)
+            multiplier *= 2 - ageInTicks / ((float) duration);
 
         return ageInTicks * multiplier;
     }
@@ -773,7 +773,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     @Override
     public Team getTeam()
     {
-        return this.thrower == null ? null : this.thrower.getTeam();
+        return thrower == null ? null : thrower.getTeam();
     }
 
     @Nullable

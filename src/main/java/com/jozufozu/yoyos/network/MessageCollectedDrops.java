@@ -22,21 +22,21 @@ public class MessageCollectedDrops implements IMessage
     
     public MessageCollectedDrops(EntityYoyo yoyo)
     {
-        this.yoyoID = yoyo.getEntityId();
-        this.drops = new ItemStack[yoyo.collectedDrops.size()];
+        yoyoID = yoyo.getEntityId();
+        drops = new ItemStack[yoyo.collectedDrops.size()];
         for (int i = 0; i < yoyo.collectedDrops.size(); i++)
-            this.drops[i] = yoyo.collectedDrops.get(i);
+            drops[i] = yoyo.collectedDrops.get(i);
     }
     
     @Override
     public void fromBytes(ByteBuf buf)
     {
-        this.yoyoID = buf.readInt();
+        yoyoID = buf.readInt();
         int length = buf.readInt();
     
-        this.drops = new ItemStack[length];
+        drops = new ItemStack[length];
         for (int i = 0; i < length; i++)
-            this.drops[i] = ByteBufUtils.readItemStack(buf);
+            drops[i] = ByteBufUtils.readItemStack(buf);
     }
     
     @Override

@@ -215,7 +215,7 @@ public class ItemYoyo extends ItemSword implements IYoyo
     }
     
     @Override
-    public void attack(Entity targetEntity, ItemStack stack, EntityPlayer attacker, EntityYoyo yoyoEntity)
+    public void attack(Entity targetEntity, ItemStack stack, EntityPlayer attacker, EntityYoyo yoyoEntity, EnumHand yoyoHand)
     {
         if (!ForgeHooks.onPlayerAttackTarget(attacker, targetEntity))
             return;
@@ -329,8 +329,8 @@ public class ItemYoyo extends ItemSword implements IYoyo
                             
                             if (stack.getCount() <= 0)
                             {
-                                attacker.setHeldItem(EnumHand.MAIN_HAND, ItemStack.EMPTY);
-                                ForgeEventFactory.onPlayerDestroyItem(attacker, stack, EnumHand.MAIN_HAND);
+                                attacker.setHeldItem(yoyoHand, ItemStack.EMPTY);
+                                ForgeEventFactory.onPlayerDestroyItem(attacker, stack, yoyoHand);
                             }
                         }
                         

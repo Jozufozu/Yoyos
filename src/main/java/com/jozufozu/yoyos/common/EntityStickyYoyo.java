@@ -23,37 +23,37 @@ public class EntityStickyYoyo extends EntityYoyo
     @Override
     public void onUpdate()
     {
-        if (!this.world.isRemote)
+        if (!world.isRemote)
         {
-            this.setFlag(6, this.isGlowing());
+            setFlag(6, isGlowing());
         }
 
-        this.onEntityUpdate();
+        onEntityUpdate();
 
-        if (this.thrower != null && !thrower.isDead)
+        if (thrower != null && !thrower.isDead)
         {
             IYoyo yoyo = checkThrowerAndGetStats();
 
             if (yoyo == null) return;
 
-            if (this.thrower.isSneaking() && this.cordLength > 0.5) this.cordLength -= 0.1F;
+            if (thrower.isSneaking() && cordLength > 0.5) cordLength -= 0.1F;
 
-            if (!this.world.getCollisionBoxes(this, this.getEntityBoundingBox().grow(0.1)).isEmpty() && !this.isRetracting())
+            if (!world.getCollisionBoxes(this, getEntityBoundingBox().grow(0.1)).isEmpty() && !isRetracting())
             {
-                this.motionX = 0;
-                this.motionY = 0;
-                this.motionZ = 0;
+                motionX = 0;
+                motionY = 0;
+                motionZ = 0;
 
                 if (!stuck)
                 {
-                    stuckSince = this.ticksExisted;
+                    stuckSince = ticksExisted;
                     world.playSound(null, posX, posY, posZ, Yoyos.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f);
                 }
                 stuck = true;
             }
             else
             {
-                if (duration >= 0 && this.ticksExisted >= duration) this.forceRetract();
+                if (duration >= 0 && ticksExisted >= duration) forceRetract();
                 updatePosition();
 
                 stuck = false;
@@ -63,7 +63,7 @@ public class EntityStickyYoyo extends EntityYoyo
             {
                 doEntityCollisions(yoyo);
 
-                if (this.gardening)
+                if (gardening)
                     garden(yoyo);
             }
 
@@ -71,7 +71,7 @@ public class EntityStickyYoyo extends EntityYoyo
             if (collecting)
                 updateCapturedDrops();
         }
-        else this.setDead();
+        else setDead();
     }
 
     @Override

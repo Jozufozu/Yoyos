@@ -267,7 +267,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     }
     
     @Override
-    public void attack(Entity target, ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity)
+    public void attack(Entity target, ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity, EnumHand yoyoHand)
     {
         ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target);
     }

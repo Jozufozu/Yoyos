@@ -1,10 +1,14 @@
 package com.jozufozu.yoyos.tinkers.materials;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import net.minecraft.util.JsonUtils;
 import slimeknights.tconstruct.library.Util;
 import slimeknights.tconstruct.library.client.CustomFontColor;
 import slimeknights.tconstruct.library.materials.AbstractMaterialStats;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class CordMaterialStats extends AbstractMaterialStats
@@ -28,7 +32,7 @@ public class CordMaterialStats extends AbstractMaterialStats
     @Override
     public List<String> getLocalizedInfo()
     {
-        return ImmutableList.of(formatFriction(friction), formatLength(length));
+        return ImmutableList.of(AxleMaterialStats.formatFriction(friction), formatLength(length));
     }
     
     @Override
@@ -37,13 +41,22 @@ public class CordMaterialStats extends AbstractMaterialStats
         return ImmutableList.of(Util.translate(AxleMaterialStats.LOC_FrictionDesc), Util.translate(LOC_LengthDesc));
     }
     
-    public static String formatFriction(float friction)
-    {
-        return formatNumber(AxleMaterialStats.LOC_Friction, AxleMaterialStats.COLOR_Friction, friction);
-    }
-    
     public static String formatLength(float length)
     {
         return formatNumber(LOC_Length, COLOR_Length, length);
+    }
+
+    @Nullable
+    public static CordMaterialStats deserialize(JsonObject material) throws JsonParseException
+    {
+        if (!JsonUtils.hasField(material, "cord"))
+            return null;
+
+        JsonObject cord = JsonUtils.getJsonObject(material, "cord");
+
+        float friction = JsonUtils.getFloat(cord, "friction");
+        float length = JsonUtils.getFloat(cord, "length");
+
+        return new CordMaterialStats(friction, length);
     }
 }

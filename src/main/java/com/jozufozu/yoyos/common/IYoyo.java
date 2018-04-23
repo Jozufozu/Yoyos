@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumHand;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -23,7 +24,7 @@ public interface IYoyo
     
     void damageItem(ItemStack yoyo, EntityLivingBase player);
     
-    void attack(Entity target, ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity);
+    void attack(Entity target, ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity, EnumHand yoyoHand);
     
     @SideOnly(Side.CLIENT)
     default int getCordColor(ItemStack yoyo)

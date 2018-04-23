@@ -1,11 +1,15 @@
 package com.jozufozu.yoyos.tinkers.materials;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import net.minecraft.util.JsonUtils;
 import slimeknights.tconstruct.library.Util;
 import slimeknights.tconstruct.library.client.CustomFontColor;
 import slimeknights.tconstruct.library.materials.AbstractMaterialStats;
 import slimeknights.tconstruct.library.materials.HeadMaterialStats;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class BodyMaterialStats extends AbstractMaterialStats
@@ -43,5 +47,20 @@ public class BodyMaterialStats extends AbstractMaterialStats
     public static String formatWeight(float weight)
     {
         return formatNumber(LOC_Weight, COLOR_Weight, weight);
+    }
+
+    @Nullable
+    public static BodyMaterialStats deserialize(JsonObject material) throws JsonParseException
+    {
+        if (!JsonUtils.hasField(material, "body"))
+            return null;
+
+        JsonObject body = JsonUtils.getJsonObject(material, "body");
+
+        float attack = JsonUtils.getFloat(body, "attack");
+        float weight = JsonUtils.getFloat(body, "weight");
+        int durability = JsonUtils.getInt(body, "durability");
+
+        return new BodyMaterialStats(attack, weight, durability);
     }
 }

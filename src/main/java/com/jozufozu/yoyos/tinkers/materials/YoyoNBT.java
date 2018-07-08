@@ -51,6 +51,8 @@ public class YoyoNBT extends ToolNBT
             this.durability += stat.durability;
             this.weight += stat.weight;
         }
+
+        this.attack /= sides.length;
         
         return this;
     }

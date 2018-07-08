@@ -3,6 +3,7 @@ package com.jozufozu.yoyos.common;
 import com.jozufozu.yoyos.Yoyos;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 public class EntityStickyYoyo extends EntityYoyo
@@ -20,6 +21,8 @@ public class EntityStickyYoyo extends EntityYoyo
     private boolean stuck = false;
     private int stuckSince = 0;
 
+    private int reelTime;
+
     @Override
     public void onUpdate()
     {
@@ -32,11 +35,20 @@ public class EntityStickyYoyo extends EntityYoyo
 
         if (thrower != null && !thrower.isDead)
         {
-            IYoyo yoyo = checkThrowerAndGetStats();
+            IYoyo yoyo = checkAndGetYoyoObject();
 
             if (yoyo == null) return;
 
-            if (thrower.isSneaking() && cordLength > 0.5) cordLength -= 0.1F;
+            if (thrower.isSneaking() && cordLength > 0.1)
+            {
+                cordLength -= 0.01F * reelTime;
+
+                reelTime++;
+            }
+            else
+            {
+                reelTime = 0;
+            }
 
             if (!world.getCollisionBoxes(this, getEntityBoundingBox().grow(0.1)).isEmpty() && !isRetracting())
             {
@@ -47,6 +59,7 @@ public class EntityStickyYoyo extends EntityYoyo
                 if (!stuck)
                 {
                     stuckSince = ticksExisted;
+                    cordLength = (float) (new Vec3d(thrower.posX - posX, thrower.posY - posY, thrower.posZ - posZ)).lengthVector();
                     world.playSound(null, posX, posY, posZ, Yoyos.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f);
                 }
                 stuck = true;
@@ -54,18 +67,15 @@ public class EntityStickyYoyo extends EntityYoyo
             else
             {
                 if (duration >= 0 && ticksExisted >= duration) forceRetract();
-                updatePosition();
+                updateMotion();
+
+                moveAndCollide(yoyo);
 
                 stuck = false;
             }
 
-            if (!world.isRemote)
-            {
-                doEntityCollisions(yoyo);
-
-                if (gardening)
-                    garden(yoyo);
-            }
+            if (!world.isRemote && gardening)
+                worldInteraction(yoyo);
 
             handleSwing();
             if (collecting)

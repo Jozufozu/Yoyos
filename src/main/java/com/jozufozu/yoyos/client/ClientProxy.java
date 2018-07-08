@@ -5,9 +5,18 @@ import com.jozufozu.yoyos.common.CommonProxy;
 import com.jozufozu.yoyos.common.EntityStickyYoyo;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.ModConfig;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
+import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.item.Item;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.EnumHandSide;
+import net.minecraft.util.math.MathHelper;
 import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.event.RenderSpecificHandEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -35,6 +44,61 @@ public class ClientProxy extends CommonProxy
         registerModel(Yoyos.STICKY_YOYO);
         registerModel(Yoyos.CREATIVE_YOYO);
     }
+
+    @SubscribeEvent
+    @SideOnly(Side.CLIENT)
+    public void onRenderHand(RenderSpecificHandEvent event)
+    {
+        Minecraft mc = Minecraft.getMinecraft();
+
+        EntityPlayerSP player = mc.player;
+
+        if (!EntityYoyo.CASTERS.containsKey(player)) return;
+
+        if (EntityYoyo.CASTERS.get(player).getHand() != event.getHand()) return;
+
+        if (player.isInvisible()) return;
+
+        EnumHandSide enumhandside = event.getHand() == EnumHand.MAIN_HAND ? player.getPrimaryHand() : player.getPrimaryHand().opposite();
+
+        float equipProgress = event.getEquipProgress();
+
+        GlStateManager.pushMatrix();
+        boolean rightHand = enumhandside != EnumHandSide.LEFT;
+        float mirror = rightHand ? 1.0F : -1.0F;
+        float f1 = MathHelper.sqrt(equipProgress);
+        float f2 = -0.3F * MathHelper.sin(f1 * (float)Math.PI);
+        float f3 = 0.4F * MathHelper.sin(f1 * ((float)Math.PI * 2F));
+        float f4 = -0.4F * MathHelper.sin(equipProgress * (float)Math.PI);
+        GlStateManager.translate(mirror * (f2 + 0.64000005F), f3 + -0.6F + event.getSwingProgress() * -0.6F, f4 + -0.71999997F);
+        GlStateManager.rotate(mirror * 45.0F, 0.0F, 1.0F, 0.0F);
+        float f5 = MathHelper.sin(equipProgress * equipProgress * (float)Math.PI);
+        float f6 = MathHelper.sin(f1 * (float)Math.PI);
+        GlStateManager.rotate(mirror * f6 * 70.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(mirror * f5 * -20.0F, 0.0F, 0.0F, 1.0F);
+        mc.getTextureManager().bindTexture(player.getLocationSkin());
+        GlStateManager.translate(mirror * -1.0F, 3.6F, 3.5F);
+        GlStateManager.rotate(mirror * 120.0F, 0.0F, 0.0F, 1.0F);
+        GlStateManager.rotate(200.0F, 1.0F, 0.0F, 0.0F);
+        GlStateManager.rotate(mirror * -135.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.translate(mirror * 5.6F, 0.0F, 0.0F);
+        RenderPlayer renderplayer = (RenderPlayer)mc.getRenderManager().<AbstractClientPlayer>getEntityRenderObject(player);
+        GlStateManager.disableCull();
+
+        if (rightHand)
+        {
+            renderplayer.renderRightArm(player);
+        }
+        else
+        {
+            renderplayer.renderLeftArm(player);
+        }
+
+        GlStateManager.enableCull();
+        GlStateManager.popMatrix();
+
+        event.setCanceled(true);
+    }
     
     @Override
     public void preInit(FMLPreInitializationEvent event)
@@ -51,7 +115,7 @@ public class ClientProxy extends CommonProxy
         return true;
     }
     
-    public static void registerModel(Item item)
+    private static void registerModel(Item item)
     {
         ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
     }

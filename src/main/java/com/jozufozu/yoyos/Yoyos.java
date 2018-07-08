@@ -18,6 +18,7 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 
@@ -140,5 +141,11 @@ public class Yoyos
         {
             TinkersYoyos.postInit(event);
         }
+    }
+
+    @Mod.EventHandler
+    public void serverInit(FMLServerStartingEvent event)
+    {
+        event.registerServerCommand(new CommandDebugYoyo());
     }
 }

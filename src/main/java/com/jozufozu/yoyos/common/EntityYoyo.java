@@ -10,21 +10,17 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.MoverType;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Enchantments;
 import net.minecraft.init.SoundEvents;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.scoreboard.Team;
-import net.minecraft.stats.StatList;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.SoundCategory;
+import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IShearable;
@@ -43,10 +39,7 @@ import slimeknights.tconstruct.tools.TinkerTraits;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @Mod.EventBusSubscriber
 public class EntityYoyo extends Entity implements IThrowableEntity
@@ -130,7 +123,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         event.setCanceled(true);
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onBlockHarvestDrops(BlockEvent.HarvestDropsEvent event)
     {
         EntityPlayer player = event.getHarvester();
@@ -138,6 +131,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         if (!CASTERS.containsKey(player)) return;
 
         boolean yoyoDrop = false;
+        // FIXME: Don't use stacktrace
         for (StackTraceElement element : Thread.currentThread().getStackTrace())
         {
             if (EntityYoyo.class.getName().equals(element.getClassName()) && !"onBlockHarvestDrops".equals(element.getMethodName()))
@@ -227,23 +221,19 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         if (thrower != null && !thrower.isDead)
         {
-            IYoyo yoyo = checkThrowerAndGetStats();
+            IYoyo yoyo = checkAndGetYoyoObject();
 
             if (yoyo == null) return;
 
             if (duration >= 0 && ticksExisted >= duration) forceRetract();
 
             //handle position
-            updatePosition();
+            updateMotion();
+            moveAndCollide(yoyo);
 
             if (ModConfig.yoyoSwing) handleSwing();
 
-            if (!world.isRemote)
-            {
-                if (gardening) garden(yoyo);
-
-                doEntityCollisions(yoyo);
-            }
+            if (!world.isRemote && yoyo.interactsWithBlocks(yoyoStack)) worldInteraction(yoyo);
 
             if (collecting) updateCapturedDrops();
         }
@@ -251,7 +241,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     }
 
     @Nullable
-    protected IYoyo checkThrowerAndGetStats()
+    protected IYoyo checkAndGetYoyoObject()
     {
         yoyoStack = thrower.getHeldItemMainhand();
 
@@ -265,7 +255,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         int currentSlot = hand == EnumHand.MAIN_HAND ? thrower.inventory.currentItem : -2;
 
-        if (!CASTERS.containsKey(thrower) || yoyoStack == null || !(yoyoStack.getItem() instanceof IYoyo) || (lastSlot != -1 && lastSlot != currentSlot))
+        if (!CASTERS.containsKey(thrower) || !(yoyoStack.getItem() instanceof IYoyo) || (lastSlot != -1 && lastSlot != currentSlot))
         {
             setDead();
             return null;
@@ -284,6 +274,15 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         IYoyo yoyo = (IYoyo) yoyoStack.getItem();
 
+        getStats(yoyo);
+
+        lastSlot = currentSlot;
+
+        return yoyo;
+    }
+
+    protected void getStats(IYoyo yoyo)
+    {
         if (shouldGetStats)
         {
             gardening = yoyo.gardening(yoyoStack);
@@ -295,55 +294,67 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
             shouldGetStats = false;
         }
-
-        lastSlot = currentSlot;
-
-        return yoyo;
     }
 
-    protected void updatePosition()
+    protected void updateMotion()
     {
-        Vec3d eyePos = new Vec3d(thrower.posX, thrower.posY + thrower.eyeHeight, +thrower.posZ);
-        Vec3d lookVec = thrower.getLookVec();
-
-        Vec3d target = new Vec3d(eyePos.x + lookVec.x * cordLength, eyePos.y + lookVec.y * cordLength, eyePos.z + lookVec.z * cordLength);
+        Vec3d target;
 
         if (isRetracting())
         {
+            Vec3d handPos = getPlayerHandPos(1);
+            double d0 = this.posX - handPos.x;
+            double d1 = this.posY - handPos.y;
+            double d2 = this.posZ - handPos.z;
+
+            if (d0 * d0 + d1 * d1 + d2 * d2 < 0.5)
+            {
+                setPosition(thrower.posX, thrower.posY + 0.8, thrower.posZ); // Make sure the collected drops actually get to us
+                setDead();
+            }
+
             if (retractionTimeout++ >= MAX_RETRACT_TIME)
             {
                 setDead();
                 return;
             }
-            target = getPlayerHandPos(1);
+
+            target = handPos;
         }
         else
         {
+            Vec3d eyePos = new Vec3d(thrower.posX, thrower.posY + thrower.eyeHeight, thrower.posZ);
+            Vec3d lookVec = thrower.getLookVec();
+
+            target = new Vec3d(eyePos.x + lookVec.x * cordLength, eyePos.y + lookVec.y * cordLength, eyePos.z + lookVec.z * cordLength);
             retractionTimeout = 0;
             RayTraceResult rayTraceResult = getTargetLook(eyePos, target);
 
             if (rayTraceResult != null) target = rayTraceResult.hitVec;
         }
 
-        Vec3d motionVec = target.subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / weight, 1.0));
+        Vec3d motion = target.subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / weight, 1.0));
 
+        motionX = motion.x;
+        motionY = motion.y;
+        motionZ = motion.z;
+
+        //Slow down in water, unless it has the modifier "aquadynamic"
         if (inWater && (!Loader.isModLoaded("tconstruct") || !TinkerUtil.hasTrait(TagUtil.getTagSafe(yoyoStack), TinkerTraits.aquadynamic.identifier)))
-            motionVec = motionVec.scale(0.3);
+        {
+            motionX *= 0.3;
+            motionY *= 0.3;
+            motionZ *= 0.3;
+        }
 
-        motionX = motionVec.x;
-        motionY = motionVec.y;
-        motionZ = motionVec.z;
-
-        move(MoverType.SELF, motionX, motionY, motionZ);
         onGround = true; //TODO: This is the only way I've found to get the yoyo to throw out smoothly
     }
 
-    @Override
-    public void move(MoverType type, double x, double y, double z)
+    public void moveAndCollide(IYoyo yoyo)
     {
         world.profiler.startSection("move");
-        AxisAlignedBB entityBoundingBox = getEntityBoundingBox();
-        AxisAlignedBB targetBoundingBox = entityBoundingBox.offset(x, y, z);
+        AxisAlignedBB yoyoBoundingBox = getEntityBoundingBox();
+        AxisAlignedBB targetBoundingBox = yoyoBoundingBox.offset(motionX, motionY, motionZ);
         if (noClip)
         {
             setEntityBoundingBox(targetBoundingBox);
@@ -351,43 +362,93 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             return;
         }
 
-        AxisAlignedBB union = targetBoundingBox.union(entityBoundingBox);
+        AxisAlignedBB union = targetBoundingBox.union(yoyoBoundingBox);
 
         List<AxisAlignedBB> collisionBoxes = world.getCollisionBoxes(this, union);
 
+        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(this, union);
+
+        boolean hit = false;
+
         final int steps = 50;
 
-        world.profiler.startSection("tracingMotion");
         for (int step = 0; step < steps; step++)
         {
-            double dx = x / steps;
-            double dy = y / steps;
-            double dz = z / steps;
+            double dx = motionX / steps;
+            double dy = motionY / steps;
+            double dz = motionZ / steps;
 
             for (AxisAlignedBB box : collisionBoxes)
             {
-                dx = box.calculateXOffset(entityBoundingBox, dx);
-                dy = box.calculateYOffset(entityBoundingBox, dy);
-                dz = box.calculateZOffset(entityBoundingBox, dz);
+                dx = box.calculateXOffset(yoyoBoundingBox, dx);
+                dy = box.calculateYOffset(yoyoBoundingBox, dy);
+                dz = box.calculateZOffset(yoyoBoundingBox, dz);
             }
 
-            entityBoundingBox = entityBoundingBox.offset(dx, dy, dz);
+            yoyoBoundingBox = yoyoBoundingBox.offset(dx, dy, dz);
 
             for (AxisAlignedBB box : collisionBoxes)
             {
-                if (box.intersects(entityBoundingBox))
+                if (box.intersects(yoyoBoundingBox))
                 {
-                    dx = box.calculateXOffset(entityBoundingBox, dx);
-                    dy = box.calculateYOffset(entityBoundingBox, dy);
-                    dz = box.calculateZOffset(entityBoundingBox, dz);
+                    dx = box.calculateXOffset(yoyoBoundingBox, dx);
+                    dy = box.calculateYOffset(yoyoBoundingBox, dy);
+                    dz = box.calculateZOffset(yoyoBoundingBox, dz);
 
-                    entityBoundingBox = entityBoundingBox.offset(-dx, -dy, -dz);
+                    yoyoBoundingBox = yoyoBoundingBox.offset(-dx, -dy, -dz);
+                }
+            }
+
+            if (!world.isRemote)
+            {
+                ListIterator<Entity> iterator = entities.listIterator();
+
+                while (iterator.hasNext())
+                {
+                    Entity entity = iterator.next();
+
+                    if (entity == thrower)
+                    {
+                        iterator.remove();
+                        continue;
+                    }
+
+                    // Save the parrots!
+                    if (entity.getUniqueID().equals(thrower.getLeftShoulderEntity().getUniqueId("UUID")) || entity.getUniqueID().equals(thrower.getRightShoulderEntity().getUniqueId("UUID")))
+                    {
+                        iterator.remove();
+                        continue;
+                    }
+
+                    if (entity.getEntityBoundingBox().intersects(yoyoBoundingBox))
+                    {
+                        if (entity instanceof EntityLivingBase)
+                        {
+                            if (gardening && entity instanceof IShearable)
+                            {
+                                shearEntity(yoyo, entity);
+                            }
+                            else if (attackCool >= maxCool)
+                            {
+                                yoyo.attack(yoyoStack, thrower, hand, this, entity);
+                                hit = true;
+                            }
+                        }
+                        else if (collecting && entity instanceof EntityItem)
+                        {
+                            collectDrop(((EntityItem) entity));
+                        }
+
+                        iterator.remove();
+                    }
                 }
             }
         }
-        world.profiler.endSection();
 
-        setEntityBoundingBox(entityBoundingBox);
+        ++attackCool;
+        if (hit) attackCool = 0;
+
+        setEntityBoundingBox(yoyoBoundingBox);
         resetPositionToBB();
         world.profiler.endSection();
     }
@@ -411,35 +472,36 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
     protected void updateCapturedDrops()
     {
-        if (!world.isRemote && !collectedDrops.isEmpty() && (needCollectedSync || ticksExisted % 10 == 0))
+        // If we're on the client, we trust the server
+        if (!world.isRemote && !collectedDrops.isEmpty() && needCollectedSync)
         {
             Iterator<ItemStack> iterator = collectedDrops.iterator();
 
-            int iterIndex = 0;
+            HashMap<Item, ItemStack> existing = new HashMap<>();
 
+            // We don't have to respect the items' max size here
             while (iterator.hasNext())
             {
                 ItemStack collectedDrop = iterator.next();
 
                 if (!collectedDrop.isEmpty())
                 {
-                    int forIndex = 0;
+                    if (collectedDrop.getTagCompound() != null) continue;
 
-                    for (ItemStack stack : collectedDrops)
+                    Item item = collectedDrop.getItem();
+
+                    ItemStack master = existing.get(item);
+
+                    if (master != null && collectedDrop.isItemEqual(master))
                     {
-                        if (forIndex++ == iterIndex) break;
-
-                        if (collectedDrop.isItemEqual(stack) && collectedDrop.areCapsCompatible(stack))
-                        {
-                            int toAdd = Math.min(collectedDrop.getMaxStackSize() - stack.getCount(), collectedDrop.getCount());
-                            stack.grow(toAdd);
-                            collectedDrop.shrink(toAdd);
-                        }
+                        master.grow(collectedDrop.getCount());
+                        iterator.remove();
+                    }
+                    else
+                    {
+                        existing.put(item, collectedDrop);
                     }
                 }
-
-                if (collectedDrop.isEmpty()) iterator.remove();
-                else iterIndex++;
             }
 
             YoyoNetwork.INSTANCE.sendToAll(new MessageCollectedDrops(this));
@@ -451,127 +513,17 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     protected void handleSwing()
     {
         Vec3d thisPos = getPositionVector();
-        Vec3d throwerPos = new Vec3d(thrower.posX, thrower.posY + thrower.height / 2, thrower.posZ);
+        Vec3d throwerPos = new Vec3d(thrower.posX, thrower.posY + thrower.eyeHeight, thrower.posZ);
 
         double distance = thisPos.distanceTo(throwerPos);
 
-        if (distance > cordLength + 1)
+        if (distance > cordLength)
         {
-            Vec3d dif = getPositionVector().subtract(thrower.posX, thrower.posY + thrower.height / 2, thrower.posZ).scale(0.01 * (distance - cordLength - 1));
+            Vec3d dif = getPositionVector().subtract(thrower.posX, thrower.posY + thrower.height / 2, thrower.posZ).scale(0.03 * (distance - cordLength));
             thrower.addVelocity(dif.x, dif.y, dif.z);
             thrower.fallDistance = 0;
             if (isRetracting) setDead();
         }
-    }
-
-    protected void doEntityCollisions(IYoyo yoyo)
-    {
-        boolean hit = false;
-        boolean returned = false;
-
-        AxisAlignedBB now = getEntityBoundingBox().grow(0.2);
-        AxisAlignedBB then = now.offset(lastTickPosX - posX, lastTickPosY - posY, lastTickPosZ - posZ);
-
-        Vec3d[] corners1 = getCorners(then);
-        Vec3d[] corners2 = getCorners(now);
-
-        // The better collision detection is actually worse with items.
-        // If we collected items before the collision test,
-        // fast yoyos would be able to pick things up through thick walls.
-        if (collecting) world.getEntitiesWithinAABB(EntityItem.class, now).forEach(this::collectDrop);
-
-        AxisAlignedBB union = now.union(then);
-        List<Entity> entities = world.getEntitiesInAABBexcluding(this, union, entity -> !(entity instanceof EntityItem));
-        for (Entity entity : entities)
-        {
-            if (entity == thrower)
-            {
-                if (isRetracting)
-                {
-                    returned = true; // We found our home, but we might still want to kill stuff
-                    setPosition(thrower.posX, thrower.posY + 0.8, thrower.posZ); // Make sure the collected drops actually get to us
-                }
-                continue;
-            }
-
-            // Save the parrots!
-            if (entity.getUniqueID().equals(thrower.getLeftShoulderEntity().getUniqueId("UUID")) || entity.getUniqueID().equals(thrower.getRightShoulderEntity().getUniqueId("UUID")))
-                continue;
-
-            // We draw 8 lines between the corners of our last bounding box and our current bounding box,
-            // if even one of them hits the entity's bounding box, we know that we would have collided with it.
-            AxisAlignedBB entityBoundingBox = entity.getEntityBoundingBox();
-            boolean intersects = false;
-            for (int i = 0; i < 8; i++)
-            {
-                if (intersectsRay(entityBoundingBox, corners1[i], corners2[i]))
-                {
-                    intersects = true;
-                    break;
-                }
-            }
-
-            if (!intersects) continue;
-
-            if (entity instanceof EntityLivingBase)
-            {
-                if (gardening && entity instanceof IShearable)
-                {
-                    shearEntity(yoyo, entity);
-                }
-                else if (attackCool >= maxCool)
-                {
-                    yoyo.attack(entity, yoyoStack, thrower, this, hand);
-                    hit = true;
-                }
-            }
-        }
-
-        ++attackCool;
-        if (hit) attackCool = 0;
-        if (returned) setDead();
-    }
-
-    private static Vec3d[] getCorners(final AxisAlignedBB box)
-    {
-        return new Vec3d[]
-                {
-                    new Vec3d(box.minX, box.minY, box.minZ),
-                    new Vec3d(box.maxX, box.minY, box.minZ),
-                    new Vec3d(box.minX, box.maxY, box.minZ),
-                    new Vec3d(box.maxX, box.maxY, box.minZ),
-                    new Vec3d(box.minX, box.minY, box.maxZ),
-                    new Vec3d(box.maxX, box.minY, box.maxZ),
-                    new Vec3d(box.minX, box.maxY, box.maxZ),
-                    new Vec3d(box.maxX, box.maxY, box.maxZ),
-                    new Vec3d(box.minX + (box.maxX - box.minX) * 0.5D, box.minY + (box.maxY - box.minY) * 0.5D, box.minZ + (box.maxZ - box.minZ) * 0.5D)
-                };
-    }
-
-    private static boolean intersectsRay(final AxisAlignedBB b, final Vec3d origin, final Vec3d to)
-    {
-        // I have no idea why this works but I found it online and it does
-        Vec3d dirInv = new Vec3d(1d / (to.x - origin.x), 1d / (to.y - origin.y), 1d / (to.z - origin.z));
-
-        double t1 = (b.minX - origin.x) * dirInv.x;
-        double t2 = (b.maxX - origin.x) * dirInv.x;
-
-        double min = Math.min(t1, t2);
-        double max = Math.max(t1, t2);
-
-        t1 = (b.minY - origin.y) * dirInv.y;
-        t2 = (b.maxY - origin.y) * dirInv.y;
-
-        min = Math.max(min, Math.min(t1, t2));
-        max = Math.min(max, Math.max(t1, t2));
-
-        t1 = (b.minZ - origin.z) * dirInv.z;
-        t2 = (b.maxZ - origin.z) * dirInv.z;
-
-        min = Math.max(min, Math.min(t1, t2));
-        max = Math.min(max, Math.max(t1, t2));
-
-        return max > Math.max(min, 0.0);
     }
 
     protected void shearEntity(IYoyo yoyo, Entity entity)
@@ -605,7 +557,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         }
     }
 
-    protected void garden(IYoyo yoyo)
+    protected void worldInteraction(IYoyo yoyo)
     {
         BlockPos pos = getPosition();
 
@@ -617,59 +569,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             Block block = state.getBlock();
 
             if (block != Blocks.AIR && state.getBoundingBox(world, checkPos).offset(checkPos).intersects(entityBox))
-                handleBlockBreaking(yoyo, checkPos, block, state);
-        }
-    }
-
-    protected void handleBlockBreaking(IYoyo yoyo, final BlockPos pos, Block block, IBlockState state)
-    {
-        if (block == Blocks.AIR)
-            return;
-
-        if (block instanceof IShearable)
-        {
-            IShearable shearable = (IShearable) block;
-            if (shearable.isShearable(yoyoStack, world, pos))
-            {
-                List<ItemStack> drops = shearable.onSheared(yoyoStack, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyoStack));
-                for (ItemStack drop : drops)
-                {
-                    if (collecting)
-                    {
-                        collectDrop(drop);
-                    }
-                    else
-                    {
-                        float f = 0.7F;
-                        double d = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
-                        double d1 = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
-                        double d2 = (double) (rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
-                        EntityItem entityitem = new EntityItem(world, (double) pos.getX() + d, (double) pos.getY() + d1, (double) pos.getZ() + d2, drop);
-                        entityitem.setDefaultPickupDelay();
-                        thrower.world.spawnEntity(entityitem);
-                    }
-                }
-
-                if (!thrower.isCreative()) yoyo.damageItem(yoyoStack, thrower);
-
-                thrower.addStat(StatList.getBlockStats(block));
-
-                world.playSound(null, pos, block.getSoundType(state, world, pos, this).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
-                block.removedByPlayer(state, world, pos, thrower, true);
-                world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
-                return;
-            }
-        }
-
-        if (block instanceof BlockBush)
-        {
-            block.harvestBlock(world, thrower, pos, state, world.getTileEntity(pos), yoyoStack);
-
-            if (!thrower.isCreative()) yoyo.damageItem(yoyoStack, thrower);
-
-            world.playSound(null, pos, block.getSoundType(state, world, pos, this).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
-            world.setBlockToAir(pos);
-            world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
+                yoyo.blockInteraction(yoyoStack, thrower, world, checkPos, state, block, this);
         }
     }
 
@@ -686,15 +586,28 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         {
             for (ItemStack drop : collectedDrops)
             {
-                EntityItem item = new EntityItem(world, posX, posY, posZ, drop);
-                item.motionX = 0;
-                item.motionY = 0;
-                item.motionZ = 0;
-                item.setPickupDelay(0);
-                world.spawnEntity(item);
+                if (drop != null && !drop.isEmpty()) // Sometimes the items are not written correctly when saving the world
+                    giveDropToPlayer(drop);
             }
         }
         collectedDrops.clear();
+    }
+
+    private void giveDropToPlayer(ItemStack stack)
+    {
+        if (thrower.addItemStackToInventory(stack))
+        {
+            world.playSound(null, thrower.posX, thrower.posY, thrower.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2F, ((rand.nextFloat() - rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
+        }
+        else
+        {
+            EntityItem item = new EntityItem(world, posX, posY, posZ, stack);
+            item.motionX = 0;
+            item.motionY = 0;
+            item.motionZ = 0;
+            item.setPickupDelay(0);
+            world.spawnEntity(item);
+        }
     }
 
     @Override
@@ -718,12 +631,16 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         compound.setTag("collectedDrops", collected);
     }
 
+    public EnumHand getHand()
+    {
+        return hand;
+    }
+
+    @Nonnull
     public Vec3d getPlayerHandPos(float partialTicks)
     {
         if (thrower == null)
-        {
             return new Vec3d(posX, posY, posZ);
-        }
 
         float yaw = thrower.rotationYaw;
         float pitch = thrower.rotationPitch;
@@ -747,7 +664,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         double throwerLookOffsetY = Math.sin(pitch * 0.01745329238474369D);
         double throwerLookWidth = Math.cos(pitch * 0.01745329238474369D);
 
-        float side = hand == EnumHand.MAIN_HAND || hand == null ? 1 : -1;
+        float side = -1;
+        if ((thrower.getPrimaryHand() == EnumHandSide.RIGHT) == (hand == EnumHand.MAIN_HAND))
+            side = 1;
 
         return new Vec3d(posX - throwerLookOffsetX * side * 0.4D - throwerLookOffsetZ * 0.5D * throwerLookWidth, posY + thrower.eyeHeight * 0.85D - throwerLookOffsetY * 0.5D - 0.25D, posZ - throwerLookOffsetZ * side * 0.4D + throwerLookOffsetX * 0.5D * throwerLookWidth);
     }

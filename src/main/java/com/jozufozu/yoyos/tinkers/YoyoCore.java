@@ -5,9 +5,12 @@ import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.EntityStickyYoyo;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.IYoyo;
+import com.jozufozu.yoyos.common.ItemYoyo;
 import com.jozufozu.yoyos.network.MessageRetractYoYo;
 import com.jozufozu.yoyos.network.YoyoNetwork;
 import com.jozufozu.yoyos.tinkers.materials.*;
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
@@ -19,6 +22,7 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -155,7 +159,6 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
             {
                 entityYoyo.setRetracting(!entityYoyo.isRetracting());
                 YoyoNetwork.INSTANCE.sendToAll(new MessageRetractYoYo(entityYoyo));
-                playerIn.swingArm(hand);
             }
             else if (ToolHelper.getCurrentDurability(itemStackIn) > 0)
             {
@@ -170,8 +173,6 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
                 worldIn.spawnEntity(yoyo);
 
                 worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
-                
-                playerIn.swingArm(hand);
             }
         }
         
@@ -267,8 +268,20 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     }
     
     @Override
-    public void attack(Entity target, ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity, EnumHand yoyoHand)
+    public void attack(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity target)
     {
         ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target);
+    }
+
+    @Override
+    public boolean interactsWithBlocks(ItemStack yoyo)
+    {
+        return gardening(yoyo);
+    }
+
+    @Override
+    public void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    {
+        ItemYoyo.garden(yoyo, player, world, pos, state, block, yoyoEntity);
     }
 }

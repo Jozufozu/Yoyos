@@ -29,6 +29,8 @@ yoyos.config.weight=Weight
 yoyos.config.length=Length
 yoyos.config.duration=Duration
 
+yoyos.display.prefix=Yo-
+
 yoyos.info.weight.name=Weight: %s
 yoyos.info.duration.name=Duration: %s seconds
 yoyos.info.length.name=Length: %s blocks

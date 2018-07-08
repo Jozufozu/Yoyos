@@ -16,6 +16,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.profiler.Profiler;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.EnumHandSide;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
 import net.minecraftforge.client.ForgeHooksClient;
@@ -53,9 +55,9 @@ public class RenderYoYo extends Render<EntityYoyo>
         GlStateManager.translate(x, y + entity.height / 2, z);
         GlStateManager.scale(.5, .5, .5);
         
-        Vec3d pointer = entity.getPlayerHandPos(partialTicks).subtract(entity.posX, entity.posY + entity.height / 2, entity.posZ).normalize();
+        Vec3d pointTo = entity.getPlayerHandPos(partialTicks).subtract(entity.posX, entity.posY + entity.height / 2, entity.posZ).normalize();
         
-        float yaw = (float) (Math.atan2(pointer.x, pointer.z) * -180 / Math.PI);
+        float yaw = (float) (Math.atan2(pointTo.x, pointTo.z) * -180 / Math.PI);
        
         GlStateManager.pushMatrix();
         
@@ -93,7 +95,16 @@ public class RenderYoYo extends Render<EntityYoyo>
 
             int i = 0;
             for (ItemStack drop : entity.collectedDrops)
-                doRenderItem(i++, entity, drop, partialTicks);
+            {
+                int count = drop.getCount();
+                int max = drop.getMaxStackSize();
+
+                while (count > 0)
+                {
+                    doRenderItem(i++, entity, drop, partialTicks);
+                    count -= max;
+                }
+            }
     
             GlStateManager.disableRescaleNormal();
             GlStateManager.disableBlend();
@@ -119,18 +130,99 @@ public class RenderYoYo extends Render<EntityYoyo>
         
         mcProfiler.endSection();
     }
-    
+
     public static void renderChord(EntityYoyo entity, double x, double y, double z, float partialTicks)
     {
         Entity thrower = entity.getThrower();
-        if (!(thrower instanceof EntityPlayer))
-            return;
-        
+        if (!(thrower instanceof EntityPlayer)) return;
+
+        EntityPlayer player = ((EntityPlayer) thrower);
+
         y = y - (1.6D - (double) thrower.height) * 0.5D;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
-    
-        Vec3d handPos = entity.getPlayerHandPos(partialTicks);
+
+        boolean rightHand = (player.getPrimaryHand() == EnumHandSide.RIGHT) == (entity.getHand() == EnumHand.MAIN_HAND);
+
+        Vec3d handPos;
+
+        if (Minecraft.getMinecraft().gameSettings.thirdPersonView != 0 || player.getEntityId() != Minecraft.getMinecraft().player.getEntityId())
+        {
+            double posX = interpolateValue(thrower.prevPosX, thrower.posX, (double) partialTicks);
+            double posY = interpolateValue(thrower.prevPosY, thrower.posY, (double) partialTicks) + 1.272;
+            double posZ = interpolateValue(thrower.prevPosZ, thrower.posZ, (double) partialTicks);
+            double bodyRotation = interpolateValue(player.prevRenderYawOffset, player.renderYawOffset, partialTicks);
+
+            bodyRotation = Math.toRadians(bodyRotation);
+
+            double rotation = bodyRotation;
+
+            if (rightHand)
+                rotation += Math.PI;
+
+            final double shoulderRadius = 0.347;
+            posX += Math.cos(rotation) * shoulderRadius;
+            posZ += Math.sin(rotation) * shoulderRadius;
+
+            double f = 1.0;
+
+            if (player.getTicksElytraFlying() > 4)
+            {
+                f = thrower.motionX * thrower.motionX + thrower.motionY * thrower.motionY + thrower.motionZ * thrower.motionZ;
+                f = f / 0.2F;
+                f = f * f * f;
+            }
+
+            if (f < 1.0F)
+            {
+                f = 1.0F;
+            }
+
+            float limbSwing = player.limbSwing;
+            float limbSwingAmount = interpolateValue(player.prevLimbSwingAmount, player.limbSwingAmount, partialTicks);
+
+            double pitch = Math.cos(limbSwing * 0.6662 + (rightHand ? 0 : Math.PI)) * 2.0 * limbSwingAmount * 0.5 / f;
+
+            pitch *= 0.5 - (Math.PI / 10.0);
+            if (player.isSneaking())
+            {
+                pitch += 0.4;
+                posY -= 0.4;
+            }
+
+            pitch += (rightHand ? -1 : 1) * Math.sin((player.ticksExisted + partialTicks) * 0.067) * 0.05;
+
+            double roll = Math.PI;
+            double yaw = bodyRotation + Math.cos((player.ticksExisted + partialTicks) * 0.09) * 0.05 + 0.05;
+
+            posX += -1 * Math.sin(roll) * Math.cos(yaw) - Math.cos(roll) * Math.sin(pitch) * Math.sin(yaw);
+            posY += Math.cos(pitch) * Math.cos(roll);
+            posZ += Math.sin(roll) * Math.sin(yaw) - Math.cos(roll) * Math.sin(pitch) * Math.cos(yaw);
+
+            handPos = new Vec3d(posX, posY, posZ);
+        }
+        else
+        {
+            double posX = interpolateValue(thrower.prevPosX, thrower.posX, (double) partialTicks);
+            double posY = interpolateValue(thrower.prevPosY, thrower.posY, (double) partialTicks) + 1.1;
+            double posZ = interpolateValue(thrower.prevPosZ, thrower.posZ, (double) partialTicks);
+
+            double rotationYaw = interpolateValue(player.prevRotationYaw, player.rotationYaw, partialTicks);
+            double rotationPitch = interpolateValue(player.prevRotationPitch, player.rotationPitch, partialTicks);
+
+            rotationYaw = Math.toRadians(rotationYaw);
+            rotationPitch = Math.toRadians(rotationPitch);
+
+            double mirror = (rightHand ? -1 : 1);
+            double radius = 0.2;
+
+            posX += Math.cos(rotationYaw) * mirror * radius + Math.cos(rotationYaw + Math.PI * 0.5) * -Math.sin(rotationPitch) * mirror * mirror * radius;
+            posY += Math.sin(rotationPitch) * radius;
+            posZ += Math.sin(rotationYaw) * mirror * radius + Math.sin(rotationYaw + Math.PI * 0.5) * -Math.sin(rotationPitch) * mirror * mirror * radius;
+
+            handPos = new Vec3d(posX, posY, posZ);
+        }
+
         double yoyoPosX = interpolateValue(entity.prevPosX, entity.posX, (double) partialTicks);
         double yoyoPosY = interpolateValue(entity.prevPosY, entity.posY, (double) partialTicks) - entity.height;
         double yoyoPosZ = interpolateValue(entity.prevPosZ, entity.posZ, (double) partialTicks);
@@ -286,6 +378,11 @@ public class RenderYoYo extends Render<EntityYoyo>
     }
     
     private static double interpolateValue(double start, double end, double pct)
+    {
+        return start + (end - start) * pct;
+    }
+
+    private static float interpolateValue(float start, float end, float pct)
     {
         return start + (end - start) * pct;
     }

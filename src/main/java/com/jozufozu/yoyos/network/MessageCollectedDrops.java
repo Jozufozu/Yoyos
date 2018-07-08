@@ -4,7 +4,9 @@ import com.jozufozu.yoyos.common.EntityYoyo;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -36,7 +38,7 @@ public class MessageCollectedDrops implements IMessage
     
         drops = new ItemStack[length];
         for (int i = 0; i < length; i++)
-            drops[i] = ByteBufUtils.readItemStack(buf);
+            drops[i] = readBigItemStack(buf);
     }
     
     @Override
@@ -46,7 +48,47 @@ public class MessageCollectedDrops implements IMessage
         buf.writeInt(drops.length);
     
         for (ItemStack drop : drops)
-            ByteBufUtils.writeItemStack(buf, drop);
+            writeBigItemStack(buf, drop);
+    }
+
+    private void writeBigItemStack(ByteBuf buf, ItemStack stack)
+    {
+        if (stack.isEmpty())
+        {
+            buf.writeShort(-1);
+        }
+        else
+        {
+            buf.writeShort(Item.getIdFromItem(stack.getItem()));
+            buf.writeInt(stack.getCount());
+            buf.writeShort(stack.getMetadata());
+            NBTTagCompound nbttagcompound = null;
+
+            if (stack.getItem().isDamageable() || stack.getItem().getShareTag())
+            {
+                nbttagcompound = stack.getItem().getNBTShareTag(stack);
+            }
+
+            ByteBufUtils.writeTag(buf, nbttagcompound);
+        }
+    }
+
+    private ItemStack readBigItemStack(ByteBuf buf)
+    {
+        int i = buf.readShort();
+
+        if (i < 0)
+        {
+            return ItemStack.EMPTY;
+        }
+        else
+        {
+            int j = buf.readInt();
+            int k = buf.readShort();
+            ItemStack itemstack = new ItemStack(Item.getItemById(i), j, k);
+            itemstack.setTagCompound(ByteBufUtils.readTag(buf));
+            return itemstack;
+        }
     }
     
     public static class Handler implements IMessageHandler<MessageCollectedDrops, IMessage>

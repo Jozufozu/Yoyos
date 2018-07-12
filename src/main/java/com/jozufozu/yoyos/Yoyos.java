@@ -87,6 +87,7 @@ public class Yoyos
     public void registerItems(RegistryEvent.Register<Item> event)
     {
         IForgeRegistry<Item> registry = event.getRegistry();
+        // TODO: 1.13 remove cord when normal yoyos are disabled
         registry.register(CORD = new Item().setCreativeTab(CreativeTabs.MATERIALS).setRegistryName(MODID, "cord").setUnlocalizedName("yoyos.cord"));
 
         if (!ModConfig.vanillaYoyos.enable) return;
@@ -165,7 +166,7 @@ public class Yoyos
         }
     }
 
-    @Mod.EventHandler
+    //@Mod.EventHandler
     public void serverInit(FMLServerStartingEvent event)
     {
         event.registerServerCommand(new CommandDebugYoyo());

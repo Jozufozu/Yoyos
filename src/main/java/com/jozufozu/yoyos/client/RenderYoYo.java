@@ -102,40 +102,7 @@ public class RenderYoYo extends Render<EntityYoyo>
     
         if (entity.isCollecting() && !entity.collectedDrops.isEmpty())
         {
-            boolean boundTexture = false;
-            if (this.bindEntityTexture(entity))
-            {
-                this.renderManager.renderEngine.getTexture(this.getEntityTexture(entity)).setBlurMipmap(false, false);
-                boundTexture = true;
-            }
-    
-            GlStateManager.enableRescaleNormal();
-            GlStateManager.alphaFunc(516, 0.1F);
-            GlStateManager.enableBlend();
-            RenderHelper.enableStandardItemLighting();
-            GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-
-            int i = 0;
-            for (ItemStack drop : entity.collectedDrops)
-            {
-                int count = drop.getCount();
-                int max = drop.getMaxStackSize();
-
-                while (count > 0)
-                {
-                    doRenderItem(i++, entity, drop, partialTicks);
-                    count -= max;
-                }
-            }
-    
-            GlStateManager.disableRescaleNormal();
-            GlStateManager.disableBlend();
-            this.bindEntityTexture(entity);
-    
-            if (boundTexture)
-            {
-                this.renderManager.renderEngine.getTexture(this.getEntityTexture(entity)).restoreLastBlurMipmap();
-            }
+            renderCollectedItems(entity, partialTicks);
         }
     
         GlStateManager.popMatrix();
@@ -153,6 +120,44 @@ public class RenderYoYo extends Render<EntityYoyo>
         mcProfiler.endSection();
     }
 
+    public void renderCollectedItems(EntityYoyo entity, float partialTicks)
+    {
+        boolean boundTexture = false;
+        if (this.bindEntityTexture(entity))
+        {
+            this.renderManager.renderEngine.getTexture(this.getEntityTexture(entity)).setBlurMipmap(false, false);
+            boundTexture = true;
+        }
+
+        GlStateManager.enableRescaleNormal();
+        GlStateManager.alphaFunc(516, 0.1F);
+        GlStateManager.enableBlend();
+        RenderHelper.enableStandardItemLighting();
+        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+
+        int i = 0;
+        for (ItemStack drop : entity.collectedDrops)
+        {
+            int count = drop.getCount();
+            int max = drop.getMaxStackSize();
+
+            while (count > 0)
+            {
+                doRenderItem(i++, entity, drop, partialTicks);
+                count -= max;
+            }
+        }
+
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.disableBlend();
+        this.bindEntityTexture(entity);
+
+        if (boundTexture)
+        {
+            this.renderManager.renderEngine.getTexture(this.getEntityTexture(entity)).restoreLastBlurMipmap();
+        }
+    }
+
     public static void renderChord(EntityYoyo entity, double x, double y, double z, float partialTicks)
     {
         Entity thrower = entity.getThrower();
@@ -160,7 +165,7 @@ public class RenderYoYo extends Render<EntityYoyo>
 
         EntityPlayer player = ((EntityPlayer) thrower);
 
-        y = y - (1.6D - (double) thrower.height) * 0.5D;
+        y = y - (1.6 - thrower.height) * 0.5;
         Tessellator tessellator = Tessellator.getInstance();
         BufferBuilder bufferBuilder = tessellator.getBuffer();
 
@@ -229,18 +234,17 @@ public class RenderYoYo extends Render<EntityYoyo>
             double posY = interpolateValue(thrower.prevPosY, thrower.posY, (double) partialTicks) + 1.1;
             double posZ = interpolateValue(thrower.prevPosZ, thrower.posZ, (double) partialTicks);
 
-            double rotationYaw = interpolateValue(player.prevRotationYaw, player.rotationYaw, partialTicks);
-            double rotationPitch = interpolateValue(player.prevRotationPitch, player.rotationPitch, partialTicks);
-
-            rotationYaw = Math.toRadians(rotationYaw);
-            rotationPitch = Math.toRadians(rotationPitch);
+            double rotationYaw = Math.toRadians(interpolateValue(player.prevRotationYaw, player.rotationYaw, partialTicks));
+            double rotationPitch = Math.toRadians(interpolateValue(player.prevRotationPitch, player.rotationPitch, partialTicks));
 
             double mirror = (rightHand ? -1 : 1);
-            double radius = 0.2;
+            double radius = 0.1;
 
-            posX += Math.cos(rotationYaw) * mirror * radius + Math.cos(rotationYaw + Math.PI * 0.5) * -Math.sin(rotationPitch) * mirror * mirror * radius;
-            posY += Math.sin(rotationPitch) * radius;
-            posZ += Math.sin(rotationYaw) * mirror * radius + Math.sin(rotationYaw + Math.PI * 0.5) * -Math.sin(rotationPitch) * mirror * mirror * radius;
+            double v = -Math.sin(rotationPitch) * mirror * mirror * radius;
+            double angle = rotationYaw + Math.PI * 0.5;
+            posX += Math.cos(rotationYaw) * mirror * radius + Math.cos(angle) * v;
+            posY += Math.sin(-rotationPitch) * radius;
+            posZ += Math.sin(rotationYaw) * mirror * radius + Math.sin(angle) * v;
 
             handPos = new Vec3d(posX, posY, posZ);
         }
@@ -248,24 +252,26 @@ public class RenderYoYo extends Render<EntityYoyo>
         double yoyoPosX = interpolateValue(entity.prevPosX, entity.posX, (double) partialTicks);
         double yoyoPosY = interpolateValue(entity.prevPosY, entity.posY, (double) partialTicks) - entity.height;
         double yoyoPosZ = interpolateValue(entity.prevPosZ, entity.posZ, (double) partialTicks);
-    
-        double xDiff = (double) ((float) (handPos.x - yoyoPosX));
-        double yDiff = (double) ((float) (handPos.y - yoyoPosY));
-        double zDiff = (double) ((float) (handPos.z - yoyoPosZ));
+
+        double xDiff = handPos.x - yoyoPosX;
+        double yDiff = handPos.y - yoyoPosY;
+        double zDiff = handPos.z - yoyoPosZ;
+
         GlStateManager.disableTexture2D();
         GlStateManager.disableLighting();
         GlStateManager.disableCull();
         
         int color = 0xDDDDDD;
-        if (entity.getYoyoStack().getItem() instanceof IYoyo)
+        IYoyo yoyo = entity.getYoyo();
+        if (yoyo != null)
         {
-            color = ((IYoyo) entity.getYoyoStack().getItem()).getCordColor(entity.getYoyoStack());
+            color = yoyo.getCordColor(entity.getYoyoStack(), entity.ticksExisted + partialTicks);
         }
     
         float stringR = ((color >> 16) & 255) / 255F;
         float stringG = ((color >> 8) & 255) / 255F;
         float stringB = (color & 255) / 255F;
-    
+
         for (int i = 0; i < 2; i++)
         {
             bufferBuilder.begin(5, DefaultVertexFormats.POSITION_COLOR);
@@ -282,13 +288,18 @@ public class RenderYoYo extends Render<EntityYoyo>
                     b *= 0.7F;
                 }
         
-                float segment = (float) j / 24.0F;
-                bufferBuilder.pos(x + xDiff * (double) segment,          y + yDiff * (double) (segment * segment + segment) * 0.5D, z + zDiff * (double) segment + 0.025D * (i % 2)      ).color(r, g, b, 1.0F).endVertex();
-                bufferBuilder.pos(x + xDiff * (double) segment + 0.025D, y + yDiff * (double) (segment * segment + segment) * 0.5D, z + zDiff * (double) segment + 0.025D * ((i + 1) % 2)).color(r, g, b, 1.0F).endVertex();
+                double segment = j / 24.0;
+                double zag = 0.0125 * ((i % 2) * 2 - 1);
+                double x1 = x + xDiff * segment;
+                double y1 = y + yDiff * (segment * segment + segment) * 0.5;
+                double z1 = z + zDiff * segment;
+
+                bufferBuilder.pos(x1 - 0.0125, y1, z1 + zag).color(r, g, b, 1.0F).endVertex();
+                bufferBuilder.pos(x1 + 0.0125, y1, z1 - zag).color(r, g, b, 1.0F).endVertex();
             }
             tessellator.draw();
         }
-        
+
         GlStateManager.enableLighting();
         GlStateManager.enableTexture2D();
         GlStateManager.enableCull();

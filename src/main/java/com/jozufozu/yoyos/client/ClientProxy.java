@@ -75,26 +75,25 @@ public class ClientProxy extends CommonProxy
 
         EntityPlayerSP player = mc.player;
 
-        if (!EntityYoyo.CASTERS.containsKey(player)) return;
-
-        if (EntityYoyo.CASTERS.get(player).getHand() != event.getHand()) return;
+        EntityYoyo yoyo = EntityYoyo.CASTERS.get(player);
+        if (yoyo == null || yoyo.getHand() != event.getHand()) return;
 
         if (player.isInvisible()) return;
 
         EnumHandSide enumhandside = event.getHand() == EnumHand.MAIN_HAND ? player.getPrimaryHand() : player.getPrimaryHand().opposite();
 
-        float equipProgress = event.getEquipProgress();
+        float swingProgress = event.getSwingProgress();
 
         GlStateManager.pushMatrix();
         boolean rightHand = enumhandside != EnumHandSide.LEFT;
         float mirror = rightHand ? 1.0F : -1.0F;
-        float f1 = MathHelper.sqrt(equipProgress);
+        float f1 = MathHelper.sqrt(swingProgress);
         float f2 = -0.3F * MathHelper.sin(f1 * (float)Math.PI);
         float f3 = 0.4F * MathHelper.sin(f1 * ((float)Math.PI * 2F));
-        float f4 = -0.4F * MathHelper.sin(equipProgress * (float)Math.PI);
-        GlStateManager.translate(mirror * (f2 + 0.64000005F), f3 + -0.6F + event.getSwingProgress() * -0.6F, f4 + -0.71999997F);
+        float f4 = -0.4F * MathHelper.sin(swingProgress * (float)Math.PI);
+        GlStateManager.translate(mirror * (f2 + 0.64000005F), f3 + -0.6F + event.getEquipProgress() * -0.6F, f4 + -0.71999997F);
         GlStateManager.rotate(mirror * 45.0F, 0.0F, 1.0F, 0.0F);
-        float f5 = MathHelper.sin(equipProgress * equipProgress * (float)Math.PI);
+        float f5 = MathHelper.sin(swingProgress * swingProgress * (float)Math.PI);
         float f6 = MathHelper.sin(f1 * (float)Math.PI);
         GlStateManager.rotate(mirror * f6 * 70.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(mirror * f5 * -20.0F, 0.0F, 0.0F, 1.0F);

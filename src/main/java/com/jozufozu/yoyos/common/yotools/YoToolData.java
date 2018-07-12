@@ -200,15 +200,17 @@ public class YoToolData implements IYoyo
 
             if (tool.getStrVsBlock(yoyo, state) > 1.0)
             {
-                if (!player.isCreative()) yoyo.damageItem(1, player);
-
-                world.playSound(null, pos, block.getSoundType(state, world, pos, yoyoEntity).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
-                world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
-
                 if (block.removedByPlayer(state, world, pos, player, true))
                 {
                     block.harvestBlock(world, player, pos, state, world.getTileEntity(pos), yoyo);
                     block.breakBlock(world, pos, state);
+
+                    if (!player.isCreative()) yoyo.damageItem(1, player);
+
+                    world.playSound(null, pos, block.getSoundType(state, world, pos, yoyoEntity).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
+                    world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
+
+                    yoyoEntity.forceRetract();
                 }
             }
         }

@@ -36,7 +36,8 @@ yoyos.info.duration.name=Duration: %s seconds
 yoyos.info.length.name=Length: %s blocks
 
 yoyos.info.sticky.name=Sticks to blocks and acts like a rope swing.
-yoyos.info.sticky.retraction.name=Hold [%s] to retract string.
+yoyos.info.sticky.retraction.name=Hold [%s] to reel in string.
+yoyos.info.sticky.release.name=Hold [%s] to let out slack.
 
 item.yoyos.book.name=Yoyos and You
 item.yoyos.book.tooltip=How to become a master thrower\nby Jozufozu

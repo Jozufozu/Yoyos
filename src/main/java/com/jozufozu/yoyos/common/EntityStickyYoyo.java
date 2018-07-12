@@ -23,11 +23,20 @@
 package com.jozufozu.yoyos.common;
 
 import com.jozufozu.yoyos.Yoyos;
+import com.jozufozu.yoyos.network.MessageReelState;
+import com.jozufozu.yoyos.network.YoyoNetwork;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
+@Mod.EventBusSubscriber(value = Side.CLIENT, modid = Yoyos.MODID)
 public class EntityStickyYoyo extends EntityYoyo
 {
     public EntityStickyYoyo(World world)
@@ -44,6 +53,44 @@ public class EntityStickyYoyo extends EntityYoyo
     private int stuckSince = 0;
 
     private int reelTime;
+    private int reelDirection;
+
+    private static int reel;
+    private static int lastReel;
+
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public static void onTickWorldTick(TickEvent.WorldTickEvent event)
+    {
+        if (event.phase != TickEvent.Phase.START) return;
+
+        reel = 0;
+
+        Minecraft mc = Minecraft.getMinecraft();
+        EntityYoyo yoyo = EntityYoyo.CASTERS.get(mc.player);
+
+        if (yoyo instanceof EntityStickyYoyo)
+        {
+            if (mc.gameSettings.keyBindJump.isKeyDown()) reel += 1;
+            if (mc.gameSettings.keyBindSneak.isKeyDown()) reel -= 1;
+
+            int abs = Math.abs(reel);
+            if (abs > 1)
+                reel /= abs;
+
+            if (reel != lastReel)
+            {
+                YoyoNetwork.INSTANCE.sendToServer(new MessageReelState(((EntityStickyYoyo) yoyo), reel));
+            }
+        }
+
+        lastReel = reel;
+    }
+
+    public void setReelDirection(int reelDirection)
+    {
+        this.reelDirection = reelDirection;
+    }
 
     @Override
     public void onUpdate()
@@ -57,20 +104,24 @@ public class EntityStickyYoyo extends EntityYoyo
 
         if (thrower != null && !thrower.isDead)
         {
-            IYoyo yoyo = checkAndGetYoyoObject();
+            yoyo = checkAndGetYoyoObject();
 
             if (yoyo == null) return;
 
-            if (thrower.isSneaking() && cordLength > 0.1)
+            if (reelDirection < 0 && cordLength > 0.1)
             {
-                cordLength -= 0.01F * reelTime;
+                cordLength -= 0.05 * reelTime;
 
-                reelTime++;
+                if (reelTime < 10)
+                    reelTime++;
             }
             else
             {
                 reelTime = 0;
             }
+
+            if (reelDirection > 0 && cordLength < maxLength)
+                cordLength += 0.1;
 
             if (!world.getCollisionBoxes(this, getEntityBoundingBox().grow(0.1)).isEmpty() && !isRetracting())
             {
@@ -81,25 +132,31 @@ public class EntityStickyYoyo extends EntityYoyo
                 if (!stuck)
                 {
                     stuckSince = ticksExisted;
-                    cordLength = (float) (new Vec3d(thrower.posX - posX, thrower.posY - posY, thrower.posZ - posZ)).lengthVector();
+                    double dx = thrower.posX - posX;
+                    double dy = thrower.posY - posY;
+                    double dz = thrower.posZ - posZ;
+                    cordLength = MathHelper.sqrt(dx * dx + dy * dy + dz * dz);
                     world.playSound(null, posX, posY, posZ, Yoyos.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f);
                 }
                 stuck = true;
             }
             else
             {
-                if (duration >= 0 && ticksExisted >= duration) forceRetract();
+                if (duration >= 0 && ticksExisted >= duration)
+                    forceRetract();
+
                 updateMotion();
 
-                moveAndCollide(yoyo);
+                moveAndCollide();
+
+                if (!world.isRemote && interactsWithBlocks)
+                    worldInteraction();
 
                 stuck = false;
             }
 
-            if (!world.isRemote && gardening)
-                worldInteraction(yoyo);
-
             handleSwing();
+
             if (collecting)
                 updateCapturedDrops();
         }

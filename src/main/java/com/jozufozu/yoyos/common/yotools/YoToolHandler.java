@@ -35,10 +35,10 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
-@Mod.EventBusSubscriber(modid = Yoyos.MODID)
+// I'm disabling this util I can figure out if it makes sense at all
+// @Mod.EventBusSubscriber(modid = Yoyos.MODID)
 public class YoToolHandler
 {
     @SubscribeEvent

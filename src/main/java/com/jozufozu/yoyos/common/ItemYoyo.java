@@ -149,6 +149,8 @@ public class ItemYoyo extends Item implements IYoyo
                 worldIn.spawnEntity(yoyo);
 
                 worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
+
+                playerIn.addExhaustion(0.05F);
             }
         }
         

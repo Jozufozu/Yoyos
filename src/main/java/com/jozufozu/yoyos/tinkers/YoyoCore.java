@@ -195,6 +195,8 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
                 worldIn.spawnEntity(yoyo);
 
                 worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
+
+                playerIn.addExhaustion(0.05F);
             }
         }
         
@@ -259,7 +261,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     
     @Override
     @SideOnly(Side.CLIENT)
-    public int getCordColor(ItemStack yoyo)
+    public int getCordColor(ItemStack yoyo, float ticks)
     {
         List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
         return materials.get(0).materialTextColor;
@@ -267,7 +269,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     
     @Override
     @SideOnly(Side.CLIENT)
-    public int getLeftColor(ItemStack yoyo)
+    public int getLeftColor(ItemStack yoyo, float ticks)
     {
         List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
         return materials.get(1).materialTextColor;
@@ -275,7 +277,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     
     @Override
     @SideOnly(Side.CLIENT)
-    public int getRightColor(ItemStack yoyo)
+    public int getRightColor(ItemStack yoyo, float ticks)
     {
         List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
         return materials.get(2).materialTextColor;
@@ -283,7 +285,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     
     @Override
     @SideOnly(Side.CLIENT)
-    public int getAxleColor(ItemStack yoyo)
+    public int getAxleColor(ItemStack yoyo, float ticks)
     {
         List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
         return materials.get(3).materialTextColor;

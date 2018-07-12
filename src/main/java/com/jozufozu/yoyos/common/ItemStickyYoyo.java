@@ -59,7 +59,6 @@ public class ItemStickyYoyo extends ItemYoyo
             {
                 entityYoyo.setRetracting(!entityYoyo.isRetracting());
                 YoyoNetwork.INSTANCE.sendToAll(new MessageRetractYoYo(entityYoyo));
-                playerIn.swingArm(hand);
             }
             else if (itemStackIn.getItemDamage() < itemStackIn.getMaxDamage())
             {
@@ -67,8 +66,8 @@ public class ItemStickyYoyo extends ItemYoyo
                 worldIn.spawnEntity(yoyo);
 
                 worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
-                
-                playerIn.swingArm(hand);
+
+                playerIn.addExhaustion(0.05F);
             }
         }
         
@@ -82,5 +81,6 @@ public class ItemStickyYoyo extends ItemYoyo
         tooltip.add("");
         tooltip.add(I18n.format("yoyos.info.sticky.name"));
         tooltip.add(I18n.format("yoyos.info.sticky.retraction.name", new TextComponentKeybind("key.sneak").getUnformattedText()));
+        tooltip.add(I18n.format("yoyos.info.sticky.release.name", new TextComponentKeybind("key.jump").getUnformattedText()));
     }
 }

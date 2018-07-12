@@ -57,25 +57,25 @@ public interface IYoyo
     void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity);
     
     @SideOnly(Side.CLIENT)
-    default int getCordColor(ItemStack yoyo)
+    default int getCordColor(ItemStack yoyo, float ticks)
     {
         return 0xDDDDDD;
     }
 
     @SideOnly(Side.CLIENT)
-    default int getLeftColor(ItemStack yoyo)
+    default int getLeftColor(ItemStack yoyo, float ticks)
     {
         return 0xDDDDDD;
     }
 
     @SideOnly(Side.CLIENT)
-    default int getRightColor(ItemStack yoyo)
+    default int getRightColor(ItemStack yoyo, float ticks)
     {
         return 0xDDDDDD;
     }
 
     @SideOnly(Side.CLIENT)
-    default int getAxleColor(ItemStack yoyo)
+    default int getAxleColor(ItemStack yoyo, float ticks)
     {
         return 0xDDDDDD;
     }

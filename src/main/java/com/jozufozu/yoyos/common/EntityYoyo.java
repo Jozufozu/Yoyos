@@ -73,13 +73,19 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     public ArrayList<ItemStack> collectedDrops = new ArrayList<>();
     protected EntityPlayer thrower;
     protected ItemStack yoyoStack = ItemStack.EMPTY;
+    protected IYoyo yoyo = null;
+
     protected EnumHand hand;
     protected float weight;
+
     protected float cordLength;
+    protected float maxLength;
+
     protected int maxCool;
     protected int duration;
     protected boolean gardening;
     protected boolean collecting;
+    protected boolean interactsWithBlocks;
 
     protected boolean isRetracting = false;
     protected boolean canCancelRetract = true;
@@ -191,6 +197,13 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         }
     }
 
+    @Nullable
+    public IYoyo getYoyo()
+    {
+        return yoyo;
+    }
+
+    @Nonnull
     public ItemStack getYoyoStack()
     {
         return yoyoStack;
@@ -244,7 +257,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         if (thrower != null && !thrower.isDead)
         {
-            IYoyo yoyo = checkAndGetYoyoObject();
+            yoyo = checkAndGetYoyoObject();
 
             if (yoyo == null) return;
 
@@ -252,11 +265,11 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
             //handle position
             updateMotion();
-            moveAndCollide(yoyo);
+            moveAndCollide();
 
             if (ModConfig.yoyoSwing) handleSwing();
 
-            if (!world.isRemote && yoyo.interactsWithBlocks(yoyoStack)) worldInteraction(yoyo);
+            if (!world.isRemote && interactsWithBlocks) worldInteraction();
 
             if (collecting) updateCapturedDrops();
         }
@@ -312,8 +325,10 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             collecting = yoyo.collecting(yoyoStack);
             maxCool = yoyo.getAttackSpeed(yoyoStack);
             duration = yoyo.getDuration(yoyoStack);
-            cordLength = yoyo.getLength(yoyoStack);
+            cordLength = maxLength = yoyo.getLength(yoyoStack);
             weight = yoyo.getWeight(yoyoStack);
+
+            interactsWithBlocks = yoyo.interactsWithBlocks(yoyoStack);
 
             shouldGetStats = false;
         }
@@ -373,7 +388,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         onGround = true; //TODO: This is the only way I've found to get the yoyo to throw out smoothly
     }
 
-    public void moveAndCollide(IYoyo yoyo)
+    public void moveAndCollide()
     {
         world.profiler.startSection("move");
         AxisAlignedBB yoyoBoundingBox = getEntityBoundingBox();
@@ -449,7 +464,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                         {
                             if (gardening && entity instanceof IShearable)
                             {
-                                shearEntity(yoyo, entity);
+                                shearEntity(entity);
                             }
                             else if (attackCool >= maxCool)
                             {
@@ -542,14 +557,14 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         if (distance > cordLength)
         {
-            Vec3d dif = getPositionVector().subtract(thrower.posX, thrower.posY + thrower.height / 2, thrower.posZ).scale(0.03 * (distance - cordLength));
+            Vec3d dif = getPositionVector().subtract(throwerPos).scale(0.04 * (distance - cordLength) * (distance - cordLength) * (distance - cordLength));
             thrower.addVelocity(dif.x, dif.y, dif.z);
             thrower.fallDistance = 0;
             if (isRetracting) setDead();
         }
     }
 
-    protected void shearEntity(IYoyo yoyo, Entity entity)
+    protected void shearEntity(Entity entity)
     {
         IShearable shearable = (IShearable) entity;
         BlockPos pos = new BlockPos(entity.posX, entity.posY, entity.posZ);
@@ -580,7 +595,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         }
     }
 
-    protected void worldInteraction(IYoyo yoyo)
+    protected void worldInteraction()
     {
         BlockPos pos = getPosition();
 
@@ -689,7 +704,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         return ageInTicks * multiplier;
     }
 
-    protected void forceRetract()
+    public void forceRetract()
     {
         canCancelRetract = false;
         isRetracting = true;

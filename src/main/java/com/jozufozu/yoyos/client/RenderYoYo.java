@@ -34,6 +34,8 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.passive.EntityBat;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -54,6 +56,8 @@ public class RenderYoYo extends Render<EntityYoyo>
 {
     private RenderItem itemRenderer;
     private Random random = new Random();
+
+    private EntityLivingBase dummy;
     
     public RenderYoYo(RenderManager renderManager)
     {
@@ -70,34 +74,42 @@ public class RenderYoYo extends Render<EntityYoyo>
     @Override
     public void doRender(EntityYoyo entity, double x, double y, double z, float entityYaw, float partialTicks)
     {
+        if (dummy == null || dummy.world != entity.world)
+            dummy = new EntityBat(entity.world);
+
         Profiler mcProfiler = Minecraft.getMinecraft().mcProfiler;
         mcProfiler.startSection("renderYoyo");
         
         GlStateManager.pushMatrix();
         GlStateManager.translate(x, y + entity.height / 2, z);
         GlStateManager.scale(.5, .5, .5);
-        
+
         Vec3d pointTo = entity.getPlayerHandPos(partialTicks).subtract(entity.posX, entity.posY + entity.height / 2, entity.posZ).normalize();
-        
+
         float yaw = (float) (Math.atan2(pointTo.x, pointTo.z) * -180 / Math.PI);
-       
+
         GlStateManager.pushMatrix();
-        
+
+
         if (entity.isGardening())
+        {
             GlStateManager.rotate(90, 1, 0, 0);         //be flat, like a lawnmower
+        }
         else
+        {
             GlStateManager.rotate(90 - yaw, 0, 1, 0);   //face away from player
-        
+        }
+
         GlStateManager.rotate(180 - entity.getRotation(entity.ticksExisted, partialTicks), 0, 0, 1);    //spin around
-        
+
         if (this.renderOutlines)
         {
             GlStateManager.enableColorMaterial();
             GlStateManager.enableOutlineMode(this.getTeamColor(entity));
         }
-        
-        itemRenderer.renderItem(entity.getYoyoStack(), ItemCameraTransforms.TransformType.NONE);
-        
+
+        itemRenderer.renderItem(entity.getYoyoStack(), dummy, ItemCameraTransforms.TransformType.NONE, false);
+
         GlStateManager.popMatrix();
     
         if (entity.isCollecting() && !entity.collectedDrops.isEmpty())
@@ -162,6 +174,59 @@ public class RenderYoYo extends Render<EntityYoyo>
     {
         Entity thrower = entity.getThrower();
         if (!(thrower instanceof EntityPlayer)) return;
+
+        /* This is from the fishing rod bobber renderer. It might be able to get the cord into the player's actual hand
+        EntityPlayer entityplayer = ((EntityPlayer) thrower);
+
+        int k = entityplayer.getPrimaryHand() == EnumHandSide.RIGHT ? 1 : -1;
+        ItemStack itemstack = entityplayer.getHeldItemMainhand();
+
+        if (!(itemstack.getItem() instanceof net.minecraft.item.ItemFishingRod))
+        {
+            k = -k;
+        }
+
+        float f7 = entityplayer.getSwingProgress(partialTicks);
+        float f8 = MathHelper.sin(MathHelper.sqrt(f7) * (float)Math.PI);
+        float f9 = (entityplayer.prevRenderYawOffset + (entityplayer.renderYawOffset - entityplayer.prevRenderYawOffset) * partialTicks) * 0.017453292F;
+        double d0 = (double)MathHelper.sin(f9);
+        double d1 = (double)MathHelper.cos(f9);
+        double d2 = (double)k * 0.35D;
+        double d3 = 0.8D;
+        double playerX;
+        double playerY;
+        double playerZ;
+        double sneakFactor;
+
+        if ((this.renderManager.options == null || this.renderManager.options.thirdPersonView <= 0) && entityplayer == Minecraft.getMinecraft().player)
+        {
+            float f10 = this.renderManager.options.fovSetting;
+            f10 = f10 / 100.0F;
+            Vec3d vec3d = new Vec3d((double)k * -0.36D * (double)f10, -0.045D * (double)f10, 0.4D);
+            vec3d = vec3d.rotatePitch(-(entityplayer.prevRotationPitch + (entityplayer.rotationPitch - entityplayer.prevRotationPitch) * partialTicks) * 0.017453292F);
+            vec3d = vec3d.rotateYaw(-(entityplayer.prevRotationYaw + (entityplayer.rotationYaw - entityplayer.prevRotationYaw) * partialTicks) * 0.017453292F);
+            vec3d = vec3d.rotateYaw(f8 * 0.5F);
+            vec3d = vec3d.rotatePitch(-f8 * 0.7F);
+            playerX = entityplayer.prevPosX + (entityplayer.posX - entityplayer.prevPosX) * (double)partialTicks + vec3d.x;
+            playerY = entityplayer.prevPosY + (entityplayer.posY - entityplayer.prevPosY) * (double)partialTicks + vec3d.y;
+            playerZ = entityplayer.prevPosZ + (entityplayer.posZ - entityplayer.prevPosZ) * (double)partialTicks + vec3d.z;
+            sneakFactor = (double)entityplayer.getEyeHeight();
+        }
+        else
+        {
+            playerX = entityplayer.prevPosX + (entityplayer.posX - entityplayer.prevPosX) * (double)partialTicks - d1 * d2 - d0 * 0.8D;
+            playerY = entityplayer.prevPosY + (double)entityplayer.getEyeHeight() + (entityplayer.posY - entityplayer.prevPosY) * (double)partialTicks - 0.45D;
+            playerZ = entityplayer.prevPosZ + (entityplayer.posZ - entityplayer.prevPosZ) * (double)partialTicks - d0 * d2 + d1 * 0.8D;
+            sneakFactor = entityplayer.isSneaking() ? -0.1875D : 0.0D;
+        }
+
+        double yoyoX = entity.prevPosX + (entity.posX - entity.prevPosX) * (double)partialTicks;
+        double yoyoY = entity.prevPosY + (entity.posY - entity.prevPosY) * (double)partialTicks + 0.25D;
+        double yoyoZ = entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)partialTicks;
+        double xDiff = (double)((float)(playerX - yoyoX));
+        double yDiff = (double)((float)(playerY - yoyoY)) + sneakFactor;
+        double zDiff = (double)((float)(playerZ - yoyoZ));
+         */
 
         EntityPlayer player = ((EntityPlayer) thrower);
 

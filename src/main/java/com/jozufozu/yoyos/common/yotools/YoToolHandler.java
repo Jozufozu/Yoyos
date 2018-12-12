@@ -25,8 +25,6 @@ package com.jozufozu.yoyos.common.yotools;
 import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.EntityArbitraryYoyo;
 import com.jozufozu.yoyos.common.EntityYoyo;
-import com.jozufozu.yoyos.network.MessageRetractYoYo;
-import com.jozufozu.yoyos.network.YoyoNetwork;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
@@ -59,16 +57,9 @@ public class YoToolHandler
         EnumHand hand = event.getHand();
         ItemStack heldItem = player.getHeldItem(hand);
 
-        if (!(heldItem.getItem() instanceof ItemBlock) && YoToolData.hasData(heldItem))
+        if (!(heldItem.getItem() instanceof ItemBlock) && YoToolData.hasData(heldItem) && !EntityYoyo.CASTERS.containsKey(player))
         {
-            EntityYoyo entityYoyo = EntityYoyo.CASTERS.get(player);
-
-            if (entityYoyo != null && entityYoyo.isEntityAlive())
-            {
-                entityYoyo.setRetracting(!entityYoyo.isRetracting());
-                YoyoNetwork.INSTANCE.sendToAll(new MessageRetractYoYo(entityYoyo));
-            }
-            else if (!heldItem.isItemStackDamageable() || heldItem.getItemDamage() <= heldItem.getMaxDamage())
+            if (!heldItem.isItemStackDamageable() || heldItem.getItemDamage() <= heldItem.getMaxDamage())
             {
                 EntityYoyo yoyo = new EntityArbitraryYoyo(world, player);
                 world.spawnEntity(yoyo);

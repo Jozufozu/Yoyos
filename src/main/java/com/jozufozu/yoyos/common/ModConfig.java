@@ -63,7 +63,17 @@ public class ModConfig
     @Config.Comment({"If enabled, saves materials into a config folder.", "Allows for editing, addition, and removal of stats for yoyos."})
     @Config.RequiresMcRestart
     public static boolean configMaterials = false;
-    
+
+    @Config.LangKey("yoyos.config.botania")
+    @Config.Comment("Integrate with botania if it is installed.")
+    @Config.RequiresMcRestart
+    public static boolean botanicalYoyos = true;
+
+    @Config.LangKey("yoyos.config.botania.hackery")
+    @Config.Comment({"Merge the yoyo pages in the Lexica Botania with their normal counterparts.", "Disable if you notice any conflicts."})
+    @Config.RequiresMcRestart
+    public static boolean lexiconHackery = true;
+
     public static class VanillaYoyos
     {
         @Config.LangKey("yoyos.config.enable")

@@ -8,5 +8,10 @@
         "category": "entities",
         "sounds": [{ "type": "event", "name": "minecraft:entity.slime.squish" }],
         "subtitle": "entity.yoyo.stick.subtitle"
+    },
+    "entity.yoyo.chase": {
+        "category": "player",
+        "sounds": ["yoyos:chaser_whistle", "yoyos:chaser_whistle1", "yoyos:chaser_whistle2"],
+        "subtitle": "entity.yoyo.chase.subtitle"
     }
 }

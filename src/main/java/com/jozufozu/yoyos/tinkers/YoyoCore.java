@@ -28,11 +28,11 @@ import com.jozufozu.yoyos.common.EntityStickyYoyo;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.IYoyo;
 import com.jozufozu.yoyos.common.ItemYoyo;
-import com.jozufozu.yoyos.network.MessageRetractYoYo;
-import com.jozufozu.yoyos.network.YoyoNetwork;
 import com.jozufozu.yoyos.tinkers.materials.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.resources.I18n;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
@@ -45,6 +45,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentKeybind;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -64,11 +65,11 @@ import slimeknights.tconstruct.library.utils.TooltipBuilder;
 import slimeknights.tconstruct.tools.TinkerMaterials;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class YoyoCore extends TinkerToolCore implements IYoyo
 {
-    
     public YoyoCore()
     {
         super(new PartMaterialType(TinkersYoyos.YOYO_CORD, YoyoMaterialTypes.CORD),
@@ -85,10 +86,9 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     {
         Multimap<String, AttributeModifier> multimap = super.getAttributeModifiers(slot, stack);
 
-        // ToolCore handles mainhand, we take care of offhand
-        if(slot == EntityEquipmentSlot.OFFHAND && !ToolHelper.isBroken(stack))
+        if (slot == EntityEquipmentSlot.OFFHAND && !ToolHelper.isBroken(stack))
         {
-            multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", ToolHelper.getActualAttack(stack), 0));
+            multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", getAttackDamage(stack), 0));
             multimap.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(ATTACK_SPEED_MODIFIER, "Weapon modifier", ToolHelper.getActualAttackSpeed(stack) - 4d, 0));
         }
 
@@ -168,26 +168,31 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
         
         return info.getTooltip();
     }
-    
+
+    @Override
+    public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn)
+    {
+        super.addInformation(stack, worldIn, tooltip, flagIn);
+
+        if (isSticky(stack))
+        {
+            tooltip.add("");
+            tooltip.add(I18n.format("yoyos.info.sticky.name"));
+            tooltip.add(I18n.format("yoyos.info.sticky.retraction.name", new TextComponentKeybind("key.sneak").getUnformattedText()));
+            tooltip.add(I18n.format("yoyos.info.sticky.release.name", new TextComponentKeybind("key.jump").getUnformattedText()));
+        }
+    }
+
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
     {
         ItemStack itemStackIn = playerIn.getHeldItem(hand);
-        if (!worldIn.isRemote)
+        if (!worldIn.isRemote && !EntityYoyo.CASTERS.containsKey(playerIn))
         {
-            EntityYoyo entityYoyo = EntityYoyo.CASTERS.get(playerIn);
-            
-            if (entityYoyo != null && entityYoyo.isEntityAlive())
+            if (ToolHelper.getCurrentDurability(itemStackIn) > 0)
             {
-                entityYoyo.setRetracting(!entityYoyo.isRetracting());
-                YoyoNetwork.INSTANCE.sendToAll(new MessageRetractYoYo(entityYoyo));
-            }
-            else if (ToolHelper.getCurrentDurability(itemStackIn) > 0)
-            {
-                NBTTagCompound root = TagUtil.getTagSafe(itemStackIn);
-
                 EntityYoyo yoyo;
-                if (TinkerUtil.hasTrait(root, "sticky") || TinkerUtil.hasModifier(root, "gluey"))
+                if (isSticky(itemStackIn))
                     yoyo = new EntityStickyYoyo(worldIn, playerIn);
                 else
                     yoyo = new EntityYoyo(worldIn, playerIn);
@@ -202,7 +207,13 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
         
         return new ActionResult<>(EnumActionResult.SUCCESS, itemStackIn);
     }
-    
+
+    public boolean isSticky(ItemStack yoyo)
+    {
+        NBTTagCompound root = TagUtil.getTagSafe(yoyo);
+        return TinkerUtil.hasTrait(root, "sticky") || TinkerUtil.hasModifier(root, "gluey");
+    }
+
     @Override
     @SideOnly(Side.CLIENT)
     public Material getMaterialForPartForGuiRendering(int index)
@@ -216,7 +227,13 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
             default: return super.getMaterialForPartForGuiRendering(index);
         }
     }
-    
+
+    @Override
+    public float getAttackDamage(ItemStack yoyo)
+    {
+        return ToolHelper.getActualAttack(yoyo);
+    }
+
     @Override
     public float getWeight(ItemStack yoyo)
     {
@@ -248,13 +265,13 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     }
     
     @Override
-    public boolean collecting(ItemStack yoyo)
+    public int collecting(ItemStack yoyo)
     {
-        return EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo) > 0;
+        return EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo);
     }
     
     @Override
-    public void damageItem(ItemStack yoyo, EntityLivingBase player)
+    public void damageItem(ItemStack yoyo, int amount, EntityLivingBase player)
     {
         ToolHelper.damageTool(yoyo, 1, player);
     }
@@ -306,6 +323,6 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     @Override
     public void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
     {
-        ItemYoyo.garden(yoyo, player, world, pos, state, block, yoyoEntity);
+        ItemYoyo.garden(yoyo, this, player, world, pos, state, block, yoyoEntity);
     }
 }

@@ -37,10 +37,16 @@ public class YoyoNetwork
     
     public static void initialize()
     {
-        registerMessage(MessageRetractYoYo.class, MessageRetractYoYo.Handler.class, Side.CLIENT);
+        registerMessage(MessageYoyoRetracting.class, MessageYoyoRetracting.Handler.class, Side.SERVER);
+        registerMessage(MessageYoyoRetracting.MessageYoyoRetractingReply.class, MessageYoyoRetracting.MessageYoyoRetractingReply.Handler.class, Side.CLIENT);
+
         registerMessage(MessageCollectedDrops.class, MessageCollectedDrops.Handler.class, Side.CLIENT);
+
         registerMessage(MessageReelState.class, MessageReelState.Handler.class, Side.SERVER);
         registerMessage(MessageReelState.MessageReelStateReply.class, MessageReelState.MessageReelStateReply.Handler.class, Side.CLIENT);
+
+        registerMessage(MessageAcquireTarget.class, MessageAcquireTarget.Handler.class, Side.SERVER);
+        registerMessage(MessageAcquireTarget.MessageTargetUpdate.class, MessageAcquireTarget.MessageTargetUpdate.Handler.class, Side.CLIENT);
     }
     
     private static <REQ extends IMessage, REPLY extends IMessage> void registerMessage(Class<REQ> requestMessageType, Class<? extends IMessageHandler<REQ, REPLY>> messageHandler, Side side)

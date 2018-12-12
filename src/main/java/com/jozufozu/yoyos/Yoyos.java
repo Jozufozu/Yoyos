@@ -23,6 +23,7 @@
 package com.jozufozu.yoyos;
 
 import com.jozufozu.yoyos.common.*;
+import com.jozufozu.yoyos.compat.YoyoCompatibility;
 import com.jozufozu.yoyos.tinkers.TinkersYoyos;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.enchantment.Enchantment;
@@ -47,7 +48,7 @@ import net.minecraftforge.registries.IForgeRegistry;
 import java.io.File;
 import java.util.Arrays;
 
-@Mod(name = Yoyos.NAME, modid = Yoyos.MODID, version = Yoyos.VERSION, dependencies = "after:tconstruct;after:plustic", acceptedMinecraftVersions = "[1.12, 1.13)")
+@Mod(name = Yoyos.NAME, modid = Yoyos.MODID, version = Yoyos.VERSION, dependencies = "after:tconstruct;after:plustic;after:botania", acceptedMinecraftVersions = "[1.12, 1.13)")
 public class Yoyos
 {
     @Mod.Instance(value = Yoyos.MODID)
@@ -77,6 +78,7 @@ public class Yoyos
 
     public static SoundEvent YOYO_THROW;
     public static SoundEvent YOYO_STICK;
+    public static SoundEvent YOYO_CHASE;
 
     public Yoyos()
     {
@@ -130,6 +132,11 @@ public class Yoyos
         YOYO_STICK = new SoundEvent(name);
         YOYO_STICK.setRegistryName(name);
         event.getRegistry().register(YOYO_STICK);
+
+        name = new ResourceLocation(MODID, "entity.yoyo.chase");
+        YOYO_CHASE = new SoundEvent(name);
+        YOYO_CHASE.setRegistryName(name);
+        event.getRegistry().register(YOYO_CHASE);
     }
 
     @Mod.EventHandler
@@ -154,6 +161,11 @@ public class Yoyos
         if (Loader.isModLoaded("tconstruct") && ModConfig.tinkersYoyos)
         {
             TinkersYoyos.init(event);
+        }
+
+        if (Loader.isModLoaded("botania") & ModConfig.botanicalYoyos)
+        {
+            YoyoCompatibility.initBotania();
         }
     }
 

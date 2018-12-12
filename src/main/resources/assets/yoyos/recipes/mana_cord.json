@@ -1,0 +1,18 @@
+{
+    "type": "forge:ore_shaped",
+    "conditions": [
+        { "type": "yoyos:is_mod_loaded", "modid": "botania" },
+        { "type": "yoyos:is_botania_enabled" }
+    ],
+    "pattern": [
+        "CCC",
+        "C C",
+        "CCC"
+    ],
+    "key": {
+        "C": { "item": "botania:manaresource", "data": 16 }
+    },
+    "result": {
+        "item": "yoyos:mana_cord"
+    }
+}

@@ -67,10 +67,15 @@ import java.util.*;
 @Mod.EventBusSubscriber
 public class EntityYoyo extends Entity implements IThrowableEntity
 {
+    public static final int BASE_CAPACITY = 64;
+
     public static final HashMap<Entity, EntityYoyo> CASTERS = new HashMap<>();
 
     protected static final int MAX_RETRACT_TIME = 40;
     public ArrayList<ItemStack> collectedDrops = new ArrayList<>();
+
+    private HashSet<BlockPos> blocksAffected = new HashSet<>();
+
     protected EntityPlayer thrower;
     protected ItemStack yoyoStack = ItemStack.EMPTY;
     protected IYoyo yoyo = null;
@@ -84,7 +89,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     protected int maxCool;
     protected int duration;
     protected boolean gardening;
-    protected boolean collecting;
+    protected int collecting;
     protected boolean interactsWithBlocks;
 
     protected boolean isRetracting = false;
@@ -138,15 +143,13 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         DamageSource source = event.getSource();
         Entity killer = source.getTrueSource();
 
-        if (killer == null || killer.world.isRemote || !(killer instanceof EntityPlayer)) return;
+        if (!(killer instanceof EntityPlayer) || killer.world.isRemote) return;
 
         EntityPlayer player = (EntityPlayer) killer;
 
-        if (!CASTERS.containsKey(player)) return;
-
         EntityYoyo yoyo = CASTERS.get(player);
 
-        if (!yoyo.collecting) return;
+        if (yoyo == null || !yoyo.isCollecting()) return;
 
         event.getDrops().forEach(yoyo::collectDrop);
         event.setCanceled(true);
@@ -157,25 +160,13 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     {
         EntityPlayer player = event.getHarvester();
 
-        if (!CASTERS.containsKey(player)) return;
-
-        boolean yoyoDrop = false;
-        // FIXME: Don't use stacktrace
-        for (StackTraceElement element : Thread.currentThread().getStackTrace())
-        {
-            if (EntityYoyo.class.getName().equals(element.getClassName()) && !"onBlockHarvestDrops".equals(element.getMethodName()))
-            {
-                yoyoDrop = true;
-                break;
-            }
-        }
-
-        if (!yoyoDrop) //We only want to handle stuff that a yoyo made happen
-            return;
-
         EntityYoyo yoyo = CASTERS.get(player);
 
-        if (!yoyo.collecting) return;
+        if (yoyo == null) return;
+
+        if (!yoyo.blocksAffected.contains(event.getPos())) return;
+
+        yoyo.blocksAffected.remove(event.getPos());
 
         event.getDrops().forEach(yoyo::collectDrop);
         event.getDrops().clear();
@@ -231,7 +222,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
     public boolean isCollecting()
     {
-        return collecting;
+        return collecting > 0;
     }
 
     @Override
@@ -267,11 +258,11 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             updateMotion();
             moveAndCollide();
 
-            if (ModConfig.yoyoSwing) handleSwing();
+            if (ModConfig.yoyoSwing) handlePlayerPulling();
 
             if (!world.isRemote && interactsWithBlocks) worldInteraction();
 
-            if (collecting) updateCapturedDrops();
+            if (isCollecting()) updateCapturedDrops();
         }
         else setDead();
     }
@@ -336,42 +327,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
     protected void updateMotion()
     {
-        Vec3d target;
-
-        if (isRetracting())
-        {
-            Vec3d handPos = getPlayerHandPos(1);
-            double d0 = this.posX - handPos.x;
-            double d1 = this.posY - handPos.y;
-            double d2 = this.posZ - handPos.z;
-
-            if (d0 * d0 + d1 * d1 + d2 * d2 < 0.5)
-            {
-                setPosition(thrower.posX, thrower.posY + 0.8, thrower.posZ); // Make sure the collected drops actually get to us
-                setDead();
-            }
-
-            if (retractionTimeout++ >= MAX_RETRACT_TIME)
-            {
-                setDead();
-                return;
-            }
-
-            target = handPos;
-        }
-        else
-        {
-            Vec3d eyePos = new Vec3d(thrower.posX, thrower.posY + thrower.eyeHeight, thrower.posZ);
-            Vec3d lookVec = thrower.getLookVec();
-
-            target = new Vec3d(eyePos.x + lookVec.x * cordLength, eyePos.y + lookVec.y * cordLength, eyePos.z + lookVec.z * cordLength);
-            retractionTimeout = 0;
-            RayTraceResult rayTraceResult = getTargetLook(eyePos, target);
-
-            if (rayTraceResult != null) target = rayTraceResult.hitVec;
-        }
-
-        Vec3d motion = target.subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / weight, 1.0));
+        Vec3d motion = getTarget().subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / weight, 1.0));
 
         motionX = motion.x;
         motionY = motion.y;
@@ -388,9 +344,37 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         onGround = true; //TODO: This is the only way I've found to get the yoyo to throw out smoothly
     }
 
+    protected Vec3d getTarget()
+    {
+        if (isRetracting())
+        {
+            Vec3d handPos = getPlayerHandPos(1);
+            double d0 = this.posX - handPos.x;
+            double d1 = this.posY - handPos.y;
+            double d2 = this.posZ - handPos.z;
+
+            if (d0 * d0 + d1 * d1 + d2 * d2 < 0.8 || retractionTimeout++ >= MAX_RETRACT_TIME)
+                setDead();
+
+            return handPos;
+        }
+        else
+        {
+            Vec3d eyePos = new Vec3d(thrower.posX, thrower.posY + thrower.eyeHeight, thrower.posZ);
+            Vec3d lookVec = thrower.getLookVec();
+
+            Vec3d target = new Vec3d(eyePos.x + lookVec.x * cordLength, eyePos.y + lookVec.y * cordLength, eyePos.z + lookVec.z * cordLength);
+            retractionTimeout = 0;
+            RayTraceResult rayTraceResult = getTargetLook(eyePos, target);
+
+            if (rayTraceResult != null) target = rayTraceResult.hitVec;
+
+            return target;
+        }
+    }
+
     public void moveAndCollide()
     {
-        world.profiler.startSection("move");
         AxisAlignedBB yoyoBoundingBox = getEntityBoundingBox();
         AxisAlignedBB targetBoundingBox = yoyoBoundingBox.offset(motionX, motionY, motionZ);
         if (noClip)
@@ -460,22 +444,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
                     if (entity.getEntityBoundingBox().intersects(yoyoBoundingBox))
                     {
-                        if (entity instanceof EntityLivingBase)
-                        {
-                            if (gardening && entity instanceof IShearable)
-                            {
-                                shearEntity(entity);
-                            }
-                            else if (attackCool >= maxCool)
-                            {
-                                yoyo.attack(yoyoStack, thrower, hand, this, entity);
-                                hit = true;
-                            }
-                        }
-                        else if (collecting && entity instanceof EntityItem)
-                        {
-                            collectDrop(((EntityItem) entity));
-                        }
+                        hit |= interactWithEntity(entity);
 
                         iterator.remove();
                     }
@@ -488,11 +457,34 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         setEntityBoundingBox(yoyoBoundingBox);
         resetPositionToBB();
-        world.profiler.endSection();
+    }
+
+    public boolean interactWithEntity(Entity entity)
+    {
+        boolean hit = false;
+        if (entity instanceof EntityLivingBase)
+        {
+            if (gardening && entity instanceof IShearable)
+            {
+                shearEntity(entity);
+            }
+            else if (attackCool > maxCool)
+            {
+                yoyo.attack(yoyoStack, thrower, hand, this, entity);
+                hit = true;
+            }
+        }
+        else if (isCollecting() && entity instanceof EntityItem)
+        {
+            collectDrop(((EntityItem) entity));
+        }
+
+        return hit;
     }
 
     protected void collectDrop(ItemStack stack)
     {
+        //int maxTake = BASE_CAPACITY *
         collectedDrops.add(stack);
         needCollectedSync = true;
     }
@@ -548,17 +540,22 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         }
     }
 
-    protected void handleSwing()
+    protected void handlePlayerPulling()
     {
-        Vec3d thisPos = getPositionVector();
-        Vec3d throwerPos = new Vec3d(thrower.posX, thrower.posY + thrower.eyeHeight, thrower.posZ);
+        double dx = posX - thrower.posX;
+        double dy = (posY + height * 0.5) - (thrower.posY + thrower.eyeHeight);
 
-        double distance = thisPos.distanceTo(throwerPos);
+        if (dy < 0 && cordLength < thrower.eyeHeight)
+            dy += thrower.eyeHeight * 1.2;
 
-        if (distance > cordLength)
+        double dz = posZ - thrower.posZ;
+        double distanceSqr = dx * dx + dy * dy + dz * dz;
+
+        if (distanceSqr > cordLength * cordLength)
         {
-            Vec3d dif = getPositionVector().subtract(throwerPos).scale(0.04 * (distance - cordLength) * (distance - cordLength) * (distance - cordLength));
-            thrower.addVelocity(dif.x, dif.y, dif.z);
+            double stretch = Math.sqrt(distanceSqr) - cordLength;
+            double scale = Math.min(0.04 * stretch * stretch, 0.4);
+            thrower.addVelocity(dx * scale, dy * scale, dz * scale);
             thrower.fallDistance = 0;
             if (isRetracting) setDead();
         }
@@ -575,7 +572,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
             for (ItemStack stack : drops)
             {
-                if (collecting)
+                if (isCollecting())
                 {
                     collectDrop(stack);
                 }
@@ -591,7 +588,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                 }
             }
 
-            if (!thrower.isCreative()) yoyo.damageItem(yoyoStack, thrower);
+            if (!thrower.isCreative()) yoyo.damageItem(yoyoStack, 1, thrower);
         }
     }
 
@@ -607,8 +604,20 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             Block block = state.getBlock();
 
             if (block != Blocks.AIR && state.getBoundingBox(world, checkPos).offset(checkPos).intersects(entityBox))
+            {
                 yoyo.blockInteraction(yoyoStack, thrower, world, checkPos, state, block, this);
+            }
         }
+    }
+
+    /**
+     * Call this once your {@link IYoyo} knows it will be breaking a block, but before it is actually harvested
+     * @param pos
+     */
+    public void markBlockForDropGathering(BlockPos pos)
+    {
+        if (isCollecting())
+            blocksAffected.add(pos.toImmutable());
     }
 
     @Override
@@ -622,12 +631,35 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         if (!world.isRemote)
         {
-            for (ItemStack drop : collectedDrops)
+            if (thrower != null)
             {
-                // Sometimes the items are not written correctly when saving the world. Almost never, though
-                if (drop != null && !drop.isEmpty())
-                    ItemHandlerHelper.giveItemToPlayer(thrower, drop);
+                for (ItemStack drop : collectedDrops)
+                {
+                    if (drop != null && !drop.isEmpty())
+                        ItemHandlerHelper.giveItemToPlayer(thrower, drop);
+                }
             }
+            else // the yoyo was loaded into the world with items still attached
+            {
+                for (ItemStack drop : collectedDrops)
+                {
+                    if (drop != null && !drop.isEmpty())
+                    {
+                        while (drop.getCount() > 0)
+                        {
+                            ItemStack itemStack = drop.splitStack(drop.getMaxStackSize());
+
+                            EntityItem entityitem = new EntityItem(world, posX, posY + height, posZ, itemStack);
+                            entityitem.setDefaultPickupDelay();
+                            entityitem.motionX = 0;
+                            entityitem.motionZ = 0;
+
+                            world.spawnEntity(entityitem);
+                        }
+                    }
+                }
+            }
+
         }
         collectedDrops.clear();
     }
@@ -639,7 +671,12 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         NBTTagList list = compound.getTagList("collectedDrops", Constants.NBT.TAG_COMPOUND);
 
         for (int i = 0; i < list.tagCount(); i++)
-            collectedDrops.add(new ItemStack(list.getCompoundTagAt(i)));
+        {
+            NBTTagCompound nbt = list.getCompoundTagAt(i);
+            ItemStack stack = new ItemStack(nbt);
+            stack.setCount(nbt.getInteger("BigCount"));
+            collectedDrops.add(stack);
+        }
     }
 
     @Override
@@ -648,7 +685,12 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         NBTTagList collected = new NBTTagList();
 
         for (ItemStack itemStack : collectedDrops)
-            collected.appendTag(itemStack.serializeNBT());
+        {
+            NBTTagCompound nbt = itemStack.serializeNBT();
+            nbt.setByte("Count", (byte) 1);
+            nbt.setInteger("BigCount", itemStack.getCount());
+            collected.appendTag(nbt);
+        }
 
         compound.setTag("collectedDrops", collected);
     }

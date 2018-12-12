@@ -24,7 +24,6 @@ package com.jozufozu.yoyos.client;
 
 import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.CommonProxy;
-import com.jozufozu.yoyos.common.EntityStickyYoyo;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.ModConfig;
 import net.minecraft.client.Minecraft;
@@ -127,7 +126,6 @@ public class ClientProxy extends CommonProxy
         super.preInit(event);
         
         RenderingRegistry.registerEntityRenderingHandler(EntityYoyo.class, RenderYoYo::new);
-        RenderingRegistry.registerEntityRenderingHandler(EntityStickyYoyo.class, RenderYoYo::new);
     }
     
     @Override
@@ -136,7 +134,7 @@ public class ClientProxy extends CommonProxy
         return true;
     }
     
-    private static void registerModel(Item item)
+    public static void registerModel(Item item)
     {
         ModelLoader.setCustomModelResourceLocation(item, 0, new ModelResourceLocation(item.getRegistryName(), "inventory"));
     }

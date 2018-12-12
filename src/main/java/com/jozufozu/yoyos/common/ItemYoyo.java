@@ -26,21 +26,23 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.jozufozu.yoyos.Yoyos;
-import com.jozufozu.yoyos.network.MessageRetractYoYo;
-import com.jozufozu.yoyos.network.YoyoNetwork;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBush;
+import net.minecraft.block.BlockCrops;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.enchantment.EnumEnchantmentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.passive.EntityBat;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Enchantments;
@@ -82,12 +84,14 @@ public class ItemYoyo extends Item implements IYoyo
         this.maxStackSize = 1;
         this.setMaxDamage(material.getMaxUses());
         this.setCreativeTab(CreativeTabs.COMBAT);
-        this.attackDamage = 3.0F + material.getDamageVsEntity();
+        this.attackDamage = 3.0F + material.getAttackDamage();
         this.gardening = gardening;
         
         this.setUnlocalizedName(String.format("%s.%s", Yoyos.MODID, name));
         this.setRegistryName(Yoyos.MODID, name);
-        
+
+        this.addPropertyOverride(new ResourceLocation(Yoyos.MODID, "thrown"), (stack, worldIn, entityIn) -> entityIn instanceof EntityBat ? 1 : 0);
+
         if (!gardening) this.setCreativeTab(CreativeTabs.COMBAT);
     }
     
@@ -96,7 +100,13 @@ public class ItemYoyo extends Item implements IYoyo
     {
         return ImmutableSet.of("yoyo");
     }
-    
+
+    @Override
+    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment)
+    {
+        return enchantment == Yoyos.COLLECTING || enchantment.type == EnumEnchantmentType.ALL || enchantment.type == EnumEnchantmentType.WEAPON;
+    }
+
     @Override
     public boolean hasEffect(ItemStack stack)
     {
@@ -118,7 +128,7 @@ public class ItemYoyo extends Item implements IYoyo
     {
         if ((double)state.getBlockHardness(worldIn, pos) != 0.0D)
         {
-            stack.damageItem(2, entityLiving);
+            this.damageItem(stack, 2, entityLiving);
         }
 
         return true;
@@ -126,7 +136,7 @@ public class ItemYoyo extends Item implements IYoyo
 
     public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker)
     {
-        stack.damageItem(1, attacker);
+        this.damageItem(stack, 1, attacker);
         return true;
     }
     
@@ -134,16 +144,9 @@ public class ItemYoyo extends Item implements IYoyo
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
     {
         ItemStack itemStack = playerIn.getHeldItem(hand);
-        if (!worldIn.isRemote)
+        if (!worldIn.isRemote && !EntityYoyo.CASTERS.containsKey(playerIn))
         {
-            EntityYoyo entityYoyo = EntityYoyo.CASTERS.get(playerIn);
-            
-            if (entityYoyo != null && entityYoyo.isEntityAlive())
-            {
-                entityYoyo.setRetracting(!entityYoyo.isRetracting());
-                YoyoNetwork.INSTANCE.sendToAll(new MessageRetractYoYo(entityYoyo));
-            }
-            else if (itemStack.getItemDamage() <= itemStack.getMaxDamage() || this == Yoyos.CREATIVE_YOYO)
+            if (itemStack.getItemDamage() <= itemStack.getMaxDamage() || this == Yoyos.CREATIVE_YOYO)
             {
                 EntityYoyo yoyo = new EntityYoyo(worldIn, playerIn);
                 worldIn.spawnEntity(yoyo);
@@ -178,24 +181,28 @@ public class ItemYoyo extends Item implements IYoyo
     
         if (equipmentSlot == EntityEquipmentSlot.MAINHAND || equipmentSlot == EntityEquipmentSlot.OFFHAND)
         {
-            double damage = 0.0;
-    
-            if (this == Yoyos.SHEAR_YOYO) damage = ModConfig.vanillaYoyos.shearYoyo.damage;
-            if (this == Yoyos.STICKY_YOYO) damage =  ModConfig.vanillaYoyos.stickyYoyo.damage;
-            if (this == Yoyos.DIAMOND_YOYO) damage =  ModConfig.vanillaYoyos.diamondYoyo.damage;
-            if (this == Yoyos.GOLD_YOYO) damage =  ModConfig.vanillaYoyos.goldYoyo.damage;
-            if (this == Yoyos.IRON_YOYO) damage =  ModConfig.vanillaYoyos.ironYoyo.damage;
-            if (this == Yoyos.STONE_YOYO) damage =  ModConfig.vanillaYoyos.stoneYoyo.damage;
-            if (this == Yoyos.WOODEN_YOYO) damage =  ModConfig.vanillaYoyos.woodenYoyo.damage;
-            if (this == Yoyos.CREATIVE_YOYO) damage =  ModConfig.vanillaYoyos.creativeYoyo.damage;
-            
-            multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", damage, 0));
+            multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", getAttackDamage(stack), 0));
             multimap.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(ATTACK_SPEED_MODIFIER, "Weapon modifier", -2.4000000953674316D, 0));
         }
     
         return multimap;
     }
-    
+
+    @Override
+    public float getAttackDamage(ItemStack yoyo)
+    {
+        if (this == Yoyos.SHEAR_YOYO) return ModConfig.vanillaYoyos.shearYoyo.damage;
+        if (this == Yoyos.STICKY_YOYO) return ModConfig.vanillaYoyos.stickyYoyo.damage;
+        if (this == Yoyos.DIAMOND_YOYO) return ModConfig.vanillaYoyos.diamondYoyo.damage;
+        if (this == Yoyos.GOLD_YOYO) return ModConfig.vanillaYoyos.goldYoyo.damage;
+        if (this == Yoyos.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.damage;
+        if (this == Yoyos.STONE_YOYO) return ModConfig.vanillaYoyos.stoneYoyo.damage;
+        if (this == Yoyos.WOODEN_YOYO) return ModConfig.vanillaYoyos.woodenYoyo.damage;
+        if (this == Yoyos.CREATIVE_YOYO) return ModConfig.vanillaYoyos.creativeYoyo.damage;
+
+        return attackDamage;
+    }
+
     @Override
     public float getWeight(ItemStack yoyo)
     {
@@ -254,15 +261,16 @@ public class ItemYoyo extends Item implements IYoyo
     }
     
     @Override
-    public boolean collecting(ItemStack yoyo)
+    public int collecting(ItemStack yoyo)
     {
-        return this == Yoyos.CREATIVE_YOYO || EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo) > 0;
+        if (this == Yoyos.CREATIVE_YOYO) return Integer.MAX_VALUE / 2;
+        return EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo);
     }
     
     @Override
-    public void damageItem(ItemStack yoyo, EntityLivingBase player)
+    public void damageItem(ItemStack yoyo, int amount, EntityLivingBase player)
     {
-        yoyo.damageItem(1, player);
+        yoyo.damageItem(amount, player);
     }
 
     @Override
@@ -280,20 +288,20 @@ public class ItemYoyo extends Item implements IYoyo
     @Override
     public void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
     {
-        garden(yoyo, player, world, pos, state, block, yoyoEntity);
+        garden(yoyo, this, player, world, pos, state, block, yoyoEntity);
     }
 
-    public static void garden(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    public static void garden(ItemStack yoyoStack, IYoyo yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
     {
         if (block instanceof IShearable)
         {
             IShearable shearable = (IShearable) block;
-            if (shearable.isShearable(yoyo, world, pos))
+            if (shearable.isShearable(yoyoStack, world, pos))
             {
-                List<ItemStack> drops = shearable.onSheared(yoyo, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyo));
+                List<ItemStack> drops = shearable.onSheared(yoyoStack, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyoStack));
                 for (ItemStack drop : drops)
                 {
-                    if (yoyoEntity.collecting)
+                    if (yoyoEntity.isCollecting())
                     {
                         yoyoEntity.collectDrop(drop);
                     }
@@ -309,7 +317,7 @@ public class ItemYoyo extends Item implements IYoyo
                     }
                 }
 
-                if (!player.isCreative()) yoyo.damageItem(1, player);
+                if (!player.isCreative()) yoyo.damageItem(yoyoStack, 1, player);
 
                 player.addStat(StatList.getBlockStats(block));
 
@@ -322,14 +330,26 @@ public class ItemYoyo extends Item implements IYoyo
 
         if (block instanceof BlockBush)
         {
-            if (!player.isCreative()) yoyo.damageItem(1, player);
+            if (!player.isCreative()) yoyo.damageItem(yoyoStack, 1, player);
 
-            world.playSound(null, pos, block.getSoundType(state, world, pos, yoyoEntity).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
-            world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
-
-            if (block.removedByPlayer(state, world, pos, player, true))
+            if (block instanceof BlockCrops)
             {
-                block.harvestBlock(world, player, pos, state, world.getTileEntity(pos), yoyo);
+                if (state.getValue(BlockCrops.AGE) == 7)
+                {
+                    world.playSound(null, pos, block.getSoundType(state, world, pos, yoyoEntity).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
+                    world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
+                    yoyoEntity.markBlockForDropGathering(pos);
+                    block.harvestBlock(world, player, pos, state, world.getTileEntity(pos), yoyoStack);
+                    world.setBlockState(pos, state.withProperty(BlockCrops.AGE, 0));
+                }
+
+            }
+            else if (block.removedByPlayer(state, world, pos, player, true))
+            {
+                world.playSound(null, pos, block.getSoundType(state, world, pos, yoyoEntity).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
+                world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
+                yoyoEntity.markBlockForDropGathering(pos);
+                block.harvestBlock(world, player, pos, state, world.getTileEntity(pos), yoyoStack);
                 block.breakBlock(world, pos, state);
             }
         }
@@ -352,18 +372,12 @@ public class ItemYoyo extends Item implements IYoyo
                 else
                     attackModifier = EnchantmentHelper.getModifierForCreature(stack, EnumCreatureAttribute.UNDEFINED);
 
-                float attackStrength = attacker.getCooledAttackStrength(0.5F);
-                damage = damage * (0.2F + attackStrength * attackStrength * 0.8F);
-                attackModifier = attackModifier * attackStrength;
-                attacker.resetCooldown();
-
                 if (damage > 0.0F || attackModifier > 0.0F)
                 {
-                    boolean flag = attackStrength > 0.9F;
                     int knockbackModifier = 0;
                     knockbackModifier = knockbackModifier + EnchantmentHelper.getKnockbackModifier(attacker);
 
-                    boolean critical = flag && attacker.fallDistance > 0.0F && !attacker.onGround && !attacker.isOnLadder() && !attacker.isInWater() && !attacker.isPotionActive(MobEffects.BLINDNESS) && !attacker.isRiding() && targetEntity instanceof EntityLivingBase;
+                    boolean critical = attacker.fallDistance > 0.0F && !attacker.onGround && !attacker.isOnLadder() && !attacker.isInWater() && !attacker.isPotionActive(MobEffects.BLINDNESS) && !attacker.isRiding() && targetEntity instanceof EntityLivingBase;
                     critical = critical && !attacker.isSprinting();
 
                     if (critical)
@@ -389,7 +403,7 @@ public class ItemYoyo extends Item implements IYoyo
                     double motionX = targetEntity.motionX;
                     double motionY = targetEntity.motionY;
                     double motionZ = targetEntity.motionZ;
-                    boolean didDamage = targetEntity.attackEntityFrom(DamageSource.causePlayerDamage(attacker), damage);
+                    boolean didDamage = targetEntity.attackEntityFrom(new EntityDamageSourceIndirect("yoyo", yoyoEntity, attacker), damage);
 
                     if (didDamage)
                     {
@@ -418,10 +432,7 @@ public class ItemYoyo extends Item implements IYoyo
 
                         if (!critical)
                         {
-                            if (flag)
-                                attacker.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_STRONG, attacker.getSoundCategory(), 1.0F, 1.0F);
-                            else
-                                attacker.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_WEAK, attacker.getSoundCategory(), 1.0F, 1.0F);
+                            attacker.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_STRONG, attacker.getSoundCategory(), 1.0F, 1.0F);
                         }
 
                         if (attackModifier > 0.0F)

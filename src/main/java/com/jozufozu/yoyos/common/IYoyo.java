@@ -43,12 +43,14 @@ public interface IYoyo
     int getDuration(ItemStack yoyo);
     
     int getAttackSpeed(ItemStack yoyo);
+
+    float getAttackDamage(ItemStack yoyo);
     
     boolean gardening(ItemStack yoyo);
     
-    boolean collecting(ItemStack yoyo);
+    int collecting(ItemStack yoyo);
     
-    void damageItem(ItemStack yoyo, EntityLivingBase player);
+    void damageItem(ItemStack yoyo, int amount, EntityLivingBase player);
     
     void attack(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
 

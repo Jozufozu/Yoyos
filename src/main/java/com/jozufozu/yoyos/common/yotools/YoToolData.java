@@ -121,6 +121,12 @@ public class YoToolData implements IYoyo
     }
 
     @Override
+    public float getAttackDamage(ItemStack yoyo)
+    {
+        return 0;
+    }
+
+    @Override
     public float getWeight(ItemStack yoyo)
     {
         return weight;
@@ -151,13 +157,13 @@ public class YoToolData implements IYoyo
     }
 
     @Override
-    public boolean collecting(ItemStack yoyo)
+    public int collecting(ItemStack yoyo)
     {
-        return EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo) > 0;
+        return EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo);
     }
 
     @Override
-    public void damageItem(ItemStack yoyo, EntityLivingBase player)
+    public void damageItem(ItemStack yoyo, int amount, EntityLivingBase player)
     {
         yoyo.damageItem(1, player);
     }
@@ -192,16 +198,18 @@ public class YoToolData implements IYoyo
         Item itemType = yoyo.getItem();
 
         if (itemType instanceof ItemShears)
-            ItemYoyo.garden(yoyo, player, world, pos, state, block, yoyoEntity);
+            ItemYoyo.garden(yoyo, this, player, world, pos, state, block, yoyoEntity);
 
         if (itemType instanceof ItemTool)
         {
             ItemTool tool = (ItemTool) itemType;
 
-            if (tool.getStrVsBlock(yoyo, state) > 1.0)
+            if (tool.getDestroySpeed(yoyo, state) > 1.0)
             {
                 if (block.removedByPlayer(state, world, pos, player, true))
                 {
+                    yoyoEntity.markBlockForDropGathering(pos);
+
                     block.harvestBlock(world, player, pos, state, world.getTileEntity(pos), yoyo);
                     block.breakBlock(world, pos, state);
 

@@ -23,8 +23,6 @@
 package com.jozufozu.yoyos.common;
 
 import com.jozufozu.yoyos.Yoyos;
-import com.jozufozu.yoyos.network.MessageRetractYoYo;
-import com.jozufozu.yoyos.network.YoyoNetwork;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
@@ -51,16 +49,9 @@ public class ItemStickyYoyo extends ItemYoyo
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
     {
         ItemStack itemStackIn = playerIn.getHeldItem(hand);
-        if (!worldIn.isRemote)
+        if (!worldIn.isRemote && !EntityYoyo.CASTERS.containsKey(playerIn))
         {
-            EntityYoyo entityYoyo = EntityYoyo.CASTERS.get(playerIn);
-            
-            if (entityYoyo != null && entityYoyo.isEntityAlive())
-            {
-                entityYoyo.setRetracting(!entityYoyo.isRetracting());
-                YoyoNetwork.INSTANCE.sendToAll(new MessageRetractYoYo(entityYoyo));
-            }
-            else if (itemStackIn.getItemDamage() < itemStackIn.getMaxDamage())
+            if (itemStackIn.getItemDamage() < itemStackIn.getMaxDamage())
             {
                 EntityStickyYoyo yoyo = new EntityStickyYoyo(worldIn, playerIn);
                 worldIn.spawnEntity(yoyo);

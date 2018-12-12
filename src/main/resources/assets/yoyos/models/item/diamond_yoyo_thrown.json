@@ -1,0 +1,6 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "yoyos:items/diamond_yoyo_body"
+    }
+}

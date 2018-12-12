@@ -23,12 +23,11 @@
 package com.jozufozu.yoyos.network;
 
 import com.jozufozu.yoyos.common.EntityStickyYoyo;
+import com.jozufozu.yoyos.common.EntityYoyo;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
@@ -44,31 +43,22 @@ public class MessageReelState implements IMessage
      */
     private int direction;
 
-    private int dim;
-    private int yoyoID;
-
     public MessageReelState() { }
 
-    public MessageReelState(EntityStickyYoyo yoyo, int dir)
+    public MessageReelState(int dir)
     {
-        dim = yoyo.world.provider.getDimension();
-        yoyoID = yoyo.getEntityId();
         direction = dir;
     }
 
     @Override
     public void toBytes(ByteBuf buf)
     {
-        buf.writeInt(dim);
-        buf.writeInt(yoyoID);
         buf.writeByte(direction);
     }
 
     @Override
     public void fromBytes(ByteBuf buf)
     {
-        dim = buf.readInt();
-        yoyoID = buf.readInt();
         direction = buf.readByte();
     }
 
@@ -79,9 +69,9 @@ public class MessageReelState implements IMessage
 
         public MessageReelStateReply() { }
 
-        public MessageReelStateReply(MessageReelState message)
+        public MessageReelStateReply(EntityYoyo yoyo, MessageReelState message)
         {
-            yoyoID = message.yoyoID;
+            yoyoID = yoyo.getEntityId();
             direction = message.direction;
         }
 
@@ -125,18 +115,15 @@ public class MessageReelState implements IMessage
         @Nullable
         public IMessage onMessage(MessageReelState message, MessageContext ctx)
         {
-            MinecraftServer server = FMLCommonHandler.instance().getMinecraftServerInstance();
-            server.addScheduledTask(() -> {
-                WorldServer world = server.getWorld(message.dim);
-
-                Entity maybeYoyo = world.getEntityByID(message.yoyoID);
+            EntityPlayerMP player = ctx.getServerHandler().player;
+            player.mcServer.addScheduledTask(() -> {
+                EntityYoyo maybeYoyo = EntityYoyo.CASTERS.get(player);
 
                 if (maybeYoyo instanceof EntityStickyYoyo)
                 {
                     ((EntityStickyYoyo) maybeYoyo).setReelDirection(message.direction);
 
-                    // We reply to all, so other clients know that the reeling is happening
-                    YoyoNetwork.INSTANCE.sendToAllTracking(new MessageReelStateReply(message), maybeYoyo);
+                    YoyoNetwork.INSTANCE.sendToAllTracking(new MessageReelStateReply(maybeYoyo, message), maybeYoyo);
                 }
             });
             return null;

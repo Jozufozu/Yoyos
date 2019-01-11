@@ -22,13 +22,18 @@
 
 package com.jozufozu.yoyos.compat;
 
+import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.IYoyo;
 import com.jozufozu.yoyos.common.ItemYoyo;
 import com.jozufozu.yoyos.common.ModConfig;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 import vazkii.botania.api.mana.IManaUsingItem;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
+
+import java.util.function.BiFunction;
 
 public class ItemManaYoyo extends ItemYoyo implements IYoyo, IManaUsingItem
 {
@@ -36,12 +41,12 @@ public class ItemManaYoyo extends ItemYoyo implements IYoyo, IManaUsingItem
 
     public ItemManaYoyo(String name, ToolMaterial material, int manaPerDamage)
     {
-        this(name, material, manaPerDamage, false);
+        this(name, material, manaPerDamage, EntityYoyo::new);
     }
 
-    public ItemManaYoyo(String name, ToolMaterial material, int manaPerDamage, boolean gardening)
+    public ItemManaYoyo(String name, ToolMaterial material, int manaPerDamage, BiFunction<World, EntityPlayer, EntityYoyo> entityFactory)
     {
-        super(name, material, gardening);
+        super(name, material, entityFactory);
         this.manaPerDamage = manaPerDamage;
     }
 

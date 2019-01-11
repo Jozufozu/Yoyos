@@ -46,18 +46,19 @@ public interface IYoyo
 
     float getAttackDamage(ItemStack yoyo);
     
-    boolean gardening(ItemStack yoyo);
-    
     int collecting(ItemStack yoyo);
-    
+
     void damageItem(ItemStack yoyo, int amount, EntityLivingBase player);
-    
-    void attack(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
+
+    void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
 
     boolean interactsWithBlocks(ItemStack yoyo);
 
     void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity);
-    
+
+    @SideOnly(Side.CLIENT)
+    RenderOrientation renderOrientation(ItemStack yoyo);
+
     @SideOnly(Side.CLIENT)
     default int getCordColor(ItemStack yoyo, float ticks)
     {

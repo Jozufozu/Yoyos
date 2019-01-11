@@ -23,16 +23,13 @@
 package com.jozufozu.yoyos.compat;
 
 import com.jozufozu.yoyos.Yoyos;
-import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.ModConfig;
 import com.jozufozu.yoyos.network.MessageAcquireTarget;
 import com.jozufozu.yoyos.network.YoyoNetwork;
 import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.*;
-import net.minecraft.world.World;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -43,7 +40,7 @@ public class ItemTerraYoyo extends ItemManaYoyo
 {
     public ItemTerraYoyo(String name, ToolMaterial material, int manaPerDamage)
     {
-        super(name, material, manaPerDamage);
+        super(name, material, manaPerDamage, EntityChaserYoyo::new);
 
         addPropertyOverride(new ResourceLocation(Yoyos.MODID, "lined"), (itemStack, world, entityLivingBase) -> isLined(itemStack) ? 1.0F : 0.0f);
 
@@ -81,26 +78,6 @@ public class ItemTerraYoyo extends ItemManaYoyo
         {
             YoyoNetwork.INSTANCE.sendToServer(new MessageAcquireTarget());
         }
-    }
-
-    @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
-    {
-        ItemStack itemStack = playerIn.getHeldItem(hand);
-        if (!worldIn.isRemote && !EntityYoyo.CASTERS.containsKey(playerIn))
-        {
-            if (itemStack.getItemDamage() <= itemStack.getMaxDamage() || this == Yoyos.CREATIVE_YOYO)
-            {
-                EntityYoyo yoyo = new EntityChaserYoyo(worldIn, playerIn);
-                worldIn.spawnEntity(yoyo);
-
-                worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
-
-                playerIn.addExhaustion(0.05F);
-            }
-        }
-
-        return new ActionResult<>(EnumActionResult.SUCCESS, itemStack);
     }
 
     @Override

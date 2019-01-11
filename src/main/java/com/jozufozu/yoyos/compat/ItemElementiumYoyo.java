@@ -32,11 +32,6 @@ public class ItemElementiumYoyo extends ItemManaYoyo implements IPixieSpawner
         super(name, material, manaPerDamage);
     }
 
-    public ItemElementiumYoyo(String name, ToolMaterial material, int manaPerDamage, boolean gardening)
-    {
-        super(name, material, manaPerDamage, gardening);
-    }
-
     @Override
     public int collecting(ItemStack yoyo)
     {

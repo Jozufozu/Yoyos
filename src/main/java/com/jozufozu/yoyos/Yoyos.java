@@ -71,6 +71,7 @@ public class Yoyos
     public static Item DIAMOND_YOYO;
     public static Item GOLD_YOYO;
     public static Item SHEAR_YOYO;
+    public static Item HARVEST_YOYO;
     public static Item STICKY_YOYO;
 
     public static Enchantment COLLECTING;
@@ -100,7 +101,8 @@ public class Yoyos
         registry.register(IRON_YOYO = new ItemYoyo("iron_yoyo", Item.ToolMaterial.IRON));
         registry.register(DIAMOND_YOYO = new ItemYoyo("diamond_yoyo", Item.ToolMaterial.DIAMOND));
         registry.register(GOLD_YOYO = new ItemYoyo("gold_yoyo", Item.ToolMaterial.GOLD));
-        registry.register(SHEAR_YOYO = new ItemYoyo("shear_yoyo", Item.ToolMaterial.IRON, true));
+        registry.register(SHEAR_YOYO = new ItemYoyo("shear_yoyo", Item.ToolMaterial.IRON).setBlockInteraction(ItemYoyo::garden).setEntityInteraction(ItemYoyo::shearEntity).setRenderOrientation(RenderOrientation.Horizontal).setCreativeTab(CreativeTabs.TOOLS));
+        registry.register(HARVEST_YOYO = new ItemYoyo("harvest_iron_yoyo", Item.ToolMaterial.IRON).setBlockInteraction(ItemYoyo::harvest).setCreativeTab(CreativeTabs.TOOLS));
         registry.register(STICKY_YOYO = new ItemStickyYoyo());
     }
 
@@ -177,6 +179,8 @@ public class Yoyos
             TinkersYoyos.postInit(event);
         }
     }
+
+    @Mod.EventHandler
 
     //@Mod.EventHandler
     public void serverInit(FMLServerStartingEvent event)

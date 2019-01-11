@@ -26,6 +26,7 @@ import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.IYoyo;
 import com.jozufozu.yoyos.common.ItemYoyo;
+import com.jozufozu.yoyos.common.RenderOrientation;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
@@ -151,9 +152,16 @@ public class YoToolData implements IYoyo
     }
 
     @Override
-    public boolean gardening(ItemStack yoyo)
+    public RenderOrientation renderOrientation(ItemStack yoyo)
     {
-        return yoyo.getItem() instanceof ItemShears;
+        if (yoyo.getItem() instanceof ItemShears)
+        {
+            return RenderOrientation.Horizontal;
+        }
+        else
+        {
+            return RenderOrientation.Vertical;
+        }
     }
 
     @Override
@@ -169,7 +177,7 @@ public class YoToolData implements IYoyo
     }
 
     @Override
-    public void attack(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity)
+    public void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity)
     {
         boolean attack = true;
         if (targetEntity instanceof EntityLivingBase)
@@ -181,7 +189,7 @@ public class YoToolData implements IYoyo
         }
 
         if (attack)
-            ItemYoyo.attackEntity(targetEntity, yoyo, player, yoyoEntity, hand);
+            ItemYoyo.attackEntity(this, yoyo, player, hand, yoyoEntity, targetEntity);
     }
 
     @Override
@@ -198,7 +206,7 @@ public class YoToolData implements IYoyo
         Item itemType = yoyo.getItem();
 
         if (itemType instanceof ItemShears)
-            ItemYoyo.garden(yoyo, this, player, world, pos, state, block, yoyoEntity);
+            ItemYoyo.garden(this, yoyo, player, world, pos, state, block, yoyoEntity);
 
         if (itemType instanceof ItemTool)
         {

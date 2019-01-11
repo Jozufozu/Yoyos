@@ -24,6 +24,7 @@ package com.jozufozu.yoyos.client;
 
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.IYoyo;
+import com.jozufozu.yoyos.common.RenderOrientation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.model.IBakedModel;
@@ -91,14 +92,10 @@ public class RenderYoYo extends Render<EntityYoyo>
         GlStateManager.pushMatrix();
 
 
-        if (entity.isGardening())
-        {
+        if (entity.getRenderOrientation() == RenderOrientation.Horizontal)
             GlStateManager.rotate(90, 1, 0, 0);         //be flat, like a lawnmower
-        }
         else
-        {
             GlStateManager.rotate(90 - yaw, 0, 1, 0);   //face away from player
-        }
 
         GlStateManager.rotate(180 - entity.getRotation(entity.ticksExisted, partialTicks), 0, 0, 1);    //spin around
 

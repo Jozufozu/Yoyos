@@ -29,13 +29,11 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Enchantments;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -45,7 +43,6 @@ import net.minecraft.scoreboard.Team;
 import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
-import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
@@ -88,7 +85,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
     protected int maxCool;
     protected int duration;
-    protected boolean gardening;
+    protected RenderOrientation renderOrientation;
     protected int collecting;
     protected boolean interactsWithBlocks;
 
@@ -215,9 +212,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         return duration;
     }
 
-    public boolean isGardening()
+    public RenderOrientation getRenderOrientation()
     {
-        return gardening;
+        return renderOrientation;
     }
 
     public boolean isCollecting()
@@ -312,7 +309,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     {
         if (shouldGetStats)
         {
-            gardening = yoyo.gardening(yoyoStack);
+            renderOrientation = yoyo.renderOrientation(yoyoStack);
             collecting = yoyo.collecting(yoyoStack);
             maxCool = yoyo.getAttackSpeed(yoyoStack);
             duration = yoyo.getDuration(yoyoStack);
@@ -464,13 +461,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         boolean hit = false;
         if (entity instanceof EntityLivingBase)
         {
-            if (gardening && entity instanceof IShearable)
+            if (attackCool > maxCool)
             {
-                shearEntity(entity);
-            }
-            else if (attackCool > maxCool)
-            {
-                yoyo.attack(yoyoStack, thrower, hand, this, entity);
+                yoyo.entityInteraction(yoyoStack, thrower, hand, this, entity);
                 hit = true;
             }
         }
@@ -558,37 +551,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             thrower.addVelocity(dx * scale, dy * scale, dz * scale);
             thrower.fallDistance = 0;
             if (isRetracting) setDead();
-        }
-    }
-
-    protected void shearEntity(Entity entity)
-    {
-        IShearable shearable = (IShearable) entity;
-        BlockPos pos = new BlockPos(entity.posX, entity.posY, entity.posZ);
-
-        if (shearable.isShearable(yoyoStack, world, pos))
-        {
-            List<ItemStack> drops = shearable.onSheared(yoyoStack, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyoStack));
-
-            for (ItemStack stack : drops)
-            {
-                if (isCollecting())
-                {
-                    collectDrop(stack);
-                }
-                else
-                {
-                    EntityItem ent = entity.entityDropItem(stack, 1.0F);
-
-                    if (ent == null) continue;
-
-                    ent.motionY += rand.nextFloat() * 0.05F;
-                    ent.motionX += (rand.nextFloat() - rand.nextFloat()) * 0.1F;
-                    ent.motionZ += (rand.nextFloat() - rand.nextFloat()) * 0.1F;
-                }
-            }
-
-            if (!thrower.isCreative()) yoyo.damageItem(yoyoStack, 1, thrower);
         }
     }
 

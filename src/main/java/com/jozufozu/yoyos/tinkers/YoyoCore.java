@@ -24,14 +24,10 @@ package com.jozufozu.yoyos.tinkers;
 
 import com.google.common.collect.Multimap;
 import com.jozufozu.yoyos.Yoyos;
-import com.jozufozu.yoyos.common.EntityStickyYoyo;
-import com.jozufozu.yoyos.common.EntityYoyo;
-import com.jozufozu.yoyos.common.IYoyo;
-import com.jozufozu.yoyos.common.ItemYoyo;
+import com.jozufozu.yoyos.common.*;
 import com.jozufozu.yoyos.tinkers.materials.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.enchantment.EnchantmentHelper;
@@ -45,7 +41,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentKeybind;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
@@ -176,10 +171,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
 
         if (isSticky(stack))
         {
-            tooltip.add("");
-            tooltip.add(I18n.format("yoyos.info.sticky.name"));
-            tooltip.add(I18n.format("yoyos.info.sticky.retraction.name", new TextComponentKeybind("key.sneak").getUnformattedText()));
-            tooltip.add(I18n.format("yoyos.info.sticky.release.name", new TextComponentKeybind("key.jump").getUnformattedText()));
+            ItemStickyYoyo.addStickyInfo(tooltip);
         }
     }
 
@@ -259,9 +251,12 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     }
     
     @Override
-    public boolean gardening(ItemStack yoyo)
+    public RenderOrientation renderOrientation(ItemStack yoyo)
     {
-        return !TinkerUtil.getModifierTag(yoyo, "gardening").hasNoTags();
+        if (TinkerUtil.getModifierTag(yoyo, "gardening").hasNoTags())
+            return RenderOrientation.Vertical;
+        else
+            return RenderOrientation.Horizontal;
     }
     
     @Override
@@ -309,7 +304,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     }
     
     @Override
-    public void attack(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity target)
+    public void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity target)
     {
         ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target);
     }
@@ -317,12 +312,12 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     @Override
     public boolean interactsWithBlocks(ItemStack yoyo)
     {
-        return gardening(yoyo);
+        return !TinkerUtil.getModifierTag(yoyo, "gardening").hasNoTags();
     }
 
     @Override
     public void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
     {
-        ItemYoyo.garden(yoyo, this, player, world, pos, state, block, yoyoEntity);
+        ItemYoyo.garden(this, yoyo, player, world, pos, state, block, yoyoEntity);
     }
 }

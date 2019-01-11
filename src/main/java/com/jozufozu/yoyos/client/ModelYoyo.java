@@ -24,6 +24,7 @@ package com.jozufozu.yoyos.client;
 
 import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.IYoyo;
+import com.jozufozu.yoyos.common.RenderOrientation;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -116,7 +117,7 @@ public class ModelYoyo extends ModelBase
 
         GlStateManager.pushMatrix();
 
-        if (entityYoyo.isGardening()) GlStateManager.rotate(90, 0, 0, 1);
+        if (entityYoyo.getRenderOrientation() == RenderOrientation.Horizontal) GlStateManager.rotate(90, 0, 0, 1);
 
         GlStateManager.rotate(spin, 1, 0, 0);
 
@@ -126,7 +127,7 @@ public class ModelYoyo extends ModelBase
         color(leftColor);
         this.leftSide.render(scale);
 
-        if (entityYoyo.isGardening())
+        if (entityYoyo.getRenderOrientation() == RenderOrientation.Horizontal)
         {
             color(0xFFFFFF);
             GlStateManager.pushMatrix();

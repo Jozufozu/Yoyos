@@ -40,7 +40,7 @@ public class ModGardening extends ToolModifier
 {
     public ModGardening()
     {
-        super("gardening", 0x8b4336);
+        super("yoyoClass", 0x8b4336);
         
         addAspects(new ModifierAspect.DataAspect(this), new ModifierAspect.SingleAspect(this), ModifierAspect.freeModifier);
     }
@@ -49,7 +49,7 @@ public class ModGardening extends ToolModifier
     protected boolean canApplyCustom(ItemStack stack) throws TinkerGuiException
     {
         if (stack.getItem() != TinkersYoyos.YOYO)
-            throw new TinkerGuiException(Util.translateFormatted("gui.error.not_a_yoyo", Util.translate("modifier.gardening.name")));
+            throw new TinkerGuiException(Util.translateFormatted("gui.error.not_a_yoyo", Util.translate("modifier.yoyoClass.name")));
         
         return true;
     }

@@ -22,15 +22,9 @@
 
 package com.jozufozu.yoyos.common;
 
-import com.jozufozu.yoyos.Yoyos;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.EnumActionResult;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.SoundCategory;
 import net.minecraft.util.text.TextComponentKeybind;
 import net.minecraft.world.World;
 
@@ -39,36 +33,19 @@ import java.util.List;
 
 public class ItemStickyYoyo extends ItemYoyo
 {
-    
     public ItemStickyYoyo()
     {
-        super("sticky_yoyo", ToolMaterial.DIAMOND);
-    }
-    
-    @Override
-    public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
-    {
-        ItemStack itemStackIn = playerIn.getHeldItem(hand);
-        if (!worldIn.isRemote && !EntityYoyo.CASTERS.containsKey(playerIn))
-        {
-            if (itemStackIn.getItemDamage() < itemStackIn.getMaxDamage())
-            {
-                EntityStickyYoyo yoyo = new EntityStickyYoyo(worldIn, playerIn);
-                worldIn.spawnEntity(yoyo);
-
-                worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
-
-                playerIn.addExhaustion(0.05F);
-            }
-        }
-        
-        return new ActionResult<>(EnumActionResult.SUCCESS, itemStackIn);
+        super("sticky_yoyo", ToolMaterial.DIAMOND, EntityStickyYoyo::new);
     }
     
     @Override
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<String> tooltip, ITooltipFlag flagIn)
     {
         super.addInformation(stack, worldIn, tooltip, flagIn);
+        addStickyInfo(tooltip);
+    }
+
+    public static void addStickyInfo(List<String> tooltip) {
         tooltip.add("");
         tooltip.add(I18n.format("yoyos.info.sticky.name"));
         tooltip.add(I18n.format("yoyos.info.sticky.retraction.name", new TextComponentKeybind("key.sneak").getUnformattedText()));

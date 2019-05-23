@@ -62,6 +62,7 @@ public class ClientProxy extends CommonProxy
         registerModel(Yoyos.DIAMOND_YOYO);
         registerModel(Yoyos.GOLD_YOYO);
         registerModel(Yoyos.SHEAR_YOYO);
+        registerModel(Yoyos.HOE_YOYO);
         registerModel(Yoyos.STICKY_YOYO);
         registerModel(Yoyos.CREATIVE_YOYO);
     }

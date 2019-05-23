@@ -25,6 +25,7 @@ package com.jozufozu.yoyos.compat;
 import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.client.ClientProxy;
 import com.jozufozu.yoyos.common.EntityYoyo;
+import com.jozufozu.yoyos.common.ItemYoyo;
 import com.jozufozu.yoyos.common.ModConfig;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
@@ -77,7 +78,7 @@ public class YoyoCompatibility
         IForgeRegistry<Item> registry = event.getRegistry();
         Item mana_cord = registerItem(registry, new Item().setCreativeTab(CreativeTabs.MATERIALS).setRegistryName(Yoyos.MODID, "mana_cord").setUnlocalizedName("yoyos.mana_cord"));
 
-        registerItem(registry, new ItemManaYoyo("manasteel_yoyo", BotaniaAPI.manasteelToolMaterial, ItemManasteelSword.MANA_PER_DAMAGE));
+        registerItem(registry, new ItemManaYoyo("manasteel_yoyo", BotaniaAPI.manasteelToolMaterial, ItemManasteelSword.MANA_PER_DAMAGE).addBlockInteraction(ItemYoyo::garden));
         registerItem(registry, new ItemElementiumYoyo("elementium_yoyo", BotaniaAPI.elementiumToolMaterial, ItemElementiumSword.MANA_PER_DAMAGE));
         registerItem(registry, new ItemTerraYoyo("terrasteel_yoyo", BotaniaAPI.terrasteelToolMaterial, 100));
 

@@ -22,6 +22,7 @@
 
 package com.jozufozu.yoyos;
 
+import com.google.common.collect.Lists;
 import com.jozufozu.yoyos.common.*;
 import com.jozufozu.yoyos.compat.YoyoCompatibility;
 import com.jozufozu.yoyos.tinkers.TinkersYoyos;
@@ -41,7 +42,6 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 
@@ -72,6 +72,7 @@ public class Yoyos
     public static Item GOLD_YOYO;
     public static Item SHEAR_YOYO;
     public static Item STICKY_YOYO;
+    public static Item HOE_YOYO;
 
     public static Enchantment COLLECTING;
     public static EnumEnchantmentType YOYO_ENCHANTMENT_TYPE = EnumHelper.addEnchantmentType("collecting", item -> item instanceof IYoyo);
@@ -100,7 +101,13 @@ public class Yoyos
         registry.register(IRON_YOYO = new ItemYoyo("iron_yoyo", Item.ToolMaterial.IRON));
         registry.register(DIAMOND_YOYO = new ItemYoyo("diamond_yoyo", Item.ToolMaterial.DIAMOND));
         registry.register(GOLD_YOYO = new ItemYoyo("gold_yoyo", Item.ToolMaterial.GOLD));
-        registry.register(SHEAR_YOYO = new ItemYoyo("shear_yoyo", Item.ToolMaterial.IRON, true));
+        registry.register(SHEAR_YOYO = new ItemYoyo("shear_yoyo",
+                                                    Item.ToolMaterial.IRON,
+                                                    Lists.newArrayList(ItemYoyo::shearEntity, ItemYoyo::collectItem, ItemYoyo::attackEntity),
+                                                    Lists.newArrayList(ItemYoyo::garden))
+                .setRenderOrientation(RenderOrientation.Horizontal));
+        registry.register(HOE_YOYO = new ItemYoyo("hoe_yoyo", Item.ToolMaterial.DIAMOND)
+                .addBlockInteraction(ItemYoyo::farm, ItemYoyo::till));
         registry.register(STICKY_YOYO = new ItemStickyYoyo());
     }
 
@@ -176,11 +183,5 @@ public class Yoyos
         {
             TinkersYoyos.postInit(event);
         }
-    }
-
-    //@Mod.EventHandler
-    public void serverInit(FMLServerStartingEvent event)
-    {
-        event.registerServerCommand(new CommandDebugYoyo());
     }
 }

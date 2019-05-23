@@ -24,11 +24,13 @@ package com.jozufozu.yoyos.common;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.jozufozu.yoyos.Yoyos;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.BlockCrops;
+import net.minecraft.block.BlockDirt;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
@@ -45,6 +47,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.passive.EntityBat;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Enchantments;
 import net.minecraft.init.MobEffects;
 import net.minecraft.init.SoundEvents;
@@ -59,42 +62,77 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.IShearable;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.oredict.OreDictionary;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class ItemYoyo extends Item implements IYoyo
 {
+    //TODO: Remove duration when a block is broken
+
     private final float attackDamage;
     protected final ToolMaterial material;
-    protected final boolean gardening;
-    
+    private RenderOrientation renderOrientation = RenderOrientation.Vertical;
+    private ArrayList<IEntityInteraction> entityInteractions;
+    private ArrayList<IBlockInteraction> blockInteractions;
+
     public ItemYoyo(String name, ToolMaterial material)
     {
-        this(name, material, false);
+        this(name, material, Lists.newArrayList(ItemYoyo::collectItem, ItemYoyo::attackEntity), new ArrayList<>());
     }
     
-    public ItemYoyo(String name, ToolMaterial material, boolean gardening)
+    public ItemYoyo(String name, ToolMaterial material, @Nonnull ArrayList<IEntityInteraction> entityInteractions, @Nonnull ArrayList<IBlockInteraction> blockInteractions)
     {
+        this.entityInteractions = entityInteractions;
+        this.blockInteractions = blockInteractions;
+
         this.material = material;
         this.maxStackSize = 1;
         this.setMaxDamage(material.getMaxUses());
         this.setCreativeTab(CreativeTabs.COMBAT);
         this.attackDamage = 3.0F + material.getAttackDamage();
-        this.gardening = gardening;
-        
+
         this.setUnlocalizedName(String.format("%s.%s", Yoyos.MODID, name));
         this.setRegistryName(Yoyos.MODID, name);
 
         this.addPropertyOverride(new ResourceLocation(Yoyos.MODID, "thrown"), (stack, worldIn, entityIn) -> entityIn instanceof EntityBat ? 1 : 0);
 
-        if (!gardening) this.setCreativeTab(CreativeTabs.COMBAT);
+        this.setCreativeTab(CreativeTabs.COMBAT);
     }
-    
+
+    public ItemYoyo addBlockInteraction(IBlockInteraction... blockInteraction)
+    {
+        Collections.addAll(blockInteractions, blockInteraction);
+        return this;
+    }
+
+    public ItemYoyo addEntityInteraction(IEntityInteraction... entityInteraction)
+    {
+        Collections.addAll(entityInteractions, entityInteraction);
+        return this;
+    }
+
+    public RenderOrientation getRenderOrientation()
+    {
+        return renderOrientation;
+    }
+
+    public ItemYoyo setRenderOrientation(RenderOrientation renderOrientation)
+    {
+        this.renderOrientation = renderOrientation;
+        return this;
+    }
+
     @Override
     public Set<String> getToolClasses(ItemStack stack)
     {
@@ -193,6 +231,7 @@ public class ItemYoyo extends Item implements IYoyo
     {
         if (this == Yoyos.SHEAR_YOYO) return ModConfig.vanillaYoyos.shearYoyo.damage;
         if (this == Yoyos.STICKY_YOYO) return ModConfig.vanillaYoyos.stickyYoyo.damage;
+        if (this == Yoyos.HOE_YOYO) return ModConfig.vanillaYoyos.hoeYoyo.damage;
         if (this == Yoyos.DIAMOND_YOYO) return ModConfig.vanillaYoyos.diamondYoyo.damage;
         if (this == Yoyos.GOLD_YOYO) return ModConfig.vanillaYoyos.goldYoyo.damage;
         if (this == Yoyos.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.damage;
@@ -208,6 +247,7 @@ public class ItemYoyo extends Item implements IYoyo
     {
         if (this == Yoyos.SHEAR_YOYO) return ModConfig.vanillaYoyos.shearYoyo.weight;
         if (this == Yoyos.STICKY_YOYO) return ModConfig.vanillaYoyos.stickyYoyo.weight;
+        if (this == Yoyos.HOE_YOYO) return ModConfig.vanillaYoyos.hoeYoyo.weight;
         if (this == Yoyos.DIAMOND_YOYO) return ModConfig.vanillaYoyos.diamondYoyo.weight;
         if (this == Yoyos.GOLD_YOYO) return ModConfig.vanillaYoyos.goldYoyo.weight;
         if (this == Yoyos.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.weight;
@@ -223,6 +263,7 @@ public class ItemYoyo extends Item implements IYoyo
     {
         if (this == Yoyos.SHEAR_YOYO) return ModConfig.vanillaYoyos.shearYoyo.length;
         if (this == Yoyos.STICKY_YOYO) return ModConfig.vanillaYoyos.stickyYoyo.length;
+        if (this == Yoyos.HOE_YOYO) return ModConfig.vanillaYoyos.hoeYoyo.length;
         if (this == Yoyos.DIAMOND_YOYO) return ModConfig.vanillaYoyos.diamondYoyo.length;
         if (this == Yoyos.GOLD_YOYO) return ModConfig.vanillaYoyos.goldYoyo.length;
         if (this == Yoyos.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.length;
@@ -238,6 +279,7 @@ public class ItemYoyo extends Item implements IYoyo
     {
         if (this == Yoyos.SHEAR_YOYO) return ModConfig.vanillaYoyos.shearYoyo.duration;
         if (this == Yoyos.STICKY_YOYO) return ModConfig.vanillaYoyos.stickyYoyo.duration;
+        if (this == Yoyos.HOE_YOYO) return ModConfig.vanillaYoyos.hoeYoyo.duration;
         if (this == Yoyos.DIAMOND_YOYO) return ModConfig.vanillaYoyos.diamondYoyo.duration;
         if (this == Yoyos.GOLD_YOYO) return ModConfig.vanillaYoyos.goldYoyo.duration;
         if (this == Yoyos.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.duration;
@@ -255,12 +297,6 @@ public class ItemYoyo extends Item implements IYoyo
     }
     
     @Override
-    public boolean gardening(ItemStack yoyo)
-    {
-        return gardening;
-    }
-    
-    @Override
     public int collecting(ItemStack yoyo)
     {
         if (this == Yoyos.CREATIVE_YOYO) return Integer.MAX_VALUE / 2;
@@ -274,111 +310,254 @@ public class ItemYoyo extends Item implements IYoyo
     }
 
     @Override
-    public void attack(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity)
+    public void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity)
     {
-        attackEntity(targetEntity, yoyo, player, yoyoEntity, hand);
+        if (targetEntity.world.isRemote) return;
+        for (IEntityInteraction entityInteraction : entityInteractions)
+        {
+            if (entityInteraction.entityInteraction(yoyo, player, hand, yoyoEntity, targetEntity)) return;
+        }
     }
 
     @Override
     public boolean interactsWithBlocks(ItemStack yoyo)
     {
-        return gardening;
+        return blockInteractions != null && !blockInteractions.isEmpty();
     }
 
     @Override
     public void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
     {
-        garden(yoyo, this, player, world, pos, state, block, yoyoEntity);
+        if (world.isRemote) return;
+        for (IBlockInteraction blockInteraction : blockInteractions)
+        {
+            if (blockInteraction.blockInteraction(yoyo, player, pos, state, block, yoyoEntity)) return;
+        }
     }
 
-    public static void garden(ItemStack yoyoStack, IYoyo yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    @SideOnly(Side.CLIENT)
+    @Override
+    public RenderOrientation getRenderOrientation(ItemStack yoyo)
     {
+        return renderOrientation;
+    }
+
+    public static boolean collectItem(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity) {
+        if (targetEntity instanceof EntityItem && yoyoEntity.isCollecting()) {
+            yoyoEntity.collectDrop(((EntityItem) targetEntity));
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean shearEntity(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity) {
+        if (targetEntity instanceof IShearable)
+        {
+            World world = targetEntity.world;
+            IShearable shearable = (IShearable) targetEntity;
+            BlockPos pos = new BlockPos(targetEntity.posX, targetEntity.posY, targetEntity.posZ);
+
+            if (shearable.isShearable(yoyo, world, pos))
+            {
+                yoyoEntity.yoyo.damageItem(yoyo, 1, player);
+                List<ItemStack> stacks = shearable.onSheared(yoyo, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyo));
+
+                for (ItemStack stack : stacks)
+                {
+                    yoyoEntity.createItemDropOrCollect(stack, pos);
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public static boolean till(ItemStack yoyo, EntityPlayer player, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    {
+        World worldIn = yoyoEntity.world;
+
+        if (pos.getY() + 0.9 < yoyoEntity.posY && worldIn.isAirBlock(pos.up()))
+        {
+            int hook = ForgeEventFactory.onHoeUse(yoyo, player, worldIn, pos);
+            if (hook != 0) return true;
+
+            if (block == Blocks.GRASS || block == Blocks.GRASS_PATH)
+            {
+                setBlock(yoyoEntity.yoyo, yoyo, player, worldIn, pos, Blocks.FARMLAND.getDefaultState());
+                return true;
+            }
+
+            if (block == Blocks.DIRT)
+            {
+                switch (state.getValue(BlockDirt.VARIANT))
+                {
+                case DIRT:
+                    setBlock(yoyoEntity.yoyo, yoyo, player, worldIn, pos, Blocks.FARMLAND.getDefaultState());
+                    return true;
+                case COARSE_DIRT:
+                    setBlock(yoyoEntity.yoyo, yoyo, player, worldIn, pos, Blocks.DIRT.getDefaultState().withProperty(BlockDirt.VARIANT, BlockDirt.DirtType.DIRT));
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static void setBlock(IYoyo yoyo, ItemStack yoyoStack, EntityPlayer player, World worldIn, BlockPos pos, IBlockState state)
+    {
+        worldIn.playSound(null, pos, SoundEvents.ITEM_HOE_TILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+
+        if (!worldIn.isRemote)
+        {
+            worldIn.setBlockState(pos, state, 11);
+            yoyo.damageItem(yoyoStack, 1, player);
+        }
+    }
+
+    public static boolean garden(ItemStack yoyo, EntityPlayer player, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    {
+        World world = yoyoEntity.world;
         if (block instanceof IShearable)
         {
             IShearable shearable = (IShearable) block;
-            if (shearable.isShearable(yoyoStack, world, pos))
+            if (shearable.isShearable(yoyo, world, pos))
             {
-                List<ItemStack> drops = shearable.onSheared(yoyoStack, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyoStack));
-                for (ItemStack drop : drops)
+                List<ItemStack> stacks = shearable.onSheared(yoyo, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyo));
+
+                if (yoyoEntity.world.setBlockToAir(pos))
                 {
-                    if (yoyoEntity.isCollecting())
+                    block.breakBlock(world, pos, state);
+
+                    yoyoEntity.yoyo.damageItem(yoyo, 1, player);
+
+                    for (ItemStack stack : stacks)
                     {
-                        yoyoEntity.collectDrop(drop);
+                        yoyoEntity.createItemDropOrCollect(stack, pos);
                     }
-                    else
-                    {
-                        float f = 0.7F;
-                        double d = (double) (world.rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
-                        double d1 = (double) (world.rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
-                        double d2 = (double) (world.rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
-                        EntityItem entityitem = new EntityItem(world, (double) pos.getX() + d, (double) pos.getY() + d1, (double) pos.getZ() + d2, drop);
-                        entityitem.setDefaultPickupDelay();
-                        player.world.spawnEntity(entityitem);
-                    }
+
+                    world.playSound(null, pos, block.getSoundType(state, world, pos, yoyoEntity).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
+                    world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
+                    return true;
                 }
-
-                if (!player.isCreative()) yoyo.damageItem(yoyoStack, 1, player);
-
-                player.addStat(StatList.getBlockStats(block));
-
-                world.playSound(null, pos, block.getSoundType(state, world, pos, yoyoEntity).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
-                block.removedByPlayer(state, world, pos, player, true);
-                world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
-                return;
             }
         }
 
         if (block instanceof BlockBush)
         {
-            if (!player.isCreative()) yoyo.damageItem(yoyoStack, 1, player);
+            doBlockBreaking(yoyo, player, world, pos, state, block, yoyoEntity);
+            return true;
+        }
 
-            if (block instanceof BlockCrops)
+        return false;
+    }
+
+    public static boolean farm(ItemStack yoyo, EntityPlayer player, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    {
+        if (block instanceof BlockCrops)
+        {
+            if (state.getValue(BlockCrops.AGE) == 7)
             {
-                if (state.getValue(BlockCrops.AGE) == 7)
+                NonNullList<ItemStack> drops = doHarvesting(yoyo, player, yoyoEntity.world, pos, state, block, yoyoEntity);
+
+                if (drops == null) return true;
+
+                yoyoEntity.yoyo.damageItem(yoyo, 1, player);
+
+                boolean foundSeed = false;
+
+                for (ItemStack stack : drops)
                 {
-                    world.playSound(null, pos, block.getSoundType(state, world, pos, yoyoEntity).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
-                    world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
-                    yoyoEntity.markBlockForDropGathering(pos);
-                    block.harvestBlock(world, player, pos, state, world.getTileEntity(pos), yoyoStack);
-                    world.setBlockState(pos, state.withProperty(BlockCrops.AGE, 0));
+                    if (stack.isEmpty()) continue;
+
+                    if (!foundSeed && stack.getItem() instanceof IPlantable)
+                    {
+                        stack.shrink(1);
+                        foundSeed = true;
+                    }
+
+                    yoyoEntity.createItemDropOrCollect(stack, pos);
                 }
 
+                if (foundSeed) yoyoEntity.world.setBlockState(pos, state.withProperty(BlockCrops.AGE, 0));
+
+                return true;
             }
-            else if (block.removedByPlayer(state, world, pos, player, true))
-            {
-                world.playSound(null, pos, block.getSoundType(state, world, pos, yoyoEntity).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
-                world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
-                yoyoEntity.markBlockForDropGathering(pos);
-                block.harvestBlock(world, player, pos, state, world.getTileEntity(pos), yoyoStack);
-                block.breakBlock(world, pos, state);
-            }
+        }
+
+        return false;
+    }
+
+    public static void doBlockBreaking(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    {
+        NonNullList<ItemStack> itemStacks = doHarvesting(yoyo, player, world, pos, state, block, yoyoEntity);
+
+        if (itemStacks == null) return;
+
+        yoyoEntity.yoyo.damageItem(yoyo, 1, player);
+
+        for (ItemStack stack : itemStacks)
+        {
+            yoyoEntity.createItemDropOrCollect(stack, pos);
         }
     }
 
-    public static void attackEntity(Entity targetEntity, ItemStack stack, EntityPlayer attacker, EntityYoyo yoyoEntity, EnumHand yoyoHand)
+    /**
+     * NOT responsible for damaging the tool
+     * @param yoyo
+     * @param player
+     * @param world
+     * @param pos
+     * @param state
+     * @param block
+     * @param yoyoEntity
+     * @return null iff the block could not be broken
+     */
+    @Nullable
+    private static NonNullList<ItemStack> doHarvesting(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
     {
-        if (!ForgeHooks.onPlayerAttackTarget(attacker, targetEntity))
-            return;
+        if (!yoyoEntity.world.setBlockToAir(pos)) return null;
+
+        block.breakBlock(world, pos, state);
+
+        world.playSound(null, pos, block.getSoundType(state, world, pos, yoyoEntity).getBreakSound(), SoundCategory.BLOCKS, 1, 1);
+        world.playEvent(2001, pos.toImmutable(), Block.getStateId(state));
+
+        int fortune = EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyo);
+
+        NonNullList<ItemStack> drops = NonNullList.create();
+        state.getBlock().getDrops(drops, world, pos, state, fortune);
+        ForgeEventFactory.fireBlockHarvesting(drops, world, pos, state, fortune, 1.0F, false, player);
+
+        return drops;
+    }
+
+    public static boolean attackEntity(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity)
+    {
+        if (!ForgeHooks.onPlayerAttackTarget(player, targetEntity))
+            return false;
 
         if (targetEntity.canBeAttackedWithItem())
         {
-            if (!targetEntity.hitByEntity(attacker))
+            if (!targetEntity.hitByEntity(player))
             {
-                float damage = (float) attacker.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue();
+                float damage = (float) player.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue();
                 float attackModifier;
 
                 if (targetEntity instanceof EntityLivingBase)
-                    attackModifier = EnchantmentHelper.getModifierForCreature(stack, ((EntityLivingBase) targetEntity).getCreatureAttribute());
+                    attackModifier = EnchantmentHelper.getModifierForCreature(yoyo, ((EntityLivingBase) targetEntity).getCreatureAttribute());
                 else
-                    attackModifier = EnchantmentHelper.getModifierForCreature(stack, EnumCreatureAttribute.UNDEFINED);
+                    attackModifier = EnchantmentHelper.getModifierForCreature(yoyo, EnumCreatureAttribute.UNDEFINED);
 
                 if (damage > 0.0F || attackModifier > 0.0F)
                 {
                     int knockbackModifier = 0;
-                    knockbackModifier = knockbackModifier + EnchantmentHelper.getKnockbackModifier(attacker);
+                    knockbackModifier = knockbackModifier + EnchantmentHelper.getKnockbackModifier(player);
 
-                    boolean critical = attacker.fallDistance > 0.0F && !attacker.onGround && !attacker.isOnLadder() && !attacker.isInWater() && !attacker.isPotionActive(MobEffects.BLINDNESS) && !attacker.isRiding() && targetEntity instanceof EntityLivingBase;
-                    critical = critical && !attacker.isSprinting();
+                    boolean critical = player.fallDistance > 0.0F && !player.onGround && !player.isOnLadder() && !player.isInWater() && !player.isPotionActive(MobEffects.BLINDNESS) && !player.isRiding() && targetEntity instanceof EntityLivingBase;
+                    critical = critical && !player.isSprinting();
 
                     if (critical)
                         damage *= 1.5F;
@@ -387,7 +566,7 @@ public class ItemYoyo extends Item implements IYoyo
 
                     float targetHealth = 0.0F;
                     boolean setEntityOnFire = false;
-                    int fireAspect = EnchantmentHelper.getFireAspectModifier(attacker);
+                    int fireAspect = EnchantmentHelper.getFireAspectModifier(player);
 
                     if (targetEntity instanceof EntityLivingBase)
                     {
@@ -403,16 +582,16 @@ public class ItemYoyo extends Item implements IYoyo
                     double motionX = targetEntity.motionX;
                     double motionY = targetEntity.motionY;
                     double motionZ = targetEntity.motionZ;
-                    boolean didDamage = targetEntity.attackEntityFrom(new EntityDamageSourceIndirect("yoyo", yoyoEntity, attacker), damage);
+                    boolean didDamage = targetEntity.attackEntityFrom(new EntityDamageSourceIndirect("yoyo", yoyoEntity, player), damage);
 
                     if (didDamage)
                     {
                         if (knockbackModifier > 0)
                         {
                             if (targetEntity instanceof EntityLivingBase)
-                                ((EntityLivingBase) targetEntity).knockBack(attacker, (float) knockbackModifier * 0.5F, (double) MathHelper.sin(attacker.rotationYaw * 0.017453292F), (double) (-MathHelper.cos(attacker.rotationYaw * 0.017453292F)));
+                                ((EntityLivingBase) targetEntity).knockBack(player, (float) knockbackModifier * 0.5F, (double) MathHelper.sin(player.rotationYaw * 0.017453292F), (double) (-MathHelper.cos(player.rotationYaw * 0.017453292F)));
                             else
-                                targetEntity.addVelocity((double) (-MathHelper.sin(attacker.rotationYaw * 0.017453292F) * (float) knockbackModifier * 0.5F), 0.1D, (double) (MathHelper.cos(attacker.rotationYaw * 0.017453292F) * (float) knockbackModifier * 0.5F));
+                                targetEntity.addVelocity((double) (-MathHelper.sin(player.rotationYaw * 0.017453292F) * (float) knockbackModifier * 0.5F), 0.1D, (double) (MathHelper.cos(player.rotationYaw * 0.017453292F) * (float) knockbackModifier * 0.5F));
                         }
 
                         if (targetEntity instanceof EntityPlayerMP && targetEntity.velocityChanged)
@@ -426,56 +605,56 @@ public class ItemYoyo extends Item implements IYoyo
 
                         if (critical)
                         {
-                            attacker.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, attacker.getSoundCategory(), 1.0F, 1.0F);
-                            attacker.onCriticalHit(targetEntity);
+                            player.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_CRIT, player.getSoundCategory(), 1.0F, 1.0F);
+                            player.onCriticalHit(targetEntity);
                         }
 
                         if (!critical)
                         {
-                            attacker.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_STRONG, attacker.getSoundCategory(), 1.0F, 1.0F);
+                            player.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_STRONG, player.getSoundCategory(), 1.0F, 1.0F);
                         }
 
                         if (attackModifier > 0.0F)
-                            attacker.onEnchantmentCritical(targetEntity);
+                            player.onEnchantmentCritical(targetEntity);
 
-                        attacker.setLastAttackedEntity(targetEntity);
+                        player.setLastAttackedEntity(targetEntity);
 
                         if (targetEntity instanceof EntityLivingBase)
-                            EnchantmentHelper.applyThornEnchantments((EntityLivingBase) targetEntity, attacker);
+                            EnchantmentHelper.applyThornEnchantments((EntityLivingBase) targetEntity, player);
 
-                        EnchantmentHelper.applyArthropodEnchantments(attacker, targetEntity);
+                        EnchantmentHelper.applyArthropodEnchantments(player, targetEntity);
 
-                        if (stack != ItemStack.EMPTY && targetEntity instanceof EntityLivingBase)
+                        if (yoyo != ItemStack.EMPTY && targetEntity instanceof EntityLivingBase)
                         {
-                            stack.hitEntity((EntityLivingBase) targetEntity, attacker);
+                            yoyo.hitEntity((EntityLivingBase) targetEntity, player);
 
-                            if (stack.getCount() <= 0)
+                            if (yoyo.getCount() <= 0)
                             {
-                                attacker.setHeldItem(yoyoHand, ItemStack.EMPTY);
-                                ForgeEventFactory.onPlayerDestroyItem(attacker, stack, yoyoHand);
+                                player.setHeldItem(hand, ItemStack.EMPTY);
+                                ForgeEventFactory.onPlayerDestroyItem(player, yoyo, hand);
                             }
                         }
 
                         if (targetEntity instanceof EntityLivingBase)
                         {
                             float f5 = targetHealth - ((EntityLivingBase) targetEntity).getHealth();
-                            attacker.addStat(StatList.DAMAGE_DEALT, Math.round(f5 * 10.0F));
+                            player.addStat(StatList.DAMAGE_DEALT, Math.round(f5 * 10.0F));
 
                             if (fireAspect > 0)
                                 targetEntity.setFire(fireAspect * 4);
 
-                            if (attacker.world instanceof WorldServer && f5 > 2.0F)
+                            if (player.world instanceof WorldServer && f5 > 2.0F)
                             {
                                 int k = (int) ((double) f5 * 0.5D);
-                                ((WorldServer) attacker.world).spawnParticle(EnumParticleTypes.DAMAGE_INDICATOR, targetEntity.posX, targetEntity.posY + (double) (targetEntity.height * 0.5F), targetEntity.posZ, k, 0.1D, 0.0D, 0.1D, 0.2D);
+                                ((WorldServer) player.world).spawnParticle(EnumParticleTypes.DAMAGE_INDICATOR, targetEntity.posX, targetEntity.posY + (double) (targetEntity.height * 0.5F), targetEntity.posZ, k, 0.1D, 0.0D, 0.1D, 0.2D);
                             }
                         }
 
-                        attacker.addExhaustion(0.3F);
+                        player.addExhaustion(0.3F);
                     }
                     else
                     {
-                        attacker.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_NODAMAGE, attacker.getSoundCategory(), 1.0F, 1.0F);
+                        player.world.playSound(null, yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ, SoundEvents.ENTITY_PLAYER_ATTACK_NODAMAGE, player.getSoundCategory(), 1.0F, 1.0F);
 
                         if (setEntityOnFire)
                             targetEntity.extinguish();
@@ -483,5 +662,7 @@ public class ItemYoyo extends Item implements IYoyo
                 }
             }
         }
+
+        return false;
     }
 }

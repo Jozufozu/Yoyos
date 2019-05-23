@@ -1,0 +1,11 @@
+{
+    "type": "minecraft:crafting_shapeless",
+    "conditions": [{ "type": "yoyos:are_yoyos_enabled" }],
+    "ingredients": [
+        { "item": "yoyos:diamond_yoyo" },
+        { "item": "minecraft:diamond_hoe" }
+    ],
+    "result": {
+        "item": "yoyos:hoe_yoyo"
+    }
+}

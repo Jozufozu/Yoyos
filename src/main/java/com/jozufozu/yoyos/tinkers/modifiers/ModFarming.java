@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Jozsef Augusztiny
+ * Copyright (c) 2019 Jozsef Augusztiny
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,11 +37,11 @@ import slimeknights.tconstruct.tools.modifiers.ToolModifier;
 /**
  * Allows for yoyos to cut down grass and flowers and such
  */
-public class ModGardening extends ToolModifier
+public class ModFarming extends ToolModifier
 {
-    public ModGardening()
+    public ModFarming()
     {
-        super("gardening", 0x8b4336);
+        super("farming", 0x27b29a);
         
         addAspects(new ModifierAspect.DataAspect(this), new ModifierAspect.SingleAspect(this), ModifierAspect.freeModifier);
     }
@@ -49,7 +49,7 @@ public class ModGardening extends ToolModifier
     @Override
     public boolean canApplyTogether(IToolMod otherModifier)
     {
-        return otherModifier != TinkersYoyos.FARMING;
+        return otherModifier != TinkersYoyos.GARDENING;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class ModGardening extends ToolModifier
     {
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(rootCompound, Tags.TOOL_DATA));
         toolData.attack += 0.5;
-        toolData.weight += 0.1;
+        toolData.weight += 0.5;
     
         TagUtil.setToolTag(rootCompound, toolData.get());
     }

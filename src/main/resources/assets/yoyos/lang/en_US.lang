@@ -4,6 +4,7 @@ item.yoyos.iron_yoyo.name=Iron Yoyo
 item.yoyos.diamond_yoyo.name=Diamond Yoyo
 item.yoyos.gold_yoyo.name=Gold Yoyo
 item.yoyos.shear_yoyo.name=Shear Yoyo
+item.yoyos.hoe_yoyo.name=Yohoe
 item.yoyos.sticky_yoyo.name=Sticky Yoyo
 item.yoyos.creative_yoyo.name=Rainbowyo
 
@@ -87,6 +88,9 @@ modifier.floating.desc=§oLook at the little guy!§r\nThe pufferfish acts like a
 modifier.gardening.name=Shear
 modifier.gardening.desc=§oNo longer safe for children.§r\nCuts down grass and flowers and such. Also sheep. It shears sheep.
 
+modifier.farming.name=Farming
+modifier.farming.desc=§oIt ain't much, but it's honest work.§r\nHarvests crops, replanting the seeds. Also tills soil. Basic hoe functionality.
+
 modifier.sticky.name=Sticky
 modifier.sticky.desc=§oI... I can't get it off.§r\nSticks to blocks and allows you to reel yourself in.
 
@@ -104,7 +108,6 @@ yoyos.lexicon.entry.mana_yoyo=Manasteel Yoyo
 yoyos.lexicon.tagline.mana_yoyo=An iron-tier yoyo that repairs itself with mana
 yoyos.lexicon.page.mana_yoyo0=See &oManasteel Equipment&0.
 yoyos.lexicon.page.mana_yoyo1=The &1Manasteel Yoyo&0
-
 
 yoyos.lexicon.entry.elf_yoyo=Elementium Yoyo
 yoyos.lexicon.tagline.elf_yoyo=A manasteel equivilent yoyo with the ability to pick up items

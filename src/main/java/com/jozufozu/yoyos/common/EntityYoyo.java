@@ -29,13 +29,10 @@ import net.minecraft.block.Block;
 import net.minecraft.block.BlockBush;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Enchantments;
 import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -45,11 +42,9 @@ import net.minecraft.scoreboard.Team;
 import net.minecraft.util.*;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
-import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.event.world.BlockEvent;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -74,21 +69,19 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     protected static final int MAX_RETRACT_TIME = 40;
     public ArrayList<ItemStack> collectedDrops = new ArrayList<>();
 
-    private HashSet<BlockPos> blocksAffected = new HashSet<>();
-
     protected EntityPlayer thrower;
     protected ItemStack yoyoStack = ItemStack.EMPTY;
     protected IYoyo yoyo = null;
 
     protected EnumHand hand;
-    protected float weight;
 
+    protected float weight;
     protected float cordLength;
     protected float maxLength;
 
     protected int maxCool;
     protected int duration;
-    protected boolean gardening;
+
     protected int collecting;
     protected boolean interactsWithBlocks;
 
@@ -155,23 +148,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         event.setCanceled(true);
     }
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
-    public static void onBlockHarvestDrops(BlockEvent.HarvestDropsEvent event)
-    {
-        EntityPlayer player = event.getHarvester();
-
-        EntityYoyo yoyo = CASTERS.get(player);
-
-        if (yoyo == null) return;
-
-        if (!yoyo.blocksAffected.contains(event.getPos())) return;
-
-        yoyo.blocksAffected.remove(event.getPos());
-
-        event.getDrops().forEach(yoyo::collectDrop);
-        event.getDrops().clear();
-    }
-
     @Override
     public Entity getThrower()
     {
@@ -213,11 +189,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     public int getDuration()
     {
         return duration;
-    }
-
-    public boolean isGardening()
-    {
-        return gardening;
     }
 
     public boolean isCollecting()
@@ -312,7 +283,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     {
         if (shouldGetStats)
         {
-            gardening = yoyo.gardening(yoyoStack);
             collecting = yoyo.collecting(yoyoStack);
             maxCool = yoyo.getAttackSpeed(yoyoStack);
             duration = yoyo.getDuration(yoyoStack);
@@ -444,7 +414,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
                     if (entity.getEntityBoundingBox().intersects(yoyoBoundingBox))
                     {
-                        hit |= interactWithEntity(entity);
+                        interactWithEntity(entity);
 
                         iterator.remove();
                     }
@@ -452,52 +422,60 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             }
         }
 
-        ++attackCool;
-        if (hit) attackCool = 0;
-
         setEntityBoundingBox(yoyoBoundingBox);
         resetPositionToBB();
     }
 
-    public boolean interactWithEntity(Entity entity)
+    public void interactWithEntity(Entity entity)
     {
-        boolean hit = false;
-        if (entity instanceof EntityLivingBase)
-        {
-            if (gardening && entity instanceof IShearable)
-            {
-                shearEntity(entity);
-            }
-            else if (attackCool > maxCool)
-            {
-                yoyo.attack(yoyoStack, thrower, hand, this, entity);
-                hit = true;
-            }
-        }
-        else if (isCollecting() && entity instanceof EntityItem)
-        {
-            collectDrop(((EntityItem) entity));
-        }
-
-        return hit;
+        yoyo.entityInteraction(yoyoStack, thrower, hand, this, entity);
     }
 
-    protected void collectDrop(ItemStack stack)
+    public void createItemDropOrCollect(ItemStack drop, BlockPos pos)
+    {
+        ItemStack remaining = drop;
+
+        if (isCollecting())
+        {
+            remaining = collectDrop(drop);
+
+            if (remaining == ItemStack.EMPTY) return;
+        }
+
+        float f = 0.7F;
+        double d = (double) (world.rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
+        double d1 = (double) (world.rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
+        double d2 = (double) (world.rand.nextFloat() * f) + (double) (1.0F - f) * 0.5D;
+        EntityItem entityitem = new EntityItem(world, (double) pos.getX() + d, (double) pos.getY() + d1, (double) pos.getZ() + d2, remaining);
+        entityitem.setDefaultPickupDelay();
+        world.spawnEntity(entityitem);
+    }
+
+    /**
+     *
+     * @param stack
+     * @return the amount of stack left uncollected
+     */
+    public ItemStack collectDrop(ItemStack stack)
     {
         //int maxTake = BASE_CAPACITY *
         collectedDrops.add(stack);
         needCollectedSync = true;
+
+        return ItemStack.EMPTY;
     }
 
-    protected void collectDrop(@Nullable EntityItem drop)
+    public void collectDrop(@Nullable EntityItem drop)
     {
         if (drop == null) return;
 
+        if (collectDrop(drop.getItem()) == ItemStack.EMPTY)
+        {
+            drop.setInfinitePickupDelay();
+            drop.setItem(ItemStack.EMPTY);
+            drop.setDead();
+        }
         world.playSound(null, drop.posX, drop.posY, drop.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2F, ((rand.nextFloat() - rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
-        collectDrop(drop.getItem());
-        drop.setInfinitePickupDelay();
-        drop.setItem(ItemStack.EMPTY);
-        drop.setDead();
     }
 
     protected void updateCapturedDrops()
@@ -561,37 +539,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         }
     }
 
-    protected void shearEntity(Entity entity)
-    {
-        IShearable shearable = (IShearable) entity;
-        BlockPos pos = new BlockPos(entity.posX, entity.posY, entity.posZ);
-
-        if (shearable.isShearable(yoyoStack, world, pos))
-        {
-            List<ItemStack> drops = shearable.onSheared(yoyoStack, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyoStack));
-
-            for (ItemStack stack : drops)
-            {
-                if (isCollecting())
-                {
-                    collectDrop(stack);
-                }
-                else
-                {
-                    EntityItem ent = entity.entityDropItem(stack, 1.0F);
-
-                    if (ent == null) continue;
-
-                    ent.motionY += rand.nextFloat() * 0.05F;
-                    ent.motionX += (rand.nextFloat() - rand.nextFloat()) * 0.1F;
-                    ent.motionZ += (rand.nextFloat() - rand.nextFloat()) * 0.1F;
-                }
-            }
-
-            if (!thrower.isCreative()) yoyo.damageItem(yoyoStack, 1, thrower);
-        }
-    }
-
     protected void worldInteraction()
     {
         BlockPos pos = getPosition();
@@ -608,16 +555,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                 yoyo.blockInteraction(yoyoStack, thrower, world, checkPos, state, block, this);
             }
         }
-    }
-
-    /**
-     * Call this once your {@link IYoyo} knows it will be breaking a block, but before it is actually harvested
-     * @param pos
-     */
-    public void markBlockForDropGathering(BlockPos pos)
-    {
-        if (isCollecting())
-            blocksAffected.add(pos.toImmutable());
     }
 
     @Override

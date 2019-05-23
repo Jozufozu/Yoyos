@@ -82,6 +82,7 @@ public class TinkersYoyos
     public static Modifier FLOATING;
     public static Modifier LUBRICATED;
     public static Modifier GARDENING;
+    public static Modifier FARMING;
     public static Modifier GLUEY;
     public static Modifier COLLECTING;
     
@@ -141,6 +142,9 @@ public class TinkersYoyos
     
         GARDENING = new ModGardening();
         GARDENING.addItem(Items.SHEARS);
+
+        FARMING = new ModFarming();
+        FARMING.addItem(Items.DIAMOND_HOE);
         
         COLLECTING = new ModCollecting();
         COLLECTING.addRecipeMatch(new RecipeMatch.ItemCombination(1, new ItemStack(Blocks.HOPPER), new ItemStack(Blocks.CHEST)));

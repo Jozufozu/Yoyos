@@ -100,11 +100,11 @@ public class EntityChaserYoyo extends EntityYoyo
     }
 
     @Override
-    public boolean interactWithEntity(Entity entity)
+    public void interactWithEntity(Entity entity)
     {
         if (attackCool >= maxCool && entity == target) forgetTargetEntity();
 
-        return super.interactWithEntity(entity);
+        super.interactWithEntity(entity);
     }
 
     @Override

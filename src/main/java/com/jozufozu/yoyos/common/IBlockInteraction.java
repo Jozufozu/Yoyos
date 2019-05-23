@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Jozsef Augusztiny
+ * Copyright (c) 2019 Jozsef Augusztiny
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,10 +20,16 @@
  * SOFTWARE.
  */
 
-@ParametersAreNonnullByDefault
-@MethodsReturnNonnullByDefault
-package com.jozufozu.yoyos.common.yotools;
+package com.jozufozu.yoyos.common;
 
-import mcp.MethodsReturnNonnullByDefault;
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
 
-import javax.annotation.ParametersAreNonnullByDefault;
+@FunctionalInterface
+public interface IBlockInteraction
+{
+    boolean blockInteraction(ItemStack yoyo, EntityPlayer player, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity);
+}

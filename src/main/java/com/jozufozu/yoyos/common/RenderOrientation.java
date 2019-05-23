@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Jozsef Augusztiny
+ * Copyright (c) 2019 Jozsef Augusztiny
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,10 @@
  * SOFTWARE.
  */
 
-package com.jozufozu.yoyos.compat;
+package com.jozufozu.yoyos.common;
 
-import net.minecraft.item.ItemStack;
-import vazkii.botania.api.item.IPixieSpawner;
-
-public class ItemElementiumYoyo extends ItemManaYoyo implements IPixieSpawner
+public enum RenderOrientation
 {
-    public ItemElementiumYoyo(String name, ToolMaterial material, int manaPerDamage)
-    {
-        super(name, material, manaPerDamage);
-    }
-
-    @Override
-    public int collecting(ItemStack yoyo)
-    {
-        return 1 + super.collecting(yoyo);
-    }
-
-    @Override
-    public float getPixieChance(ItemStack itemStack)
-    {
-        return 0.05f;
-    }
+    Horizontal,
+    Vertical
 }

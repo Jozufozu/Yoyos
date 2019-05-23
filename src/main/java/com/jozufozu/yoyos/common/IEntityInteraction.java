@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Jozsef Augusztiny
+ * Copyright (c) 2019 Jozsef Augusztiny
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,39 +22,16 @@
 
 package com.jozufozu.yoyos.common;
 
-import com.jozufozu.yoyos.common.yotools.YoToolData;
-import net.minecraft.command.CommandBase;
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.server.MinecraftServer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumHand;
 
-public class CommandDebugYoyo extends CommandBase
+@FunctionalInterface
+public interface IEntityInteraction
 {
-    @Override
-    public String getName()
-    {
-        return "yoyo";
-    }
-
-    @Override
-    public String getUsage(ICommandSender sender)
-    {
-        return "/yoyo ify";
-    }
-
-    @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException
-    {
-        Entity commandSenderEntity = sender.getCommandSenderEntity();
-
-        if (commandSenderEntity instanceof EntityPlayer)
-        {
-            EntityPlayer player = (EntityPlayer) commandSenderEntity;
-
-            YoToolData.applyYoToolNBT(player.getHeldItem(EnumHand.MAIN_HAND));
-        }
-    }
+    /**
+     * @return true if interaction should cease after this method
+     */
+    boolean entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
 }

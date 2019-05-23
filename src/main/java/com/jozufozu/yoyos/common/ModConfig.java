@@ -93,8 +93,10 @@ public class ModConfig
         public YoyoSettings goldYoyo = new YoyoSettings(5.5f, 11.0f, 600, 3.0f);
         @Config.LangKey("item.yoyos.diamond_yoyo.name")
         public YoyoSettings diamondYoyo = new YoyoSettings(1.7f, 9.0f, 400, 6.0f);
+        @Config.LangKey("item.yoyos.hoe_yoyo.name")
+        public YoyoSettings hoeYoyo = new YoyoSettings(2.2f, 9.0f, 400, 6.5f);
         @Config.LangKey("item.yoyos.sticky_yoyo.name")
-        public YoyoSettings stickyYoyo = new YoyoSettings(1.7f, 9.0f, 400, 0.0f);
+        public YoyoSettings stickyYoyo = new YoyoSettings(1.8f, 9.0f, 400, 0.0f);
         @Config.LangKey("item.yoyos.creative_yoyo.name")
         public YoyoSettings creativeYoyo = new YoyoSettings(0.9f, 24.0f, -1, 9001.0f);
         

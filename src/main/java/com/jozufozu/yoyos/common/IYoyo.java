@@ -45,14 +45,12 @@ public interface IYoyo
     int getAttackSpeed(ItemStack yoyo);
 
     float getAttackDamage(ItemStack yoyo);
-    
-    boolean gardening(ItemStack yoyo);
-    
+
     int collecting(ItemStack yoyo);
     
     void damageItem(ItemStack yoyo, int amount, EntityLivingBase player);
     
-    void attack(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
+    void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
 
     boolean interactsWithBlocks(ItemStack yoyo);
 
@@ -80,5 +78,11 @@ public interface IYoyo
     default int getAxleColor(ItemStack yoyo, float ticks)
     {
         return 0xDDDDDD;
+    }
+
+    @SideOnly(Side.CLIENT)
+    default RenderOrientation getRenderOrientation(ItemStack yoyo)
+    {
+        return RenderOrientation.Vertical;
     }
 }

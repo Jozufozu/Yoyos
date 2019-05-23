@@ -36,12 +36,7 @@ public class ItemManaYoyo extends ItemYoyo implements IYoyo, IManaUsingItem
 
     public ItemManaYoyo(String name, ToolMaterial material, int manaPerDamage)
     {
-        this(name, material, manaPerDamage, false);
-    }
-
-    public ItemManaYoyo(String name, ToolMaterial material, int manaPerDamage, boolean gardening)
-    {
-        super(name, material, gardening);
+        super(name, material);
         this.manaPerDamage = manaPerDamage;
     }
 

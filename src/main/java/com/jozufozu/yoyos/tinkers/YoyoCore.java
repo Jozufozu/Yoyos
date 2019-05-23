@@ -24,10 +24,7 @@ package com.jozufozu.yoyos.tinkers;
 
 import com.google.common.collect.Multimap;
 import com.jozufozu.yoyos.Yoyos;
-import com.jozufozu.yoyos.common.EntityStickyYoyo;
-import com.jozufozu.yoyos.common.EntityYoyo;
-import com.jozufozu.yoyos.common.IYoyo;
-import com.jozufozu.yoyos.common.ItemYoyo;
+import com.jozufozu.yoyos.common.*;
 import com.jozufozu.yoyos.tinkers.materials.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -43,6 +40,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentKeybind;
@@ -257,13 +255,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     {
         return ((int) (ToolHelper.getActualAttackSpeed(yoyo) * 5));
     }
-    
-    @Override
-    public boolean gardening(ItemStack yoyo)
-    {
-        return !TinkerUtil.getModifierTag(yoyo, "gardening").hasNoTags();
-    }
-    
+
     @Override
     public int collecting(ItemStack yoyo)
     {
@@ -309,20 +301,55 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     }
     
     @Override
-    public void attack(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity target)
+    public void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity target)
     {
+        NBTTagList tagList = TagUtil.getModifiersTagList(yoyo);
+        int index = TinkerUtil.getIndexInCompoundList(tagList, "gardening");
+
+        if (index != -1)
+        {
+            ItemYoyo.shearEntity(yoyo, player, hand, yoyoEntity, target);
+            return;
+        }
+
         ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target);
     }
 
     @Override
     public boolean interactsWithBlocks(ItemStack yoyo)
     {
-        return gardening(yoyo);
+        NBTTagList tagList = TagUtil.getModifiersTagList(yoyo);
+        int index = TinkerUtil.getIndexInCompoundList(tagList, "gardening");
+
+        if (index != -1) return true;
+
+        index = TinkerUtil.getIndexInCompoundList(tagList, "farming");
+
+        return index != -1;
     }
 
     @Override
     public void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
     {
-        ItemYoyo.garden(yoyo, this, player, world, pos, state, block, yoyoEntity);
+        NBTTagList tagList = TagUtil.getModifiersTagList(yoyo);
+        int index = TinkerUtil.getIndexInCompoundList(tagList, "gardening");
+
+        if (index != -1)
+        {
+            ItemYoyo.garden(yoyo, player, pos, state, block, yoyoEntity);
+            return;
+        }
+
+        index = TinkerUtil.getIndexInCompoundList(tagList, "farming");
+
+        ItemYoyo.farm(yoyo, player, pos, state, block, yoyoEntity);
+        ItemYoyo.till(yoyo, player, pos, state, block, yoyoEntity);
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public RenderOrientation getRenderOrientation(ItemStack yoyo)
+    {
+        return (TinkerUtil.getModifierTag(yoyo, "gardening").hasNoTags()) ? RenderOrientation.Vertical : RenderOrientation.Horizontal;
     }
 }

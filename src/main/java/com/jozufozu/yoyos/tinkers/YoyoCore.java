@@ -265,7 +265,10 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     @Override
     public void damageItem(ItemStack yoyo, int amount, EntityLivingBase player)
     {
-        ToolHelper.damageTool(yoyo, 1, player);
+        if (!(player instanceof EntityPlayer) || !((EntityPlayer) player).capabilities.isCreativeMode)
+        {
+            ToolHelper.damageTool(yoyo, 1, player);
+        }
     }
     
     @Override
@@ -303,6 +306,8 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     @Override
     public void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity target)
     {
+        if (ItemYoyo.collectItem(yoyo, player, hand, yoyoEntity, target)) return;
+
         NBTTagList tagList = TagUtil.getModifiersTagList(yoyo);
         int index = TinkerUtil.getIndexInCompoundList(tagList, "gardening");
 
@@ -342,8 +347,11 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
 
         index = TinkerUtil.getIndexInCompoundList(tagList, "farming");
 
-        ItemYoyo.farm(yoyo, player, pos, state, block, yoyoEntity);
-        ItemYoyo.till(yoyo, player, pos, state, block, yoyoEntity);
+        if (index != -1)
+        {
+            ItemYoyo.farm(yoyo, player, pos, state, block, yoyoEntity);
+            ItemYoyo.till(yoyo, player, pos, state, block, yoyoEntity);
+        }
     }
 
     @SideOnly(Side.CLIENT)

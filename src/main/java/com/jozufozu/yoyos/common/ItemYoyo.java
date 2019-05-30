@@ -75,6 +75,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 public class ItemYoyo extends Item implements IYoyo
 {
@@ -82,17 +83,24 @@ public class ItemYoyo extends Item implements IYoyo
 
     private final float attackDamage;
     protected final ToolMaterial material;
-    private RenderOrientation renderOrientation = RenderOrientation.Vertical;
-    private ArrayList<IEntityInteraction> entityInteractions;
-    private ArrayList<IBlockInteraction> blockInteractions;
+    protected BiFunction<World, EntityPlayer, EntityYoyo> yoyoFactory;
+    protected RenderOrientation renderOrientation = RenderOrientation.Vertical;
+    protected ArrayList<IEntityInteraction> entityInteractions;
+    protected ArrayList<IBlockInteraction> blockInteractions;
 
     public ItemYoyo(String name, ToolMaterial material)
     {
-        this(name, material, Lists.newArrayList(ItemYoyo::collectItem, ItemYoyo::attackEntity), new ArrayList<>());
+        this(name, material, EntityYoyo::new);
+    }
+
+    public ItemYoyo(String name, ToolMaterial material, BiFunction<World, EntityPlayer, EntityYoyo> yoyoFactory)
+    {
+        this(name, material, yoyoFactory, Lists.newArrayList(ItemYoyo::collectItem, ItemYoyo::attackEntity), new ArrayList<>());
     }
     
-    public ItemYoyo(String name, ToolMaterial material, @Nonnull ArrayList<IEntityInteraction> entityInteractions, @Nonnull ArrayList<IBlockInteraction> blockInteractions)
+    public ItemYoyo(String name, ToolMaterial material, BiFunction<World, EntityPlayer, EntityYoyo> yoyoFactory, @Nonnull ArrayList<IEntityInteraction> entityInteractions, @Nonnull ArrayList<IBlockInteraction> blockInteractions)
     {
+        this.yoyoFactory = yoyoFactory;
         this.entityInteractions = entityInteractions;
         this.blockInteractions = blockInteractions;
 
@@ -186,7 +194,7 @@ public class ItemYoyo extends Item implements IYoyo
         {
             if (itemStack.getItemDamage() <= itemStack.getMaxDamage() || this == Yoyos.CREATIVE_YOYO)
             {
-                EntityYoyo yoyo = new EntityYoyo(worldIn, playerIn);
+                EntityYoyo yoyo = yoyoFactory.apply(worldIn, playerIn);
                 worldIn.spawnEntity(yoyo);
 
                 worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
@@ -414,6 +422,8 @@ public class ItemYoyo extends Item implements IYoyo
         {
             worldIn.setBlockState(pos, state, 11);
             yoyo.damageItem(yoyoStack, 1, player);
+
+            // TODO: Plant seeds here?
         }
     }
 
@@ -458,7 +468,7 @@ public class ItemYoyo extends Item implements IYoyo
     {
         if (block instanceof BlockCrops)
         {
-            if (state.getValue(BlockCrops.AGE) == 7)
+            if (((BlockCrops) block).isMaxAge(state))
             {
                 NonNullList<ItemStack> drops = doHarvesting(yoyo, player, yoyoEntity.world, pos, state, block, yoyoEntity);
 
@@ -481,7 +491,23 @@ public class ItemYoyo extends Item implements IYoyo
                     yoyoEntity.createItemDropOrCollect(stack, pos);
                 }
 
-                if (foundSeed) yoyoEntity.world.setBlockState(pos, state.withProperty(BlockCrops.AGE, 0));
+                if (!foundSeed && !yoyoEntity.collectedDrops.isEmpty())
+                {
+                    for (ItemStack stack : yoyoEntity.collectedDrops)
+                    {
+                        if (stack.isEmpty()) continue;
+
+                        if (stack.getItem() instanceof IPlantable)
+                        {
+                            stack.shrink(1);
+                            yoyoEntity.needCollectedSync = true; // refill/reshuffle the stacks
+                            foundSeed = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (foundSeed) yoyoEntity.world.setBlockState(pos, ((BlockCrops) block).withAge(0));
 
                 return true;
             }
@@ -506,13 +532,6 @@ public class ItemYoyo extends Item implements IYoyo
 
     /**
      * NOT responsible for damaging the tool
-     * @param yoyo
-     * @param player
-     * @param world
-     * @param pos
-     * @param state
-     * @param block
-     * @param yoyoEntity
      * @return null iff the block could not be broken
      */
     @Nullable

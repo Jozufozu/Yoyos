@@ -103,6 +103,7 @@ public class Yoyos
         registry.register(GOLD_YOYO = new ItemYoyo("gold_yoyo", Item.ToolMaterial.GOLD));
         registry.register(SHEAR_YOYO = new ItemYoyo("shear_yoyo",
                                                     Item.ToolMaterial.IRON,
+                                                    EntityYoyo::new,
                                                     Lists.newArrayList(ItemYoyo::shearEntity, ItemYoyo::collectItem, ItemYoyo::attackEntity),
                                                     Lists.newArrayList(ItemYoyo::garden))
                 .setRenderOrientation(RenderOrientation.Horizontal));

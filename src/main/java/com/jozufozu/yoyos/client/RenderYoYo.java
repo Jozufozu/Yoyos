@@ -93,14 +93,14 @@ public class RenderYoYo extends Render<EntityYoyo>
 
         if (entity.getYoyo() != null && entity.getYoyo().getRenderOrientation(entity.getYoyoStack()) == RenderOrientation.Horizontal)
         {
-            GlStateManager.rotate(90, 1, 0, 0);         //be flat, like a lawnmower
+            GlStateManager.rotate(-90, 1, 0, 0);         //be flat, like a lawnmower
         }
         else
         {
-            GlStateManager.rotate(90 - yaw, 0, 1, 0);   //face away from player
+            GlStateManager.rotate(270 - yaw, 0, 1, 0);   //face away from player
         }
 
-        GlStateManager.rotate(180 - entity.getRotation(entity.ticksExisted, partialTicks), 0, 0, 1);    //spin around
+        GlStateManager.rotate(entity.getRotation(entity.ticksExisted, partialTicks), 0, 0, 1);    //spin around
 
         if (this.renderOutlines)
         {

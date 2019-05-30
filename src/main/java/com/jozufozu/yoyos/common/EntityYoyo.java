@@ -452,8 +452,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     }
 
     /**
-     *
-     * @param stack
      * @return the amount of stack left uncollected
      */
     public ItemStack collectDrop(ItemStack stack)

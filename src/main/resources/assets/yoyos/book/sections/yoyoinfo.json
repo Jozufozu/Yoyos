@@ -18,6 +18,10 @@
     },
     {
         "type": "modifier",
+        "data": "modifiers/farming.json"
+    },
+    {
+        "type": "modifier",
         "data": "modifiers/gluey.json"
     },
     {

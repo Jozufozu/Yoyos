@@ -41,7 +41,7 @@ public class ModGardening extends ToolModifier
 {
     public ModGardening()
     {
-        super("yoyoClass", 0x8b4336);
+        super("gardening", 0x8b4336);
         
         addAspects(new ModifierAspect.DataAspect(this), new ModifierAspect.SingleAspect(this), ModifierAspect.freeModifier);
     }

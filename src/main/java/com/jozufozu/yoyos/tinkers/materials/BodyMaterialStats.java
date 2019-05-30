@@ -79,7 +79,7 @@ public class BodyMaterialStats extends AbstractMaterialStats
 
         JsonObject body = JsonUtils.getJsonObject(material, "body");
 
-        float attack = JsonUtils.getFloat(body, "entityInteraction");
+        float attack = JsonUtils.getFloat(body, "attack");
         float weight = JsonUtils.getFloat(body, "weight");
         int durability = JsonUtils.getInt(body, "durability");
 

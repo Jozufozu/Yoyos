@@ -31,17 +31,18 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.*;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentKeybind;
 import net.minecraft.util.text.TextFormatting;
@@ -51,11 +52,13 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import slimeknights.tconstruct.common.ClientProxy;
 import slimeknights.tconstruct.library.Util;
 import slimeknights.tconstruct.library.materials.Material;
+import slimeknights.tconstruct.library.modifiers.ModifierNBT;
 import slimeknights.tconstruct.library.tinkering.Category;
 import slimeknights.tconstruct.library.tinkering.PartMaterialType;
 import slimeknights.tconstruct.library.tools.TinkerToolCore;
 import slimeknights.tconstruct.library.tools.ToolCore;
 import slimeknights.tconstruct.library.tools.ToolNBT;
+import slimeknights.tconstruct.library.traits.ITrait;
 import slimeknights.tconstruct.library.utils.TagUtil;
 import slimeknights.tconstruct.library.utils.TinkerUtil;
 import slimeknights.tconstruct.library.utils.ToolHelper;
@@ -64,6 +67,7 @@ import slimeknights.tconstruct.tools.TinkerMaterials;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.vecmath.Vector3d;
 import java.util.List;
 
 public class YoyoCore extends TinkerToolCore implements IYoyo
@@ -75,7 +79,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
               new PartMaterialType(TinkersYoyos.YOYO_BODY, YoyoMaterialTypes.BODY),
               new PartMaterialType(TinkersYoyos.YOYO_AXLE, YoyoMaterialTypes.AXLE));
         
-        addCategory(Category.WEAPON, Category.NO_MELEE);
+        addCategory(Category.WEAPON, Category.NO_MELEE, Category.HARVEST, Category.PROJECTILE);
     }
 
     @Nonnull
@@ -257,9 +261,9 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     }
 
     @Override
-    public int collecting(ItemStack yoyo)
+    public int getMaxCollectedDrops(ItemStack yoyo)
     {
-        return EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo);
+        return ItemYoyo.calculateMaxCollectedDrops(new ModifierNBT(TinkerUtil.getModifierTag(yoyo, "collecting")).level);
     }
     
     @Override
@@ -351,6 +355,78 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
         {
             ItemYoyo.farm(yoyo, player, pos, state, block, yoyoEntity);
             ItemYoyo.till(yoyo, player, pos, state, block, yoyoEntity);
+        }
+    }
+
+    @Override
+    public float getWaterMovementModifier(ItemStack yoyo)
+    {
+        NBTTagList tagList = TagUtil.getModifiersTagList(yoyo);
+
+        for (int i = 0; i < tagList.tagCount(); i++) {
+            ModifierNBT data = ModifierNBT.readTag(tagList.getCompoundTagAt(i));
+            if (data.identifier.matches("fins|aquadynamic")) {
+                return 0.8f;
+            }
+        }
+
+        return 0.3f;
+    }
+
+    @Override
+    public void onUpdate(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected)
+    {
+        if (!EntityYoyo.CASTERS.containsKey(entityIn)) super.onUpdate(stack, worldIn, entityIn, itemSlot, isSelected);
+    }
+
+    @Override
+    public void onUpdate(ItemStack yoyo, EntityYoyo yoyoEntity)
+    {
+        int itemDamage = yoyo.getItemDamage();
+        for (ITrait trait : TinkerUtil.getTraitsOrdered(yoyo))
+        {
+            trait.onUpdate(yoyo, yoyoEntity.world, yoyoEntity, 0, true);
+        }
+
+        // The traits might have accidentally damaged the item because they couldn't tell it was held by a creative player
+        if (yoyoEntity.getThrower() instanceof EntityPlayer && ((EntityPlayer) yoyoEntity.getThrower()).isCreative())
+            yoyo.setItemDamage(itemDamage);
+
+        if (!yoyoEntity.isCollecting()) return;
+
+        NBTTagList modifiersTagList = TagUtil.getModifiersTagList(yoyo);
+        int index = TinkerUtil.getIndexInCompoundList(modifiersTagList, "magnetic");
+        if (index == -1) return;
+        ModifierNBT data = new ModifierNBT(modifiersTagList.getCompoundTagAt(index));
+
+        double x = yoyoEntity.posX;
+        double y = yoyoEntity.posY;
+        double z = yoyoEntity.posZ;
+        double range = 1.8d + data.level * 0.3;
+
+        List<EntityItem> items = yoyoEntity.getEntityWorld().getEntitiesWithinAABB(EntityItem.class, new AxisAlignedBB(x - range, y - range, z - range, x + range, y + range, z + range));
+        int pulled = 0;
+        for (EntityItem item : items) {
+            if (item.getItem().isEmpty() || item.isDead) continue;
+
+            if (pulled > 200) break;
+
+            // constant force!
+            float strength = 0.07f;
+
+            // calculate direction: item -> player
+            Vector3d vec = new Vector3d(x, y, z);
+            vec.sub(new Vector3d(item.posX, item.posY, item.posZ));
+
+            vec.normalize();
+            vec.scale(strength);
+
+            // we calculated the movement vector and set it to the correct strength.. now we apply it \o/
+            item.motionX += vec.x;
+            item.motionY += vec.y;
+            item.motionZ += vec.z;
+
+            pulled++;
         }
     }
 

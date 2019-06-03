@@ -87,11 +87,11 @@ public class ItemTerraYoyo extends ItemManaYoyo
     }
 
     @Override
-    public int collecting(ItemStack yoyo)
+    public int getMaxCollectedDrops(ItemStack yoyo)
     {
-        int level = super.collecting(yoyo);
-        if (isLined(yoyo)) level += 1;
-        return level;
+        int out = super.getMaxCollectedDrops(yoyo);
+        if (isLined(yoyo)) out += 64;
+        return out;
     }
 
     @Override

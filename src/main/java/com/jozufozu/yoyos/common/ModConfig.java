@@ -45,6 +45,11 @@ public class ModConfig
     @Config.LangKey("yoyos.config.swing")
     @Config.Comment("Allows you to swing from yoyos when they get caught.")
     public static boolean yoyoSwing = true;
+
+    @Config.LangKey("yoyos.config.collecting_base")
+    @Config.Comment({"How many items a yoyo enchanted with Collecting I can hold.", "Doubles with every level."})
+    @Config.RangeInt(min = 0)
+    public static int collectingBase = 64;
     
     @Config.LangKey("yoyos.config.vanilla")
     public static VanillaYoyos vanillaYoyos = new VanillaYoyos();

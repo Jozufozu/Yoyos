@@ -45,15 +45,11 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
-import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.registry.IThrowableEntity;
 import net.minecraftforge.items.ItemHandlerHelper;
-import slimeknights.tconstruct.library.utils.TagUtil;
-import slimeknights.tconstruct.library.utils.TinkerUtil;
-import slimeknights.tconstruct.tools.TinkerTraits;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -62,41 +58,40 @@ import java.util.*;
 @Mod.EventBusSubscriber
 public class EntityYoyo extends Entity implements IThrowableEntity
 {
-    public static final int BASE_CAPACITY = 64;
-
     public static final HashMap<Entity, EntityYoyo> CASTERS = new HashMap<>();
 
     protected static final int MAX_RETRACT_TIME = 40;
     public ArrayList<ItemStack> collectedDrops = new ArrayList<>();
+    public int numCollectedDrops = 0;
+    public int maxCollectedDrops;
+    protected boolean needCollectedSync;
 
     protected EntityPlayer thrower;
     protected ItemStack yoyoStack = ItemStack.EMPTY;
     protected IYoyo yoyo = null;
-
     protected EnumHand hand;
 
     protected float weight;
+
     protected float cordLength;
     protected float maxLength;
 
+    protected int attackCool;
     protected int maxCool;
+    protected boolean shouldResetCool;
+
     protected int duration;
 
-    protected int collecting;
     protected boolean interactsWithBlocks;
 
     protected boolean isRetracting = false;
     protected boolean canCancelRetract = true;
+    protected int retractionTimeout = 0;
 
     protected int lastSlot = -1;
 
-    //counters
-    protected int retractionTimeout = 0;
-    protected int attackCool;
-
     protected boolean shouldGetStats = true;
 
-    protected boolean needCollectedSync;
 
     public EntityYoyo(World world)
     {
@@ -193,7 +188,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
     public boolean isCollecting()
     {
-        return collecting > 0;
+        return maxCollectedDrops > 0;
     }
 
     @Override
@@ -210,6 +205,16 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     public void setRetracting(boolean retracting)
     {
         if (canCancelRetract || !isRetracting) isRetracting = retracting;
+    }
+
+    public boolean canAttack()
+    {
+        return attackCool >= maxCool;
+    }
+
+    public void resetAttackCooldown()
+    {
+        shouldResetCool = true;
     }
 
     @Override
@@ -229,11 +234,23 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             updateMotion();
             moveAndCollide();
 
+            yoyo.onUpdate(yoyoStack, this);
+
             if (ModConfig.yoyoSwing) handlePlayerPulling();
 
             if (!world.isRemote && interactsWithBlocks) worldInteraction();
 
             if (isCollecting()) updateCapturedDrops();
+
+            if (shouldResetCool)
+            {
+                attackCool = 0;
+                shouldResetCool = false;
+            }
+            else
+            {
+                attackCool++;
+            }
         }
         else setDead();
     }
@@ -283,7 +300,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     {
         if (shouldGetStats)
         {
-            collecting = yoyo.collecting(yoyoStack);
+            maxCollectedDrops = yoyo.getMaxCollectedDrops(yoyoStack);
             maxCool = yoyo.getAttackSpeed(yoyoStack);
             duration = yoyo.getDuration(yoyoStack);
             cordLength = maxLength = yoyo.getLength(yoyoStack);
@@ -304,11 +321,12 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         motionZ = motion.z;
 
         //Slow down in water, unless it has the modifier "aquadynamic"
-        if (inWater && (!Loader.isModLoaded("tconstruct") || !TinkerUtil.hasTrait(TagUtil.getTagSafe(yoyoStack), TinkerTraits.aquadynamic.identifier)))
+        if (inWater)
         {
-            motionX *= 0.3;
-            motionY *= 0.3;
-            motionZ *= 0.3;
+            float multiplier = yoyo.getWaterMovementModifier(yoyoStack);
+            motionX *= multiplier;
+            motionY *= multiplier;
+            motionZ *= multiplier;
         }
 
         onGround = true; //TODO: This is the only way I've found to get the yoyo to throw out smoothly
@@ -359,8 +377,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         List<AxisAlignedBB> collisionBoxes = world.getCollisionBoxes(this, union);
 
         List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(this, union);
-
-        boolean hit = false;
 
         final int steps = 50;
 
@@ -423,7 +439,10 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         }
 
         setEntityBoundingBox(yoyoBoundingBox);
-        resetPositionToBB();
+        this.posX = (yoyoBoundingBox.minX + yoyoBoundingBox.maxX) / 2.0D;
+        this.posY = (yoyoBoundingBox.minY + yoyoBoundingBox.maxY) / 2.0D;
+        this.posZ = (yoyoBoundingBox.minZ + yoyoBoundingBox.maxZ) / 2.0D;
+        if (this.isAddedToWorld() && !this.world.isRemote) this.world.updateEntityWithOptionalForce(this, false); // Forge - Process chunk registration after moving.
     }
 
     public void interactWithEntity(Entity entity)
@@ -456,21 +475,33 @@ public class EntityYoyo extends Entity implements IThrowableEntity
      */
     public ItemStack collectDrop(ItemStack stack)
     {
-        //int maxTake = BASE_CAPACITY *
-        collectedDrops.add(stack);
-        needCollectedSync = true;
+        if (!isCollecting()) return stack;
 
-        return ItemStack.EMPTY;
+        int maxTake = maxCollectedDrops - numCollectedDrops;
+
+        ItemStack take = stack.splitStack(maxTake);
+        collectedDrops.add(take);
+        needCollectedSync = true;
+        numCollectedDrops += take.getCount();
+
+        return stack;
     }
 
     public void collectDrop(@Nullable EntityItem drop)
     {
         if (drop == null) return;
 
-        if (collectDrop(drop.getItem()) == ItemStack.EMPTY)
+        ItemStack stack = drop.getItem();
+        int countBefore = stack.getCount();
+        collectDrop(stack);
+
+        if (countBefore == stack.getCount()) return;
+
+        drop.setItem(stack);
+
+        if (stack.isEmpty())
         {
             drop.setInfinitePickupDelay();
-            drop.setItem(ItemStack.EMPTY);
             drop.setDead();
         }
         world.playSound(null, drop.posX, drop.posY, drop.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2F, ((rand.nextFloat() - rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
@@ -692,6 +723,12 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     public Team getTeam()
     {
         return thrower == null ? null : thrower.getTeam();
+    }
+
+    @Override
+    public BlockPos getPosition()
+    {
+        return new BlockPos(this.posX, this.posY, this.posZ);
     }
 
     @Nullable

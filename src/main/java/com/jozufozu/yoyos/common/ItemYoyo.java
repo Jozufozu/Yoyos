@@ -305,12 +305,23 @@ public class ItemYoyo extends Item implements IYoyo
     }
     
     @Override
-    public int collecting(ItemStack yoyo)
+    public int getMaxCollectedDrops(ItemStack yoyo)
     {
-        if (this == Yoyos.CREATIVE_YOYO) return Integer.MAX_VALUE / 2;
-        return EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo);
+        if (this == Yoyos.CREATIVE_YOYO) return Integer.MAX_VALUE;
+        return calculateMaxCollectedDrops(EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo));
     }
-    
+
+    public static int calculateMaxCollectedDrops(int level)
+    {
+        if (level == 0) return 0;
+
+        int mult = 1;
+
+        for (int i = 0; i < level - 1; i++) mult *= 2;
+
+        return ModConfig.collectingBase * mult;
+    }
+
     @Override
     public void damageItem(ItemStack yoyo, int amount, EntityLivingBase player)
     {
@@ -422,8 +433,6 @@ public class ItemYoyo extends Item implements IYoyo
         {
             worldIn.setBlockState(pos, state, 11);
             yoyo.damageItem(yoyoStack, 1, player);
-
-            // TODO: Plant seeds here?
         }
     }
 
@@ -555,13 +564,14 @@ public class ItemYoyo extends Item implements IYoyo
 
     public static boolean attackEntity(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity)
     {
-        if (!ForgeHooks.onPlayerAttackTarget(player, targetEntity))
-            return false;
+        if (!yoyoEntity.canAttack()) return false;
+        if (!ForgeHooks.onPlayerAttackTarget(player, targetEntity)) return false;
 
         if (targetEntity.canBeAttackedWithItem())
         {
             if (!targetEntity.hitByEntity(player))
             {
+                yoyoEntity.resetAttackCooldown();
                 float damage = (float) player.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue();
                 float attackModifier;
 

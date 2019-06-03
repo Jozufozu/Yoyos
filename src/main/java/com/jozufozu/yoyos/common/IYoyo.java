@@ -46,16 +46,20 @@ public interface IYoyo
 
     float getAttackDamage(ItemStack yoyo);
 
-    int collecting(ItemStack yoyo);
+    int getMaxCollectedDrops(ItemStack yoyo);
     
     void damageItem(ItemStack yoyo, int amount, EntityLivingBase player);
-    
+
     void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
 
     boolean interactsWithBlocks(ItemStack yoyo);
 
     void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity);
-    
+
+    default void onUpdate(ItemStack yoyo, EntityYoyo yoyoEntity) {}
+
+    default float getWaterMovementModifier(ItemStack yoyo) { return 0.3f; }
+
     @SideOnly(Side.CLIENT)
     default int getCordColor(ItemStack yoyo, float ticks)
     {

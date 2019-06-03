@@ -124,7 +124,7 @@ public class EntityChaserYoyo extends EntityYoyo
 
     public void acquireTargetEntity()
     {
-        if (isRetracting) return;
+        if (isRetracting || !canAttack()) return;
         if (!ManaItemHandler.requestManaExact(yoyoStack, thrower, 200, false)) return;
 
         AxisAlignedBB searchBox = new AxisAlignedBB(thrower.posX - maxLength, thrower.posY - maxLength, thrower.posZ - maxLength, thrower.posX + maxLength, thrower.posY + maxLength, thrower.posZ + maxLength);

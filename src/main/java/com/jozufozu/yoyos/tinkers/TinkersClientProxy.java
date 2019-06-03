@@ -67,7 +67,12 @@ public class TinkersClientProxy extends TinkersProxy
         yoyoMods.add(TinkerModifiers.modNecrotic);
         yoyoMods.add(TinkerModifiers.modEmerald);
         yoyoMods.add(TinkerModifiers.modFiery);
+        yoyoMods.add(TinkerModifiers.modBeheading);
+        yoyoMods.add(TinkerModifiers.modFins);
+        yoyoMods.add(TinkerModifiers.modGlowing);
+        yoyoMods.add(TinkerModifiers.modWebbed);
         yoyoMods.add(TinkersYoyos.COLLECTING);
+        yoyoMods.add(TinkersYoyos.EXTENSION);
         yoyoMods.add(TinkersYoyos.LUBRICATED);
         yoyoMods.add(TinkersYoyos.FLOATING);
         yoyoMods.add(TinkersYoyos.GARDENING);

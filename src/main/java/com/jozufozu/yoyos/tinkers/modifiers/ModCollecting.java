@@ -22,7 +22,6 @@
 
 package com.jozufozu.yoyos.tinkers.modifiers;
 
-import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.tinkers.TinkersYoyos;
 import com.jozufozu.yoyos.tinkers.materials.YoyoNBT;
 import net.minecraft.item.ItemStack;
@@ -32,7 +31,6 @@ import slimeknights.tconstruct.library.modifiers.ModifierAspect;
 import slimeknights.tconstruct.library.modifiers.TinkerGuiException;
 import slimeknights.tconstruct.library.utils.TagUtil;
 import slimeknights.tconstruct.library.utils.Tags;
-import slimeknights.tconstruct.library.utils.ToolBuilder;
 import slimeknights.tconstruct.tools.modifiers.ToolModifier;
 
 /**
@@ -44,7 +42,7 @@ public class ModCollecting extends ToolModifier
     {
         super("collecting", 0x303030);
         
-        addAspects(new ModifierAspect.DataAspect(this), new ModifierAspect.SingleAspect(this), ModifierAspect.freeModifier);
+        addAspects(new ModifierAspect.DataAspect(this), new ModifierAspect.LevelAspect(this, 5), ModifierAspect.freeModifier);
     }
     
     @Override
@@ -59,8 +57,6 @@ public class ModCollecting extends ToolModifier
     @Override
     public void applyEffect(NBTTagCompound rootCompound, NBTTagCompound modifierTag)
     {
-        ToolBuilder.addEnchantment(rootCompound, Yoyos.COLLECTING);
-    
         YoyoNBT toolData = new YoyoNBT(TagUtil.getTagSafe(rootCompound, Tags.TOOL_DATA));
         toolData.weight += 0.1;
     

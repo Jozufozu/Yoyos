@@ -13,10 +13,7 @@ buildscript {
 
 apply plugin: "net.minecraftforge.gradle.forge"
 
-sourceCompatibility = targetCompatibility = '1.8'
-compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
-}
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
 version = modVersion
 group = modGroup
@@ -76,4 +73,3 @@ jar {
     exclude "**/*.psd"
     exclude "**/*.exe"
 }
-

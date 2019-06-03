@@ -36,4 +36,10 @@ public class EnchantmentCollecting extends Enchantment
         this.setName("yoyos.collecting");
         this.setRegistryName(new ResourceLocation(Yoyos.MODID, "collecting"));
     }
+
+    @Override
+    public int getMaxLevel()
+    {
+        return 5;
+    }
 }

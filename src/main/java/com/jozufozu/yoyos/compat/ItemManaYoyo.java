@@ -46,7 +46,7 @@ public class ItemManaYoyo extends ItemYoyo implements IYoyo, IManaUsingItem
 
     public ItemManaYoyo(String name, ToolMaterial material, int manaPerDamage,  BiFunction<World, EntityPlayer, EntityYoyo> yoyoFactory)
     {
-        super(name, material);
+        super(name, material, yoyoFactory);
         this.manaPerDamage = manaPerDamage;
     }
 

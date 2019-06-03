@@ -33,9 +33,9 @@ public class ItemElementiumYoyo extends ItemManaYoyo implements IPixieSpawner
     }
 
     @Override
-    public int collecting(ItemStack yoyo)
+    public int getMaxCollectedDrops(ItemStack yoyo)
     {
-        return 1 + super.collecting(yoyo);
+        return 64 + super.getMaxCollectedDrops(yoyo);
     }
 
     @Override

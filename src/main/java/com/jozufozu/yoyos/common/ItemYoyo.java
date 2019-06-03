@@ -27,10 +27,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.jozufozu.yoyos.Yoyos;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockBush;
-import net.minecraft.block.BlockCrops;
-import net.minecraft.block.BlockDirt;
+import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
@@ -128,11 +125,6 @@ public class ItemYoyo extends Item implements IYoyo
     {
         Collections.addAll(entityInteractions, entityInteraction);
         return this;
-    }
-
-    public RenderOrientation getRenderOrientation()
-    {
-        return renderOrientation;
     }
 
     public ItemYoyo setRenderOrientation(RenderOrientation renderOrientation)
@@ -464,7 +456,7 @@ public class ItemYoyo extends Item implements IYoyo
             }
         }
 
-        if (block instanceof BlockBush)
+        if (block instanceof BlockBush || block instanceof BlockReed)
         {
             doBlockBreaking(yoyo, player, world, pos, state, block, yoyoEntity);
             return true;

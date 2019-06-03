@@ -439,10 +439,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         }
 
         setEntityBoundingBox(yoyoBoundingBox);
-        this.posX = (yoyoBoundingBox.minX + yoyoBoundingBox.maxX) / 2.0D;
-        this.posY = (yoyoBoundingBox.minY + yoyoBoundingBox.maxY) / 2.0D;
-        this.posZ = (yoyoBoundingBox.minZ + yoyoBoundingBox.maxZ) / 2.0D;
-        if (this.isAddedToWorld() && !this.world.isRemote) this.world.updateEntityWithOptionalForce(this, false); // Forge - Process chunk registration after moving.
+        resetPositionToBB();
     }
 
     public void interactWithEntity(Entity entity)

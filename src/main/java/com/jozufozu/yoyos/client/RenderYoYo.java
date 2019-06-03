@@ -73,25 +73,25 @@ public class RenderYoYo extends Render<EntityYoyo>
     }
     
     @Override
-    public void doRender(EntityYoyo entity, double x, double y, double z, float entityYaw, float partialTicks)
+    public void doRender(EntityYoyo entityYoyo, double x, double y, double z, float entityYaw, float partialTicks)
     {
-        if (dummy == null || dummy.world != entity.world)
-            dummy = new EntityBat(entity.world);
+        if (dummy == null || dummy.world != entityYoyo.world)
+            dummy = new EntityBat(entityYoyo.world);
 
         Profiler mcProfiler = Minecraft.getMinecraft().mcProfiler;
         mcProfiler.startSection("renderYoyo");
         
         GlStateManager.pushMatrix();
-        GlStateManager.translate(x, y + entity.height / 2, z);
+        GlStateManager.translate(x, y + entityYoyo.height / 2, z);
         GlStateManager.scale(.5, .5, .5);
 
-        Vec3d pointTo = entity.getPlayerHandPos(partialTicks).subtract(entity.posX, entity.posY + entity.height / 2, entity.posZ).normalize();
+        Vec3d pointTo = entityYoyo.getPlayerHandPos(partialTicks).subtract(entityYoyo.posX, entityYoyo.posY, entityYoyo.posZ).normalize();
 
         float yaw = (float) (Math.atan2(pointTo.x, pointTo.z) * -180 / Math.PI);
 
         GlStateManager.pushMatrix();
 
-        if (entity.getYoyo() != null && entity.getYoyo().getRenderOrientation(entity.getYoyoStack()) == RenderOrientation.Horizontal)
+        if (entityYoyo.getYoyo() != null && entityYoyo.getYoyo().getRenderOrientation(entityYoyo.getYoyoStack()) == RenderOrientation.Horizontal)
         {
             GlStateManager.rotate(-90, 1, 0, 0);         //be flat, like a lawnmower
         }
@@ -100,26 +100,26 @@ public class RenderYoYo extends Render<EntityYoyo>
             GlStateManager.rotate(270 - yaw, 0, 1, 0);   //face away from player
         }
 
-        GlStateManager.rotate(entity.getRotation(entity.ticksExisted, partialTicks), 0, 0, 1);    //spin around
+        GlStateManager.rotate(entityYoyo.getRotation(entityYoyo.ticksExisted, partialTicks), 0, 0, 1);    //spin around
 
         if (this.renderOutlines)
         {
             GlStateManager.enableColorMaterial();
-            GlStateManager.enableOutlineMode(this.getTeamColor(entity));
+            GlStateManager.enableOutlineMode(this.getTeamColor(entityYoyo));
         }
 
-        itemRenderer.renderItem(entity.getYoyoStack(), dummy, ItemCameraTransforms.TransformType.NONE, false);
+        itemRenderer.renderItem(entityYoyo.getYoyoStack(), dummy, ItemCameraTransforms.TransformType.NONE, false);
 
         GlStateManager.popMatrix();
     
-        if (entity.isCollecting() && !entity.collectedDrops.isEmpty())
+        if (entityYoyo.isCollecting() && !entityYoyo.collectedDrops.isEmpty())
         {
-            renderCollectedItems(entity, partialTicks);
+            renderCollectedItems(entityYoyo, partialTicks);
         }
     
         GlStateManager.popMatrix();
         
-        renderChord(entity, x, y, z, partialTicks);
+        renderChord(entityYoyo, x, y, z, partialTicks);
     
         if (this.renderOutlines)
         {
@@ -127,7 +127,7 @@ public class RenderYoYo extends Render<EntityYoyo>
             GlStateManager.disableColorMaterial();
         }
         
-        super.doRender(entity, x, y, z, entityYaw, partialTicks);
+        super.doRender(entityYoyo, x, y, z, entityYaw, partialTicks);
         
         mcProfiler.endSection();
     }

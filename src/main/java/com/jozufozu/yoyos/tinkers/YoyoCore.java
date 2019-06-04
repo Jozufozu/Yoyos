@@ -113,13 +113,13 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     @Override
     public float damagePotential()
     {
-        return 0.85F;
+        return 1.0F;
     }
     
     @Override
     public double attackSpeed()
     {
-        return 0.8;
+        return 1.6;
     }
     
     @Override
@@ -257,7 +257,8 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     @Override
     public int getAttackSpeed(ItemStack yoyo)
     {
-        return ((int) (ToolHelper.getActualAttackSpeed(yoyo) * 5));
+        // https://www.desmos.com/calculator/a6kcnvxegv
+        return (int)(Math.ceil(11 / Math.sqrt(ToolHelper.getActualAttackSpeed(yoyo)))) + 1;
     }
 
     @Override

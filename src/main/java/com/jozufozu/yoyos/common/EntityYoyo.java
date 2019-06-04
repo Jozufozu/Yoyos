@@ -68,6 +68,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
     protected EntityPlayer thrower;
     protected ItemStack yoyoStack = ItemStack.EMPTY;
+    protected ItemStack yoyoStackLastTick = ItemStack.EMPTY;
     protected IYoyo yoyo = null;
     protected EnumHand hand;
 
@@ -80,6 +81,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     protected int maxCool;
     protected boolean shouldResetCool;
 
+    protected int timeoutCounter;
     protected int duration;
 
     protected boolean interactsWithBlocks;
@@ -211,6 +213,16 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         shouldResetCool = true;
     }
 
+    public int getTimeout()
+    {
+        return timeoutCounter;
+    }
+
+    public void increaseTimeout(int n)
+    {
+        timeoutCounter += n;
+    }
+
     public Vec3d getPlayerHandPos(float partialTicks)
     {
         if (thrower == null) return new Vec3d(posX, posY, posZ);
@@ -280,29 +292,20 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
             if (yoyo == null) return;
 
-            if (duration >= 0 && ticksExisted >= duration) forceRetract();
+            if (duration >= 0 && ++timeoutCounter >= duration) forceRetract();
 
-            //handle position
             updateMotion();
             moveAndCollide();
 
             yoyo.onUpdate(yoyoStack, this);
 
-            if (ModConfig.yoyoSwing) handlePlayerPulling();
-
             if (!world.isRemote && interactsWithBlocks) worldInteraction();
 
             if (isCollecting()) updateCapturedDrops();
 
-            if (shouldResetCool)
-            {
-                attackCool = 0;
-                shouldResetCool = false;
-            }
-            else
-            {
-                attackCool++;
-            }
+            if (ModConfig.yoyoSwing) handlePlayerPulling();
+
+            resetOrIncrementAttackCooldown();
         }
         else setDead();
     }
@@ -322,11 +325,13 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         int currentSlot = hand == EnumHand.MAIN_HAND ? thrower.inventory.currentItem : -2;
 
-        if (!CASTERS.containsKey(thrower) || !(yoyoStack.getItem() instanceof IYoyo) || (lastSlot != -1 && lastSlot != currentSlot))
+        if (!CASTERS.containsKey(thrower) || !(yoyoStack.getItem() instanceof IYoyo) || (lastSlot != -1 && lastSlot != currentSlot) || (ticksExisted > 1 && yoyoStackLastTick != yoyoStack))
         {
             setDead();
             return null;
         }
+
+        yoyoStackLastTick = yoyoStack;
 
         if (yoyoStack.getMaxDamage() < yoyoStack.getItemDamage() && yoyoStack.getItem() != Yoyos.CREATIVE_YOYO)
         {
@@ -636,6 +641,19 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             thrower.addVelocity(dx * scale, dy * scale, dz * scale);
             thrower.fallDistance = 0;
             if (isRetracting) setDead();
+        }
+    }
+
+    protected void resetOrIncrementAttackCooldown()
+    {
+        if (shouldResetCool)
+        {
+            attackCool = 0;
+            shouldResetCool = false;
+        }
+        else
+        {
+            attackCool++;
         }
     }
 

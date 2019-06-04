@@ -73,7 +73,7 @@ public class YoyoCompatibility
     {
         BotaniaAPI.blacklistEntityFromGravityRod(EntityYoyo.class);
 
-        if (!ModConfig.botanicalYoyos) return;
+        if (!ModConfig.botaniaYoyos.enable) return;
 
         IForgeRegistry<Item> registry = event.getRegistry();
         Item mana_cord = registerItem(registry, new Item().setCreativeTab(CreativeTabs.MATERIALS).setRegistryName(Yoyos.MODID, "mana_cord").setUnlocalizedName("yoyos.mana_cord"));
@@ -89,7 +89,7 @@ public class YoyoCompatibility
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void loadBotaniaRecipes(RegistryEvent.Register<IRecipe> event)
     {
-        if (ModConfig.botanicalYoyos)
+        if (!ModConfig.botaniaYoyos.enable)
             event.getRegistry().register(new TerraYoyoLiningRecipe().setRegistryName(Yoyos.MODID, "terra_lining"));
     }
 
@@ -98,7 +98,7 @@ public class YoyoCompatibility
         LexiconEntry terraBlade = new YoyoLexiconEntry("terra_chaser", BotaniaAPI.categoryTools);
         terraBlade.setLexiconPages(new PageText("0"), new PageCraftingRecipe("1", new ResourceLocation(Yoyos.MODID, "terrasteel_yoyo")));
 
-        if (ModConfig.lexiconHackery)
+        if (ModConfig.botaniaYoyos.lexiconHackery)
         {
             hackPagesIntoExistingEntries();
         }

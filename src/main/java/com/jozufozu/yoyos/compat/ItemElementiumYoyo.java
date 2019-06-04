@@ -22,6 +22,7 @@
 
 package com.jozufozu.yoyos.compat;
 
+import com.jozufozu.yoyos.common.ModConfig;
 import net.minecraft.item.ItemStack;
 import vazkii.botania.api.item.IPixieSpawner;
 
@@ -42,5 +43,29 @@ public class ItemElementiumYoyo extends ItemManaYoyo implements IPixieSpawner
     public float getPixieChance(ItemStack itemStack)
     {
         return 0.05f;
+    }
+
+    @Override
+    public float getAttackDamage(ItemStack yoyo)
+    {
+        return ModConfig.botaniaYoyos.elementiumYoyo.damage;
+    }
+
+    @Override
+    public float getWeight(ItemStack yoyo)
+    {
+        return ModConfig.botaniaYoyos.elementiumYoyo.weight;
+    }
+
+    @Override
+    public float getLength(ItemStack yoyo)
+    {
+        return ModConfig.botaniaYoyos.elementiumYoyo.length;
+    }
+
+    @Override
+    public int getDuration(ItemStack yoyo)
+    {
+        return ModConfig.botaniaYoyos.elementiumYoyo.duration;
     }
 }

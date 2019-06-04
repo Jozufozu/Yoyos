@@ -116,7 +116,7 @@ public class EntityStickyYoyo extends EntityYoyo
             if (isCollecting())
                 updateCapturedDrops();
 
-            attackCool++;
+            resetOrIncrementAttackCooldown();
         }
         else setDead();
     }

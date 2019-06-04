@@ -171,7 +171,7 @@ public class Yoyos
             TinkersYoyos.init(event);
         }
 
-        if (Loader.isModLoaded("botania") & ModConfig.botanicalYoyos)
+        if (Loader.isModLoaded("botania") & ModConfig.botaniaYoyos.enable)
         {
             YoyoCompatibility.initBotania();
         }

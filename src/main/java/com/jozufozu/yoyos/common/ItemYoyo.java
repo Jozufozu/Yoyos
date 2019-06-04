@@ -377,6 +377,8 @@ public class ItemYoyo extends Item implements IYoyo
                 {
                     yoyoEntity.createItemDropOrCollect(stack, pos);
                 }
+
+                yoyoEntity.increaseTimeout(10);
             }
 
             return true;
@@ -396,7 +398,7 @@ public class ItemYoyo extends Item implements IYoyo
 
             if (block == Blocks.GRASS || block == Blocks.GRASS_PATH)
             {
-                setBlock(yoyoEntity.yoyo, yoyo, player, worldIn, pos, Blocks.FARMLAND.getDefaultState());
+                setBlock(yoyo, player, yoyoEntity, pos, Blocks.FARMLAND.getDefaultState());
                 return true;
             }
 
@@ -405,10 +407,10 @@ public class ItemYoyo extends Item implements IYoyo
                 switch (state.getValue(BlockDirt.VARIANT))
                 {
                 case DIRT:
-                    setBlock(yoyoEntity.yoyo, yoyo, player, worldIn, pos, Blocks.FARMLAND.getDefaultState());
+                    setBlock(yoyo, player, yoyoEntity, pos, Blocks.FARMLAND.getDefaultState());
                     return true;
                 case COARSE_DIRT:
-                    setBlock(yoyoEntity.yoyo, yoyo, player, worldIn, pos, Blocks.DIRT.getDefaultState().withProperty(BlockDirt.VARIANT, BlockDirt.DirtType.DIRT));
+                    setBlock(yoyo, player, yoyoEntity, pos, Blocks.DIRT.getDefaultState().withProperty(BlockDirt.VARIANT, BlockDirt.DirtType.DIRT));
                     return true;
                 }
             }
@@ -417,14 +419,14 @@ public class ItemYoyo extends Item implements IYoyo
         return false;
     }
 
-    private static void setBlock(IYoyo yoyo, ItemStack yoyoStack, EntityPlayer player, World worldIn, BlockPos pos, IBlockState state)
+    private static void setBlock(ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity, BlockPos pos, IBlockState state)
     {
-        worldIn.playSound(null, pos, SoundEvents.ITEM_HOE_TILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
+        yoyoEntity.world.playSound(null, pos, SoundEvents.ITEM_HOE_TILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
 
-        if (!worldIn.isRemote)
+        if (!yoyoEntity.world.isRemote)
         {
-            worldIn.setBlockState(pos, state, 11);
-            yoyo.damageItem(yoyoStack, 1, player);
+            yoyoEntity.world.setBlockState(pos, state, 11);
+            yoyoEntity.getYoyo().damageItem(yoyo, 1, player);
         }
     }
 
@@ -442,7 +444,8 @@ public class ItemYoyo extends Item implements IYoyo
                 {
                     block.breakBlock(world, pos, state);
 
-                    yoyoEntity.yoyo.damageItem(yoyo, 1, player);
+                    yoyoEntity.getYoyo().damageItem(yoyo, 1, player);
+                    yoyoEntity.increaseTimeout(10);
 
                     for (ItemStack stack : stacks)
                     {
@@ -551,6 +554,8 @@ public class ItemYoyo extends Item implements IYoyo
         state.getBlock().getDrops(drops, world, pos, state, fortune);
         ForgeEventFactory.fireBlockHarvesting(drops, world, pos, state, fortune, 1.0F, false, player);
 
+        yoyoEntity.increaseTimeout(10);
+
         return drops;
     }
 
@@ -564,6 +569,8 @@ public class ItemYoyo extends Item implements IYoyo
             if (!targetEntity.hitByEntity(player))
             {
                 yoyoEntity.resetAttackCooldown();
+                yoyoEntity.increaseTimeout(10);
+
                 float damage = (float) player.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue();
                 float attackModifier;
 

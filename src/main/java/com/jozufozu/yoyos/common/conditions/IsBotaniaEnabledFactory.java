@@ -34,6 +34,6 @@ public class IsBotaniaEnabledFactory implements IConditionFactory
     @Override
     public BooleanSupplier parse(JsonContext context, JsonObject json)
     {
-        return () -> ModConfig.botanicalYoyos;
+        return () -> ModConfig.botaniaYoyos.enable;
     }
 }

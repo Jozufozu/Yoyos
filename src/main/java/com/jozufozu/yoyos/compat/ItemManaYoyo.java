@@ -59,25 +59,25 @@ public class ItemManaYoyo extends ItemYoyo implements IYoyo, IManaUsingItem
     @Override
     public float getAttackDamage(ItemStack yoyo)
     {
-        return ModConfig.vanillaYoyos.ironYoyo.damage;
+        return ModConfig.botaniaYoyos.manasteelYoyo.damage;
     }
 
     @Override
     public float getWeight(ItemStack yoyo)
     {
-        return ModConfig.vanillaYoyos.ironYoyo.weight;
+        return ModConfig.botaniaYoyos.manasteelYoyo.weight;
     }
     
     @Override
     public float getLength(ItemStack yoyo)
     {
-        return ModConfig.vanillaYoyos.ironYoyo.length;
+        return ModConfig.botaniaYoyos.manasteelYoyo.length;
     }
     
     @Override
     public int getDuration(ItemStack yoyo)
     {
-        return ModConfig.vanillaYoyos.ironYoyo.duration;
+        return ModConfig.botaniaYoyos.manasteelYoyo.duration;
     }
 
     @Override

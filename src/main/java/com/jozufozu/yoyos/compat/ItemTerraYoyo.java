@@ -97,24 +97,24 @@ public class ItemTerraYoyo extends ItemManaYoyo
     @Override
     public float getAttackDamage(ItemStack yoyo)
     {
-        return ModConfig.vanillaYoyos.diamondYoyo.damage;
+        return ModConfig.botaniaYoyos.terrasteelYoyo.damage;
     }
 
     @Override
     public float getWeight(ItemStack yoyo)
     {
-        return ModConfig.vanillaYoyos.diamondYoyo.weight;
+        return ModConfig.botaniaYoyos.terrasteelYoyo.weight;
     }
 
     @Override
     public float getLength(ItemStack yoyo)
     {
-        return ModConfig.vanillaYoyos.diamondYoyo.length;
+        return ModConfig.botaniaYoyos.terrasteelYoyo.length;
     }
 
     @Override
     public int getDuration(ItemStack yoyo)
     {
-        return ModConfig.vanillaYoyos.diamondYoyo.duration;
+        return ModConfig.botaniaYoyos.terrasteelYoyo.duration;
     }
 }

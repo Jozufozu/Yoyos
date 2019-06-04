@@ -100,7 +100,7 @@ public class RenderYoYo extends Render<EntityYoyo>
             GlStateManager.rotate(270 - yaw, 0, 1, 0);   //face away from player
         }
 
-        GlStateManager.rotate(entityYoyo.getRotation(entityYoyo.ticksExisted, partialTicks), 0, 0, 1);    //spin around
+        GlStateManager.rotate(entityYoyo.getRotation(entityYoyo.getTimeout(), partialTicks), 0, 0, 1);    //spin around
 
         if (this.renderOutlines)
         {

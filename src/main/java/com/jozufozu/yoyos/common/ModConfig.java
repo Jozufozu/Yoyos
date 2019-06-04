@@ -53,6 +53,9 @@ public class ModConfig
     
     @Config.LangKey("yoyos.config.vanilla")
     public static VanillaYoyos vanillaYoyos = new VanillaYoyos();
+
+    @Config.LangKey("yoyos.config.botania")
+    public static BotaniaYoyos botaniaYoyos = new BotaniaYoyos();
     
     @Config.LangKey("yoyos.config.tinkers")
     @Config.Comment("Add customizable yoyos if Tinkers' Construct is installed.")
@@ -69,23 +72,13 @@ public class ModConfig
     @Config.RequiresMcRestart
     public static boolean configMaterials = false;
 
-    @Config.LangKey("yoyos.config.botania")
-    @Config.Comment("Integrate with botania if it is installed.")
-    @Config.RequiresMcRestart
-    public static boolean botanicalYoyos = true;
-
-    @Config.LangKey("yoyos.config.botania.hackery")
-    @Config.Comment({"Merge the yoyo pages in the Lexica Botania with their normal counterparts.", "Disable if you notice any conflicts."})
-    @Config.RequiresMcRestart
-    public static boolean lexiconHackery = true;
-
     public static class VanillaYoyos
     {
         @Config.LangKey("yoyos.config.enable")
         @Config.Comment("Whether or not the default yoyos are added")
         @Config.RequiresMcRestart
         public boolean enable = true;
-        
+
         @Config.LangKey("item.yoyos.wooden_yoyo.name")
         public YoyoSettings woodenYoyo = new YoyoSettings(2.2f, 6.0f, 100, 3.0f);
         @Config.LangKey("item.yoyos.stone_yoyo.name")
@@ -104,36 +97,56 @@ public class ModConfig
         public YoyoSettings stickyYoyo = new YoyoSettings(1.8f, 9.0f, 400, 0.0f);
         @Config.LangKey("item.yoyos.creative_yoyo.name")
         public YoyoSettings creativeYoyo = new YoyoSettings(0.9f, 24.0f, -1, 9001.0f);
-        
-        public static class YoyoSettings
+    }
+
+    public static class BotaniaYoyos
+    {
+        @Config.LangKey("yoyos.config.enable")
+        @Config.Comment("Integrate with botania if it is installed.")
+        @Config.RequiresMcRestart
+        public boolean enable = true;
+
+        @Config.LangKey("yoyos.config.botania.hackery")
+        @Config.Comment({"Merge the yoyo pages in the Lexica Botania with their normal counterparts.", "Disable if you notice any conflicts."})
+        @Config.RequiresMcRestart
+        public boolean lexiconHackery = true;
+
+        @Config.LangKey("item.yoyos.manasteel_yoyo.name")
+        public YoyoSettings manasteelYoyo = new YoyoSettings(5.0f, 8.0f, 300, 5.0f);
+        @Config.LangKey("item.yoyos.elementium_yoyo.name")
+        public YoyoSettings elementiumYoyo = new YoyoSettings(5.0f, 8.0f, 300, 5.0f);
+        @Config.LangKey("item.yoyos.terrasteel_yoyo.name")
+        public YoyoSettings terrasteelYoyo = new YoyoSettings(1.7f, 9.0f, 400, 6.0f);
+    }
+
+    public static class YoyoSettings
+    {
+        @Config.LangKey("yoyos.config.weight")
+        @Config.Comment("Affects how fast the yoyo moves")
+        @Config.RangeDouble(min = 0)
+        public float weight;
+
+        @Config.LangKey("yoyos.config.length")
+        @Config.Comment("How far away the yoyo can get (in blocks)")
+        @Config.RangeDouble(min = 0)
+        public float length;
+
+        @Config.LangKey("yoyos.config.duration")
+        @Config.Comment({"How long the yoyo can stay out (in ticks)", "-1 means infinite duration"})
+        @Config.RangeInt(min = -1)
+        public int duration;
+
+        @Config.LangKey("yoyos.config.damage")
+        @Config.Comment("How much damage the yoyo does (in hearts)")
+        @Config.RangeDouble(min = 0)
+        public float damage;
+
+        public YoyoSettings(float weight, float length, int duration, float damage)
         {
-            @Config.LangKey("yoyos.config.weight")
-            @Config.Comment("Affects how fast the yoyo moves")
-            @Config.RangeDouble(min = 0)
-            public float weight;
-    
-            @Config.LangKey("yoyos.config.length")
-            @Config.Comment("How far away the yoyo can get (in blocks)")
-            @Config.RangeDouble(min = 0)
-            public float length;
-    
-            @Config.LangKey("yoyos.config.duration")
-            @Config.Comment({"How long the yoyo can stay out (in ticks)", "-1 means infinite duration"})
-            @Config.RangeInt(min = -1)
-            public int duration;
-    
-            @Config.LangKey("yoyos.config.damage")
-            @Config.Comment("How much damage the yoyo does (in hearts)")
-            @Config.RangeDouble(min = 0)
-            public float damage;
-    
-            public YoyoSettings(float weight, float length, int duration, float damage)
-            {
-                this.weight = weight;
-                this.length = length;
-                this.duration = duration;
-                this.damage = damage;
-            }
+            this.weight = weight;
+            this.length = length;
+            this.duration = duration;
+            this.damage = damage;
         }
     }
 }

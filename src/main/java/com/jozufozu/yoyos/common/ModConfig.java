@@ -56,7 +56,12 @@ public class ModConfig
 
     @Config.LangKey("yoyos.config.botania")
     public static BotaniaYoyos botaniaYoyos = new BotaniaYoyos();
-    
+
+    @Config.LangKey("yoyos.config.replanting")
+    @Config.Comment("Should farming yoyos replant crops")
+    @Config.RequiresMcRestart
+    public static boolean replant = false;
+
     @Config.LangKey("yoyos.config.tinkers")
     @Config.Comment("Add customizable yoyos if Tinkers' Construct is installed.")
     @Config.RequiresMcRestart

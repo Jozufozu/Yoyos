@@ -486,7 +486,7 @@ public class ItemYoyo extends Item implements IYoyo
                 {
                     if (stack.isEmpty()) continue;
 
-                    if (!foundSeed && stack.getItem() instanceof IPlantable)
+                    if (ModConfig.replant && !foundSeed && stack.getItem() instanceof IPlantable)
                     {
                         stack.shrink(1);
                         foundSeed = true;
@@ -495,23 +495,26 @@ public class ItemYoyo extends Item implements IYoyo
                     yoyoEntity.createItemDropOrCollect(stack, pos);
                 }
 
-                if (!foundSeed && !yoyoEntity.collectedDrops.isEmpty())
+                if (ModConfig.replant)
                 {
-                    for (ItemStack stack : yoyoEntity.collectedDrops)
+                    if (!foundSeed && !yoyoEntity.collectedDrops.isEmpty())
                     {
-                        if (stack.isEmpty()) continue;
-
-                        if (stack.getItem() instanceof IPlantable)
+                        for (ItemStack stack : yoyoEntity.collectedDrops)
                         {
-                            stack.shrink(1);
-                            yoyoEntity.needCollectedSync = true; // refill/reshuffle the stacks
-                            foundSeed = true;
-                            break;
+                            if (stack.isEmpty()) continue;
+
+                            if (stack.getItem() instanceof IPlantable)
+                            {
+                                stack.shrink(1);
+                                yoyoEntity.needCollectedSync = true; // refill/reshuffle the stacks
+                                foundSeed = true;
+                                break;
+                            }
                         }
                     }
-                }
 
-                if (foundSeed) yoyoEntity.world.setBlockState(pos, ((BlockCrops) block).withAge(0));
+                    if (foundSeed) yoyoEntity.world.setBlockState(pos, ((BlockCrops) block).withAge(0));
+                }
 
                 return true;
             }

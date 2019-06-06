@@ -90,15 +90,17 @@ public class EntityStickyYoyo extends EntityYoyo
 
                 if (!stuck)
                 {
-                    stuckSince = ticksExisted;
+                    stuckSince = timeoutCounter;
                     cordLength = MathHelper.sqrt(distanceSqr);
                     world.playSound(null, posX, posY, posZ, Yoyos.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f);
                 }
                 stuck = true;
+
+                handlePlayerPulling();
             }
             else
             {
-                if (duration >= 0 && ticksExisted >= duration)
+                if (duration >= 0 && ++timeoutCounter >= duration)
                     forceRetract();
 
                 updateMotion();
@@ -110,8 +112,6 @@ public class EntityStickyYoyo extends EntityYoyo
 
                 stuck = false;
             }
-
-            handlePlayerPulling();
 
             if (isCollecting())
                 updateCapturedDrops();

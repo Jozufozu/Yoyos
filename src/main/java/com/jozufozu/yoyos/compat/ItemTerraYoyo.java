@@ -23,10 +23,10 @@
 package com.jozufozu.yoyos.compat;
 
 import com.jozufozu.yoyos.Yoyos;
+import com.jozufozu.yoyos.common.EntityYoyo;
 import com.jozufozu.yoyos.common.ModConfig;
 import com.jozufozu.yoyos.network.MessageAcquireTarget;
 import com.jozufozu.yoyos.network.YoyoNetwork;
-import net.minecraft.enchantment.Enchantment;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -74,16 +74,11 @@ public class ItemTerraYoyo extends ItemManaYoyo
     @SubscribeEvent
     public void leftClick(PlayerInteractEvent.LeftClickEmpty evt)
     {
-        if (!evt.getItemStack().isEmpty() && evt.getItemStack().getItem() == this)
+        EntityYoyo entityYoyo = EntityYoyo.CASTERS.get(evt.getEntityPlayer());
+        if (entityYoyo != null && entityYoyo.getYoyo() == this)
         {
             YoyoNetwork.INSTANCE.sendToServer(new MessageAcquireTarget());
         }
-    }
-
-    @Override
-    public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment)
-    {
-        return enchantment != Yoyos.COLLECTING && super.canApplyAtEnchantingTable(stack, enchantment);
     }
 
     @Override

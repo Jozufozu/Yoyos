@@ -124,7 +124,7 @@ public class EntityChaserYoyo extends EntityYoyo
 
     public void acquireTargetEntity()
     {
-        if (isRetracting || !canAttack()) return;
+        if (isRetracting) return;
         if (!ManaItemHandler.requestManaExact(yoyoStack, thrower, 200, false)) return;
 
         AxisAlignedBB searchBox = new AxisAlignedBB(thrower.posX - maxLength, thrower.posY - maxLength, thrower.posZ - maxLength, thrower.posX + maxLength, thrower.posY + maxLength, thrower.posZ + maxLength);
@@ -154,7 +154,7 @@ public class EntityChaserYoyo extends EntityYoyo
 
             // Priority multipliers
             if (testEntity instanceof EntityAnimal) closeness *= 0.5;
-            else if (testEntity instanceof EntityItem) closeness *= 1.5;
+            else if (testEntity instanceof EntityItem) closeness *= 0.7;
             else if (!(testEntity instanceof EntityAmbientCreature))
                 closeness *= 2.0; // If it's not an animal or an item, it's probably a monster
 

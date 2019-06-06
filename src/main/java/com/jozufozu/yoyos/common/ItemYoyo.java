@@ -142,6 +142,9 @@ public class ItemYoyo extends Item implements IYoyo
     @Override
     public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment)
     {
+        if (enchantment == Enchantments.SWEEPING) return false;
+        if (enchantment == Enchantments.FORTUNE && interactsWithBlocks(stack)) return true;
+
         return enchantment == Yoyos.COLLECTING || enchantment.type == EnumEnchantmentType.ALL || enchantment.type == EnumEnchantmentType.WEAPON;
     }
 

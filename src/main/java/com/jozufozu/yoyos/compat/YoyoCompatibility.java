@@ -89,7 +89,7 @@ public class YoyoCompatibility
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void loadBotaniaRecipes(RegistryEvent.Register<IRecipe> event)
     {
-        if (!ModConfig.botaniaYoyos.enable)
+        if (ModConfig.botaniaYoyos.enable)
             event.getRegistry().register(new TerraYoyoLiningRecipe().setRegistryName(Yoyos.MODID, "terra_lining"));
     }
 

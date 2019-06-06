@@ -51,7 +51,7 @@ public class MessageAcquireTarget implements IMessage
 
         public MessageTargetUpdate() { }
 
-        public MessageTargetUpdate(EntityChaserYoyo yoyo, Entity entity)
+        public MessageTargetUpdate(EntityChaserYoyo yoyo, @Nullable Entity entity)
         {
             yoyoID = yoyo.getEntityId();
             if (entity == null)

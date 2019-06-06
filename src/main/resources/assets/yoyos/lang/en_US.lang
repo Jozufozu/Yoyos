@@ -26,6 +26,7 @@ yoyos.config.vanilla=Vanilla Yoyos
 yoyos.config.enable=Enable
 yoyos.config.tinkers=Tinkers' Yoyos
 yoyos.config.swing=Yoyo Swinging
+yoyos.config.replanting=Farming Yoyos Replant Crops
 
 yoyos.config.materials=Configurable Material Stats
 

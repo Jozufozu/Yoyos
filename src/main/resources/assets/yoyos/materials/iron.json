@@ -4,7 +4,7 @@
         "modifier": 0.85
     },
     "body": {
-        "attack": 4.0,
+        "attack": 5.0,
         "weight": 3.5,
         "durability": 204
     }

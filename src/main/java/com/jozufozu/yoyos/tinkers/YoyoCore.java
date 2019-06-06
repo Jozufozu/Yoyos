@@ -322,7 +322,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
             return;
         }
 
-        ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target);
+        ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target, yoyoEntity);
     }
 
     @Override

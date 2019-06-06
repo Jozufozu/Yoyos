@@ -59,8 +59,7 @@ public class ModConfig
 
     @Config.LangKey("yoyos.config.replanting")
     @Config.Comment("Should farming yoyos replant crops")
-    @Config.RequiresMcRestart
-    public static boolean replant = false;
+    public static boolean replant = true;
 
     @Config.LangKey("yoyos.config.tinkers")
     @Config.Comment("Add customizable yoyos if Tinkers' Construct is installed.")

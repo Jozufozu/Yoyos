@@ -31,7 +31,6 @@ import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.EnumEnchantmentType;
@@ -68,10 +67,7 @@ import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiFunction;
 
 public class ItemYoyo extends Item implements IYoyo
@@ -104,15 +100,13 @@ public class ItemYoyo extends Item implements IYoyo
         this.material = material;
         this.maxStackSize = 1;
         this.setMaxDamage(material.getMaxUses());
-        this.setCreativeTab(CreativeTabs.COMBAT);
+        this.setCreativeTab(Yoyos.YOYOS_TAB);
         this.attackDamage = 3.0F + material.getAttackDamage();
 
         this.setUnlocalizedName(String.format("%s.%s", Yoyos.MODID, name));
         this.setRegistryName(Yoyos.MODID, name);
 
         this.addPropertyOverride(new ResourceLocation(Yoyos.MODID, "thrown"), (stack, worldIn, entityIn) -> entityIn instanceof EntityBat ? 1 : 0);
-
-        this.setCreativeTab(CreativeTabs.COMBAT);
     }
 
     public ItemYoyo addBlockInteraction(IBlockInteraction... blockInteraction)
@@ -165,6 +159,7 @@ public class ItemYoyo extends Item implements IYoyo
         return OreDictionary.itemMatches(mat, repair, false) || super.getIsRepairable(toRepair, repair);
     }
 
+    @Override
     public boolean onBlockDestroyed(ItemStack stack, World worldIn, IBlockState state, BlockPos pos, EntityLivingBase entityLiving)
     {
         if ((double)state.getBlockHardness(worldIn, pos) != 0.0D)
@@ -175,6 +170,7 @@ public class ItemYoyo extends Item implements IYoyo
         return true;
     }
 
+    @Override
     public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker)
     {
         this.damageItem(stack, 1, attacker);
@@ -229,7 +225,6 @@ public class ItemYoyo extends Item implements IYoyo
         return multimap;
     }
 
-    @Override
     public float getAttackDamage(ItemStack yoyo)
     {
         if (this == Yoyos.SHEAR_YOYO) return ModConfig.vanillaYoyos.shearYoyo.damage;
@@ -294,8 +289,10 @@ public class ItemYoyo extends Item implements IYoyo
     }
     
     @Override
-    public int getAttackSpeed(ItemStack yoyo)
+    public int getAttackInterval(ItemStack yoyo)
     {
+        if (this == Yoyos.CREATIVE_YOYO)
+            return 0;
         return 10;
     }
     
@@ -569,6 +566,10 @@ public class ItemYoyo extends Item implements IYoyo
     {
         if (!yoyoEntity.canAttack()) return false;
         if (!ForgeHooks.onPlayerAttackTarget(player, targetEntity)) return false;
+
+        UUID uuid = targetEntity.getUniqueID();
+        if (   uuid.equals(player.getLeftShoulderEntity().getUniqueId("UUID"))
+            || uuid.equals(player.getRightShoulderEntity().getUniqueId("UUID"))) return false;
 
         if (targetEntity.canBeAttackedWithItem())
         {

@@ -31,6 +31,7 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnumEnchantmentType;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -63,6 +64,16 @@ public class Yoyos
 
     public static File CONFIG_DIR;
 
+    public static CreativeTabs YOYOS_TAB = new CreativeTabs("yoyos") {
+        @Override
+        public ItemStack getTabIconItem()
+        {
+            if (ModConfig.vanillaYoyos.enable)
+                return new ItemStack(CREATIVE_YOYO);
+            return new ItemStack(CORD);
+        }
+    };
+
     public static Item CORD;
     public static Item CREATIVE_YOYO;
     public static Item WOODEN_YOYO;
@@ -91,7 +102,7 @@ public class Yoyos
     {
         IForgeRegistry<Item> registry = event.getRegistry();
         // TODO: 1.13 remove cord when normal yoyos are disabled
-        registry.register(CORD = new Item().setCreativeTab(CreativeTabs.MATERIALS).setRegistryName(MODID, "cord").setUnlocalizedName("yoyos.cord"));
+        registry.register(CORD = new Item().setCreativeTab(YOYOS_TAB).setRegistryName(MODID, "cord").setUnlocalizedName("yoyos.cord"));
 
         if (!ModConfig.vanillaYoyos.enable) return;
 

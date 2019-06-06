@@ -22,7 +22,6 @@
 
 package com.jozufozu.yoyos.tinkers;
 
-import com.google.common.collect.Multimap;
 import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.*;
 import com.jozufozu.yoyos.tinkers.materials.*;
@@ -33,11 +32,8 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -65,7 +61,6 @@ import slimeknights.tconstruct.library.utils.ToolHelper;
 import slimeknights.tconstruct.library.utils.TooltipBuilder;
 import slimeknights.tconstruct.tools.TinkerMaterials;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.vecmath.Vector3d;
 import java.util.List;
@@ -80,21 +75,6 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
               new PartMaterialType(TinkersYoyos.YOYO_AXLE, YoyoMaterialTypes.AXLE));
         
         addCategory(Category.WEAPON, Category.NO_MELEE, Category.HARVEST, Category.PROJECTILE);
-    }
-
-    @Nonnull
-    @Override
-    public Multimap<String, AttributeModifier> getAttributeModifiers(@Nonnull EntityEquipmentSlot slot, ItemStack stack)
-    {
-        Multimap<String, AttributeModifier> multimap = super.getAttributeModifiers(slot, stack);
-
-        if (slot == EntityEquipmentSlot.OFFHAND && !ToolHelper.isBroken(stack))
-        {
-            multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", getAttackDamage(stack), 0));
-            multimap.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(ATTACK_SPEED_MODIFIER, "Weapon modifier", ToolHelper.getActualAttackSpeed(stack) - 4d, 0));
-        }
-
-        return multimap;
     }
 
     @Override
@@ -231,12 +211,6 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     }
 
     @Override
-    public float getAttackDamage(ItemStack yoyo)
-    {
-        return ToolHelper.getActualAttack(yoyo);
-    }
-
-    @Override
     public float getWeight(ItemStack yoyo)
     {
         return YoyoNBT.from(yoyo).weight;
@@ -255,7 +229,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     }
     
     @Override
-    public int getAttackSpeed(ItemStack yoyo)
+    public int getAttackInterval(ItemStack yoyo)
     {
         // https://www.desmos.com/calculator/a6kcnvxegv
         return (int)(Math.ceil(11 / Math.sqrt(ToolHelper.getActualAttackSpeed(yoyo)))) + 1;
@@ -282,30 +256,6 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     {
         List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
         return materials.get(0).materialTextColor;
-    }
-    
-    @Override
-    @SideOnly(Side.CLIENT)
-    public int getLeftColor(ItemStack yoyo, float ticks)
-    {
-        List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
-        return materials.get(1).materialTextColor;
-    }
-    
-    @Override
-    @SideOnly(Side.CLIENT)
-    public int getRightColor(ItemStack yoyo, float ticks)
-    {
-        List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
-        return materials.get(2).materialTextColor;
-    }
-    
-    @Override
-    @SideOnly(Side.CLIENT)
-    public int getAxleColor(ItemStack yoyo, float ticks)
-    {
-        List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
-        return materials.get(3).materialTextColor;
     }
     
     @Override

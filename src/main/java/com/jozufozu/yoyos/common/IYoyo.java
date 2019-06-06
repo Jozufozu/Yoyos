@@ -36,54 +36,103 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public interface IYoyo
 {
+    /**
+     * The weight of the yoyo. Used to calculate movement speed.
+     * TODO(1.13+): Change this to return the actual movement speed given a distance to a target
+     * @param yoyo The {@link ItemStack} that was used to launch the yoyo
+     */
     float getWeight(ItemStack yoyo);
-    
+
+    /**
+     * The maximum distance the yoyo can be from the player.
+     * @param yoyo The {@link ItemStack} that was used to launch the yoyo
+     */
     float getLength(ItemStack yoyo);
-    
+
+    /**
+     * The maximum number of ticks the yoyo can stay out.
+     * @param yoyo The {@link ItemStack} that was used to launch the yoyo
+     */
     int getDuration(ItemStack yoyo);
-    
-    int getAttackSpeed(ItemStack yoyo);
 
-    float getAttackDamage(ItemStack yoyo);
+    /**
+     * The minimum time in between attacks made by the yoyo.
+     * @param yoyo The {@link ItemStack} that was used to launch the yoyo
+     */
+    int getAttackInterval(ItemStack yoyo);
 
+    /**
+     * The maximum number of <em>ITEMS</em> that the yoyo can hold.
+     * @param yoyo Stack that was used to launch the yoyo
+     */
     int getMaxCollectedDrops(ItemStack yoyo);
-    
+
+    /**
+     * Should damage the yoyo by amount, also taking into account whether the player is creative or not,
+     * and any {@link net.minecraft.init.Enchantments} that might be applied.
+     * @param yoyo Stack that was used to launch the yoyo.
+     * @param amount Amount of damage to be done to the yoyo.
+     * @param player Player wielding the yoyo.
+     */
     void damageItem(ItemStack yoyo, int amount, EntityLivingBase player);
 
+    /**
+     * Do things that should happen when the yoyo entity touches another entity here.
+     * @param yoyo Stack that was used to launch the yoyo.
+     * @param player Player wielding the yoyo.
+     * @param hand Hand the yoyo is held in.
+     * @param yoyoEntity Yoyo entity doing the touching.
+     * @param targetEntity Entity the yoyo is touching.
+     */
     void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
 
+    /**
+     * Does the yoyo entity interact with blocks at all?
+     * @param yoyo The {@link ItemStack} that was used to launch the yoyo.
+     * @return Whether or not to calculate and handle block collision actions.
+     */
     boolean interactsWithBlocks(ItemStack yoyo);
 
+    /**
+     * Do things that should happen when the yoyo entity touches blocks here.
+     * @param yoyo Stack that was used to launch the yoyo.
+     * @param player Player wielding the yoyo.
+     * @param world World in which the interaction takes place.
+     * @param pos Position of the block being touched.
+     * @param state State of the block being touched.
+     * @param block Block being touched.
+     * @param yoyoEntity Yoyo entity doing the touching.
+     */
     void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity);
 
+    /**
+     * Other things that should happen in the yoyo entity's ticking
+     * @param yoyo Stack that was used to launch the yoyo.
+     * @param yoyoEntity Yoyo entity being updated.
+     */
     default void onUpdate(ItemStack yoyo, EntityYoyo yoyoEntity) {}
 
+    /**
+     * A multiplier to the yoyo entity's movement speed when it is in water.
+     * @param yoyo Stack that was used to launch the yoyo.
+     */
     default float getWaterMovementModifier(ItemStack yoyo) { return 0.3f; }
 
+    /**
+     * The color the cord should be.
+     * @param yoyo Stack that was used to launch the yoyo.
+     * @param ticks The exact amount of ticks (and partial ticks) that the yoyo has existed.
+     */
     @SideOnly(Side.CLIENT)
     default int getCordColor(ItemStack yoyo, float ticks)
     {
         return 0xDDDDDD;
     }
 
-    @SideOnly(Side.CLIENT)
-    default int getLeftColor(ItemStack yoyo, float ticks)
-    {
-        return 0xDDDDDD;
-    }
-
-    @SideOnly(Side.CLIENT)
-    default int getRightColor(ItemStack yoyo, float ticks)
-    {
-        return 0xDDDDDD;
-    }
-
-    @SideOnly(Side.CLIENT)
-    default int getAxleColor(ItemStack yoyo, float ticks)
-    {
-        return 0xDDDDDD;
-    }
-
+    /**
+     * Primarily used for gardening yoyos. The orientation the yoyos should be spinning in.
+     * @param yoyo Stack that was used to launch the yoyo.
+     */
     @SideOnly(Side.CLIENT)
     default RenderOrientation getRenderOrientation(ItemStack yoyo)
     {

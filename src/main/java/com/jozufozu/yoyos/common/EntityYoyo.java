@@ -358,7 +358,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         if (shouldGetStats)
         {
             maxCollectedDrops = yoyo.getMaxCollectedDrops(yoyoStack);
-            maxCool = yoyo.getAttackSpeed(yoyoStack);
+            maxCool = yoyo.getAttackInterval(yoyoStack);
             duration = yoyo.getDuration(yoyoStack);
             cordLength = maxLength = yoyo.getLength(yoyoStack);
             weight = yoyo.getWeight(yoyoStack);
@@ -472,13 +472,6 @@ public class EntityYoyo extends Entity implements IThrowableEntity
                     Entity entity = iterator.next();
 
                     if (entity == thrower)
-                    {
-                        iterator.remove();
-                        continue;
-                    }
-
-                    // Save the parrots!
-                    if (entity.getUniqueID().equals(thrower.getLeftShoulderEntity().getUniqueId("UUID")) || entity.getUniqueID().equals(thrower.getRightShoulderEntity().getUniqueId("UUID")))
                     {
                         iterator.remove();
                         continue;

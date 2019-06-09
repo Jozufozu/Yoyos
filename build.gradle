@@ -76,12 +76,12 @@ jar {
 
 task srcJar(type: Jar) {
     from sourceSets.main.allSource
-    classifier = 'sources'
+    archiveName = baseName + "_" + project.mcVersion + "-" + project.version  + "-sources." + extension
 }
 
 task deobfJar(type: Jar) {
     from sourceSets.main.output
-    classifier = 'deobf'
+    archiveName = baseName + "_" + project.mcVersion + "-" + project.version  + "-deobf." + extension
 }
 
 // Tell the artifact system about our extra jars

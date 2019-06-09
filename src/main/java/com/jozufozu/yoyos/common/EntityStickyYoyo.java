@@ -93,6 +93,7 @@ public class EntityStickyYoyo extends EntityYoyo
                     stuckSince = timeoutCounter;
                     cordLength = MathHelper.sqrt(distanceSqr);
                     world.playSound(null, posX, posY, posZ, Yoyos.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f);
+                    yoyo.damageItem(yoyoStack, 1, thrower);
                 }
                 stuck = true;
 
@@ -100,6 +101,8 @@ public class EntityStickyYoyo extends EntityYoyo
             }
             else
             {
+                if (isRetracting() && stuck) setDead();
+
                 if (duration >= 0 && ++timeoutCounter >= duration)
                     forceRetract();
 

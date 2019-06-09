@@ -95,6 +95,12 @@ public class YoyoCompatibility
 
     public static void initBotania()
     {
+        actuallyInitBotania();
+    }
+
+    @Optional.Method(modid = "botania")
+    private static void actuallyInitBotania()
+    {
         LexiconEntry terraBlade = new YoyoLexiconEntry("terra_chaser", BotaniaAPI.categoryTools);
         terraBlade.setLexiconPages(new PageText("0"), new PageCraftingRecipe("1", new ResourceLocation(Yoyos.MODID, "terrasteel_yoyo")));
 
@@ -112,6 +118,7 @@ public class YoyoCompatibility
         }
     }
 
+    @Optional.Method(modid = "botania")
     private static void hackPagesIntoExistingEntries()
     {
         // I'm so sorry

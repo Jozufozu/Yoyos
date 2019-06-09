@@ -440,6 +440,8 @@ public class ItemYoyo extends Item implements IYoyo
             {
                 List<ItemStack> stacks = shearable.onSheared(yoyo, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyo));
 
+                if (!world.getGameRules().getBoolean("doTileDrops")) stacks = new ArrayList<>();
+
                 if (yoyoEntity.world.setBlockToAir(pos))
                 {
                     block.breakBlock(world, pos, state);
@@ -478,7 +480,9 @@ public class ItemYoyo extends Item implements IYoyo
 
                 if (drops == null) return true;
 
-                yoyoEntity.yoyo.damageItem(yoyo, 1, player);
+                if (!yoyoEntity.world.getGameRules().getBoolean("doTileDrops")) drops.clear();
+
+                yoyoEntity.getYoyo().damageItem(yoyo, 1, player);
 
                 boolean foundSeed = false;
 
@@ -529,7 +533,9 @@ public class ItemYoyo extends Item implements IYoyo
 
         if (itemStacks == null) return;
 
-        yoyoEntity.yoyo.damageItem(yoyo, 1, player);
+        yoyoEntity.getYoyo().damageItem(yoyo, 1, player);
+
+        if (!world.getGameRules().getBoolean("doTileDrops")) return;
 
         for (ItemStack stack : itemStacks)
         {
@@ -577,6 +583,7 @@ public class ItemYoyo extends Item implements IYoyo
             {
                 yoyoEntity.resetAttackCooldown();
                 yoyoEntity.increaseTimeout(10);
+                yoyoEntity.getYoyo().damageItem(yoyo, 1, player);
 
                 float damage = (float) player.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue();
                 float attackModifier;

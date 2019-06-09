@@ -46,8 +46,8 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 
+import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Arrays;
 
 @Mod(name = Yoyos.NAME, modid = Yoyos.MODID, version = Yoyos.VERSION, dependencies = "after:tconstruct;after:plustic;after:botania", acceptedMinecraftVersions = "[1.12, 1.13)")
 public class Yoyos
@@ -63,16 +63,6 @@ public class Yoyos
     public static CommonProxy proxy;
 
     public static File CONFIG_DIR;
-
-    public static CreativeTabs YOYOS_TAB = new CreativeTabs("yoyos") {
-        @Override
-        public ItemStack getTabIconItem()
-        {
-            if (ModConfig.vanillaYoyos.enable)
-                return new ItemStack(CREATIVE_YOYO);
-            return new ItemStack(CORD);
-        }
-    };
 
     public static Item CORD;
     public static Item CREATIVE_YOYO;
@@ -91,6 +81,17 @@ public class Yoyos
     public static SoundEvent YOYO_THROW;
     public static SoundEvent YOYO_STICK;
     public static SoundEvent YOYO_CHASE;
+
+    public static CreativeTabs YOYOS_TAB = new CreativeTabs("yoyos") {
+        @Override
+        @Nonnull
+        public ItemStack getTabIconItem()
+        {
+            if (ModConfig.vanillaYoyos.enable)
+                return new ItemStack(CREATIVE_YOYO);
+            return new ItemStack(CORD);
+        }
+    };
 
     public Yoyos()
     {
@@ -126,15 +127,8 @@ public class Yoyos
     @SubscribeEvent
     public void registerEnchantment(RegistryEvent.Register<Enchantment> event)
     {
+        YOYOS_TAB.setRelevantEnchantmentTypes(YOYO_ENCHANTMENT_TYPE);
         COLLECTING = new EnchantmentCollecting(Enchantment.Rarity.UNCOMMON, YOYO_ENCHANTMENT_TYPE, new EntityEquipmentSlot[]{EntityEquipmentSlot.MAINHAND, EntityEquipmentSlot.OFFHAND});
-
-        EnumEnchantmentType[] enchantmentTypes = CreativeTabs.COMBAT.getRelevantEnchantmentTypes();
-
-        int length = enchantmentTypes.length;
-        enchantmentTypes = Arrays.copyOf(enchantmentTypes, length + 1);
-        enchantmentTypes[length] = YOYO_ENCHANTMENT_TYPE;
-
-        CreativeTabs.COMBAT.setRelevantEnchantmentTypes(enchantmentTypes);
 
         event.getRegistry().register(COLLECTING);
     }

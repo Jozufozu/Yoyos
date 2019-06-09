@@ -120,6 +120,8 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         }
         else hand = EnumHand.MAIN_HAND;
 
+        yoyoStackLastTick = yoyoStack;
+
         Vec3d handPos = getPlayerHandPos(1);
         setPosition(handPos.x, handPos.y, handPos.z);
 
@@ -325,7 +327,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         int currentSlot = hand == EnumHand.MAIN_HAND ? thrower.inventory.currentItem : -2;
 
-        if (!CASTERS.containsKey(thrower) || !(yoyoStack.getItem() instanceof IYoyo) || (lastSlot != -1 && lastSlot != currentSlot) || (ticksExisted > 1 && yoyoStackLastTick != yoyoStack))
+        ItemStack otherHand = thrower.getHeldItem(hand == EnumHand.MAIN_HAND ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
+
+        if (!CASTERS.containsKey(thrower) || !(yoyoStack.getItem() instanceof IYoyo) || (lastSlot != -1 && lastSlot != currentSlot) || otherHand == yoyoStackLastTick)
         {
             setDead();
             return null;

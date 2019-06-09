@@ -190,6 +190,16 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
         return new ActionResult<>(EnumActionResult.SUCCESS, itemStackIn);
     }
 
+    @Override
+    public boolean hitEntity(ItemStack stack, EntityLivingBase target, EntityLivingBase attacker)
+    {
+        boolean out = super.hitEntity(stack, target, attacker);
+
+        damageItem(stack, 1, attacker);
+
+        return out;
+    }
+
     public boolean isSticky(ItemStack yoyo)
     {
         NBTTagCompound root = TagUtil.getTagSafe(yoyo);

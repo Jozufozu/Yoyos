@@ -329,7 +329,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         ItemStack otherHand = thrower.getHeldItem(hand == EnumHand.MAIN_HAND ? EnumHand.OFF_HAND : EnumHand.MAIN_HAND);
 
-        if (!CASTERS.containsKey(thrower) || !(yoyoStack.getItem() instanceof IYoyo) || (lastSlot != -1 && lastSlot != currentSlot) || otherHand == yoyoStackLastTick)
+        if (!CASTERS.containsKey(thrower) || !(yoyoStack.getItem() instanceof IYoyo) || (ticksExisted > 1 && ((lastSlot != -1 && lastSlot != currentSlot) || otherHand == yoyoStackLastTick)))
         {
             setDead();
             return null;

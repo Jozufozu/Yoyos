@@ -23,13 +23,13 @@
 package com.jozufozu.yoyos.common;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.block.BlockState;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 
 @FunctionalInterface
 public interface IBlockInteraction
 {
-    boolean blockInteraction(ItemStack yoyo, EntityPlayer player, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity);
+    boolean blockInteraction(ItemStack yoyo, PlayerEntity player, BlockPos pos, BlockState state, Block block, YoyoEntity yoyoEntity);
 }

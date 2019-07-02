@@ -22,35 +22,15 @@
 
 package com.jozufozu.yoyos.network;
 
-import com.jozufozu.yoyos.Yoyos;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
-import net.minecraftforge.fml.relauncher.Side;
-
 public class YoyoNetwork
 {
-    public static final SimpleNetworkWrapper INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(Yoyos.MODID);
-    
-    private static int ID = 0;
-    
     public static void initialize()
     {
-        registerMessage(MessageYoyoRetracting.class, MessageYoyoRetracting.Handler.class, Side.SERVER);
-        registerMessage(MessageYoyoRetracting.MessageYoyoRetractingReply.class, MessageYoyoRetracting.MessageYoyoRetractingReply.Handler.class, Side.CLIENT);
+        YoyoRetractingC2SPacket.init();
+        YoyoRetractingC2SPacket.YoyoRetractingS2CPacket.init();
+        ReelStateC2SPacket.init();
+        ReelStateC2SPacket.ReelStateS2CPacket.init();
 
-        registerMessage(MessageCollectedDrops.class, MessageCollectedDrops.Handler.class, Side.CLIENT);
-
-        registerMessage(MessageReelState.class, MessageReelState.Handler.class, Side.SERVER);
-        registerMessage(MessageReelState.MessageReelStateReply.class, MessageReelState.MessageReelStateReply.Handler.class, Side.CLIENT);
-
-        registerMessage(MessageAcquireTarget.class, MessageAcquireTarget.Handler.class, Side.SERVER);
-        registerMessage(MessageAcquireTarget.MessageTargetUpdate.class, MessageAcquireTarget.MessageTargetUpdate.Handler.class, Side.CLIENT);
-    }
-    
-    private static <REQ extends IMessage, REPLY extends IMessage> void registerMessage(Class<REQ> requestMessageType, Class<? extends IMessageHandler<REQ, REPLY>> messageHandler, Side side)
-    {
-        INSTANCE.registerMessage(messageHandler, requestMessageType, ID++, side);
+        CollectedDropsS2CPacket.init();
     }
 }

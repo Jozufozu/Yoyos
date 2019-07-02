@@ -27,8 +27,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.jozufozu.yoyos.Yoyos;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.*;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.enchantment.Enchantment;
@@ -37,12 +39,17 @@ import net.minecraft.enchantment.EnumEnchantmentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureAttribute;
+import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.passive.BatEntity;
 import net.minecraft.entity.passive.EntityBat;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Enchantments;
 import net.minecraft.init.MobEffects;
@@ -50,7 +57,11 @@ import net.minecraft.init.SoundEvents;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.SwordItem;
+import net.minecraft.item.ToolMaterial;
 import net.minecraft.network.play.server.SPacketEntityVelocity;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.stats.StatList;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
@@ -76,37 +87,30 @@ public class ItemYoyo extends Item implements IYoyo
 
     private final float attackDamage;
     protected final ToolMaterial material;
-    protected BiFunction<World, EntityPlayer, EntityYoyo> yoyoFactory;
+    protected BiFunction<World, PlayerEntity, YoyoEntity> yoyoFactory;
     protected RenderOrientation renderOrientation = RenderOrientation.Vertical;
     protected ArrayList<IEntityInteraction> entityInteractions;
     protected ArrayList<IBlockInteraction> blockInteractions;
 
     public ItemYoyo(String name, ToolMaterial material)
     {
-        this(name, material, EntityYoyo::new);
+        this(name, material, YoyoEntity::new);
     }
 
-    public ItemYoyo(String name, ToolMaterial material, BiFunction<World, EntityPlayer, EntityYoyo> yoyoFactory)
+    public ItemYoyo(String name, ToolMaterial material, BiFunction<World, PlayerEntity, YoyoEntity> yoyoFactory)
     {
-        this(name, material, yoyoFactory, Lists.newArrayList(ItemYoyo::collectItem, ItemYoyo::attackEntity), new ArrayList<>());
+        this(name, material, yoyoFactory, Lists.newArrayList((yoyo, player, hand, yoyoEntity, targetEntity) -> collectItem(yoyo, player, hand, yoyoEntity, targetEntity), (yoyo1, player1, hand1, yoyoEntity1, targetEntity1) -> attackEntity(yoyo1, player1, hand1, yoyoEntity1, targetEntity1)), new ArrayList<>());
     }
     
-    public ItemYoyo(String name, ToolMaterial material, BiFunction<World, EntityPlayer, EntityYoyo> yoyoFactory, @Nonnull ArrayList<IEntityInteraction> entityInteractions, @Nonnull ArrayList<IBlockInteraction> blockInteractions)
+    public ItemYoyo(String name, ToolMaterial material, BiFunction<World, PlayerEntity, YoyoEntity> yoyoFactory, ArrayList<IEntityInteraction> entityInteractions, ArrayList<IBlockInteraction> blockInteractions)
     {
+        super(new Settings().maxCount(1).maxDamage(material.getDurability()).group(Yoyos.YOYOS_TAB));
         this.yoyoFactory = yoyoFactory;
         this.entityInteractions = entityInteractions;
         this.blockInteractions = blockInteractions;
 
         this.material = material;
-        this.maxStackSize = 1;
-        this.setMaxDamage(material.getMaxUses());
-        this.setCreativeTab(Yoyos.YOYOS_TAB);
         this.attackDamage = 3.0F + material.getAttackDamage();
-
-        this.setUnlocalizedName(String.format("%s.%s", Yoyos.MODID, name));
-        this.setRegistryName(Yoyos.MODID, name);
-
-        this.addPropertyOverride(new ResourceLocation(Yoyos.MODID, "thrown"), (stack, worldIn, entityIn) -> entityIn instanceof EntityBat ? 1 : 0);
     }
 
     public ItemYoyo addBlockInteraction(IBlockInteraction... blockInteraction)
@@ -152,22 +156,27 @@ public class ItemYoyo extends Item implements IYoyo
     {
         return this.material.getEnchantability();
     }
-    
-    public boolean getIsRepairable(ItemStack toRepair, ItemStack repair)
+
+    @Override
+    public boolean canRepair(ItemStack toRepair, ItemStack repair)
     {
-        ItemStack mat = this.material.getRepairItemStack();
-        return OreDictionary.itemMatches(mat, repair, false) || super.getIsRepairable(toRepair, repair);
+        return this.material.getRepairIngredient().method_8093(repair) || super.canRepair(toRepair, repair);
     }
 
     @Override
-    public boolean onBlockDestroyed(ItemStack stack, World worldIn, IBlockState state, BlockPos pos, EntityLivingBase entityLiving)
+    public boolean postMine(ItemStack stack, World world, BlockState state, BlockPos pos, LivingEntity entity)
     {
-        if ((double)state.getBlockHardness(worldIn, pos) != 0.0D)
-        {
-            this.damageItem(stack, 2, entityLiving);
+        if (!world.isClient && state.getHardness(world, pos) != 0.0F) {
+            stack.damage(1, entity, (livingEntity) -> livingEntity.sendEquipmentBreakStatus(EquipmentSlot.MAINHAND));
         }
 
         return true;
+    }
+
+    @Override
+    public boolean postHit(ItemStack itemStack_1, LivingEntity livingEntity_1, LivingEntity livingEntity_2)
+    {
+        return super.postHit(itemStack_1, livingEntity_1, livingEntity_2);
     }
 
     @Override
@@ -181,11 +190,11 @@ public class ItemYoyo extends Item implements IYoyo
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
     {
         ItemStack itemStack = playerIn.getHeldItem(hand);
-        if (!worldIn.isRemote && !EntityYoyo.CASTERS.containsKey(playerIn))
+        if (!worldIn.isRemote && !YoyoEntity.CASTERS.containsKey(playerIn))
         {
             if (itemStack.getItemDamage() <= itemStack.getMaxDamage() || this == Yoyos.CREATIVE_YOYO)
             {
-                EntityYoyo yoyo = yoyoFactory.apply(worldIn, playerIn);
+                YoyoEntity yoyo = yoyoFactory.apply(worldIn, playerIn);
                 worldIn.spawnEntity(yoyo);
 
                 worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
@@ -300,7 +309,7 @@ public class ItemYoyo extends Item implements IYoyo
     public int getMaxCollectedDrops(ItemStack yoyo)
     {
         if (this == Yoyos.CREATIVE_YOYO) return Integer.MAX_VALUE;
-        return calculateMaxCollectedDrops(EnchantmentHelper.getEnchantmentLevel(Yoyos.COLLECTING, yoyo));
+        return calculateMaxCollectedDrops(EnchantmentHelper.getLevel(Yoyos.COLLECTING, yoyo));
     }
 
     public static int calculateMaxCollectedDrops(int level)
@@ -315,15 +324,15 @@ public class ItemYoyo extends Item implements IYoyo
     }
 
     @Override
-    public void damageItem(ItemStack yoyo, int amount, EntityLivingBase player)
+    public void damageItem(ItemStack yoyo, int amount, LivingEntity player)
     {
-        yoyo.damageItem(amount, player);
+        yoyo.damage(amount, player);
     }
 
     @Override
-    public void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity)
+    public void entityInteraction(ItemStack yoyo, PlayerEntity player, Hand hand, YoyoEntity yoyoEntity, Entity targetEntity)
     {
-        if (targetEntity.world.isRemote) return;
+        if (targetEntity.world.isClient) return;
         for (IEntityInteraction entityInteraction : entityInteractions)
         {
             if (entityInteraction.entityInteraction(yoyo, player, hand, yoyoEntity, targetEntity)) return;
@@ -337,31 +346,31 @@ public class ItemYoyo extends Item implements IYoyo
     }
 
     @Override
-    public void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    public void blockInteraction(ItemStack yoyo, PlayerEntity player, World world, BlockPos pos, BlockState state, Block block, YoyoEntity yoyoEntity)
     {
-        if (world.isRemote) return;
+        if (world.isClient) return;
         for (IBlockInteraction blockInteraction : blockInteractions)
         {
             if (blockInteraction.blockInteraction(yoyo, player, pos, state, block, yoyoEntity)) return;
         }
     }
 
-    @SideOnly(Side.CLIENT)
+    @Environment(EnvType.CLIENT)
     @Override
     public RenderOrientation getRenderOrientation(ItemStack yoyo)
     {
         return renderOrientation;
     }
 
-    public static boolean collectItem(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity) {
-        if (targetEntity instanceof EntityItem && yoyoEntity.isCollecting()) {
-            yoyoEntity.collectDrop(((EntityItem) targetEntity));
+    public static boolean collectItem(ItemStack yoyo, PlayerEntity player, EnumHand hand, YoyoEntity yoyoEntity, Entity targetEntity) {
+        if (targetEntity instanceof ItemEntity && yoyoEntity.isCollecting()) {
+            yoyoEntity.collectDrop(((ItemEntity) targetEntity));
             return true;
         }
         return false;
     }
 
-    public static boolean shearEntity(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity) {
+    public static boolean shearEntity(ItemStack yoyo, PlayerEntity player, EnumHand hand, YoyoEntity yoyoEntity, Entity targetEntity) {
         if (targetEntity instanceof IShearable)
         {
             World world = targetEntity.world;
@@ -387,7 +396,7 @@ public class ItemYoyo extends Item implements IYoyo
         return false;
     }
 
-    public static boolean till(ItemStack yoyo, EntityPlayer player, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    public static boolean till(ItemStack yoyo, PlayerEntity player, BlockPos pos, BlockState state, Block block, YoyoEntity yoyoEntity)
     {
         World worldIn = yoyoEntity.world;
 
@@ -419,7 +428,7 @@ public class ItemYoyo extends Item implements IYoyo
         return false;
     }
 
-    private static void setBlock(ItemStack yoyo, EntityPlayer player, EntityYoyo yoyoEntity, BlockPos pos, IBlockState state)
+    private static void setBlock(ItemStack yoyo, PlayerEntity player, YoyoEntity yoyoEntity, BlockPos pos, BlockState state)
     {
         yoyoEntity.world.playSound(null, pos, SoundEvents.ITEM_HOE_TILL, SoundCategory.BLOCKS, 1.0F, 1.0F);
 
@@ -430,7 +439,7 @@ public class ItemYoyo extends Item implements IYoyo
         }
     }
 
-    public static boolean garden(ItemStack yoyo, EntityPlayer player, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    public static boolean garden(ItemStack yoyo, PlayerEntity player, BlockPos pos, BlockState state, Block block, YoyoEntity yoyoEntity)
     {
         World world = yoyoEntity.world;
         if (block instanceof IShearable)
@@ -470,7 +479,7 @@ public class ItemYoyo extends Item implements IYoyo
         return false;
     }
 
-    public static boolean farm(ItemStack yoyo, EntityPlayer player, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    public static boolean farm(ItemStack yoyo, PlayerEntity player, BlockPos pos, BlockState state, Block block, YoyoEntity yoyoEntity)
     {
         if (block instanceof BlockCrops)
         {
@@ -527,7 +536,7 @@ public class ItemYoyo extends Item implements IYoyo
         return false;
     }
 
-    public static void doBlockBreaking(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    public static void doBlockBreaking(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, BlockState state, Block block, YoyoEntity yoyoEntity)
     {
         NonNullList<ItemStack> itemStacks = doHarvesting(yoyo, player, world, pos, state, block, yoyoEntity);
 
@@ -548,7 +557,7 @@ public class ItemYoyo extends Item implements IYoyo
      * @return null iff the block could not be broken
      */
     @Nullable
-    private static NonNullList<ItemStack> doHarvesting(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity)
+    private static NonNullList<ItemStack> doHarvesting(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, BlockState state, Block block, YoyoEntity yoyoEntity)
     {
         if (!yoyoEntity.world.setBlockToAir(pos)) return null;
 
@@ -568,10 +577,12 @@ public class ItemYoyo extends Item implements IYoyo
         return drops;
     }
 
-    public static boolean attackEntity(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity)
+    public static boolean attackEntity(ItemStack yoyo, EntityPlayer player, EnumHand hand, YoyoEntity yoyoEntity, Entity targetEntity)
     {
         if (!yoyoEntity.canAttack()) return false;
         if (!ForgeHooks.onPlayerAttackTarget(player, targetEntity)) return false;
+
+        BlockInteraction
 
         UUID uuid = targetEntity.getUniqueID();
         if (   uuid.equals(player.getLeftShoulderEntity().getUniqueId("UUID"))
@@ -638,7 +649,7 @@ public class ItemYoyo extends Item implements IYoyo
 
                         if (targetEntity instanceof EntityPlayerMP && targetEntity.velocityChanged)
                         {
-                            ((EntityPlayerMP) targetEntity).connection.sendPacket(new SPacketEntityVelocity(targetEntity));
+                            ((ServerPlayerEntity) targetEntity).connection.sendPacket(new SPacketEntityVelocity(targetEntity));
                             targetEntity.velocityChanged = false;
                             targetEntity.motionX = motionX;
                             targetEntity.motionY = motionY;

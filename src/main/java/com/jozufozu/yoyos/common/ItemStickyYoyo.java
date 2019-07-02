@@ -35,7 +35,7 @@ public class ItemStickyYoyo extends ItemYoyo
 {
     public ItemStickyYoyo()
     {
-        super("sticky_yoyo", ToolMaterial.DIAMOND, EntityStickyYoyo::new);
+        super("sticky_yoyo", ToolMaterial.DIAMOND, StickyYoyoEntity::new);
     }
     
     @Override

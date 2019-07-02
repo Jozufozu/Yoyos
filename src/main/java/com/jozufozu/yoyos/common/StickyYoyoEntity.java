@@ -23,21 +23,33 @@
 package com.jozufozu.yoyos.common;
 
 import com.jozufozu.yoyos.Yoyos;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.SoundCategory;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-public class EntityStickyYoyo extends EntityYoyo
+public class StickyYoyoEntity extends YoyoEntity
 {
-    public EntityStickyYoyo(World world)
+    public StickyYoyoEntity(EntityType<?> type, World world)
     {
-        super(world);
+        super(type, world);
     }
 
-    public EntityStickyYoyo(World world, EntityPlayer player)
+    public StickyYoyoEntity(World world)
     {
-        super(world, player);
+        super(Yoyos.STICKY_YOYO_ENTITY_TYPE, world);
+    }
+
+    public StickyYoyoEntity(EntityType<?> type, World world, PlayerEntity player)
+    {
+        super(type, world, player);
+    }
+
+    public StickyYoyoEntity(World world, PlayerEntity player)
+    {
+        super(Yoyos.STICKY_YOYO_ENTITY_TYPE, world, player);
     }
 
     private boolean stuck = false;
@@ -51,24 +63,24 @@ public class EntityStickyYoyo extends EntityYoyo
     }
 
     @Override
-    public void onUpdate()
+    public void tick()
     {
-        if (!world.isRemote)
+        if (!world.isClient)
         {
             setFlag(6, isGlowing());
         }
 
-        onEntityUpdate();
+        baseTick();
 
-        if (thrower != null && !thrower.isDead)
+        if (thrower != null && !thrower.removed)
         {
             yoyo = checkAndGetYoyoObject();
 
             if (yoyo == null) return;
 
-            double dx = thrower.posX - posX;
-            double dy = (thrower.posY + thrower.eyeHeight) - (posY + height * 0.5);
-            double dz = thrower.posZ - posZ;
+            double dx = thrower.x - x;
+            double dy = (thrower.y + thrower.getEyeHeight(thrower.getPose())) - (y + getHeight() * 0.5);
+            double dz = thrower.z - z;
             double distanceSqr = dx * dx + dy * dy + dz * dz;
 
             if (reelDirection < 0 && cordLength > 0.1 && distanceSqr < cordLength * cordLength + 8)
@@ -82,17 +94,15 @@ public class EntityStickyYoyo extends EntityYoyo
                     cordLength = MathHelper.sqrt(distanceSqr);
             }
 
-            if (!isRetracting() && !world.getCollisionBoxes(this, getEntityBoundingBox().grow(0.1)).isEmpty())
+            if (!isRetracting() && !world.doesNotCollide(getBoundingBox().expand(0.1)))
             {
-                motionX = 0;
-                motionY = 0;
-                motionZ = 0;
+                setVelocity(Vec3d.ZERO);
 
                 if (!stuck)
                 {
                     stuckSince = timeoutCounter;
                     cordLength = MathHelper.sqrt(distanceSqr);
-                    world.playSound(null, posX, posY, posZ, Yoyos.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f);
+                    world.playSound(null, x, y, z, Yoyos.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f);
                     yoyo.damageItem(yoyoStack, 1, thrower);
                 }
                 stuck = true;
@@ -101,7 +111,7 @@ public class EntityStickyYoyo extends EntityYoyo
             }
             else
             {
-                if (isRetracting() && stuck) setDead();
+                if (isRetracting() && stuck) remove();
 
                 if (duration >= 0 && ++timeoutCounter >= duration)
                     forceRetract();
@@ -110,7 +120,7 @@ public class EntityStickyYoyo extends EntityYoyo
 
                 moveAndCollide();
 
-                if (!world.isRemote && interactsWithBlocks)
+                if (!world.isClient && interactsWithBlocks)
                     worldInteraction();
 
                 stuck = false;
@@ -121,7 +131,7 @@ public class EntityStickyYoyo extends EntityYoyo
 
             resetOrIncrementAttackCooldown();
         }
-        else setDead();
+        else remove();
     }
 
     @Override

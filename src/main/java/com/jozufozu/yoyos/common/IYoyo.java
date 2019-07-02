@@ -22,17 +22,17 @@
 
 package com.jozufozu.yoyos.common;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 public interface IYoyo
 {
@@ -69,12 +69,12 @@ public interface IYoyo
 
     /**
      * Should damage the yoyo by amount, also taking into account whether the player is creative or not,
-     * and any {@link net.minecraft.init.Enchantments} that might be applied.
+     * and any {@link net.minecraft.enchantment.Enchantments} that might be applied.
      * @param yoyo Stack that was used to launch the yoyo.
      * @param amount Amount of damage to be done to the yoyo.
      * @param player Player wielding the yoyo.
      */
-    void damageItem(ItemStack yoyo, int amount, EntityLivingBase player);
+    void damageItem(ItemStack yoyo, int amount, LivingEntity player);
 
     /**
      * Do things that should happen when the yoyo entity touches another entity here.
@@ -84,7 +84,7 @@ public interface IYoyo
      * @param yoyoEntity Yoyo entity doing the touching.
      * @param targetEntity Entity the yoyo is touching.
      */
-    void entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
+    void entityInteraction(ItemStack yoyo, PlayerEntity player, Hand hand, YoyoEntity yoyoEntity, Entity targetEntity);
 
     /**
      * Does the yoyo entity interact with blocks at all?
@@ -103,14 +103,14 @@ public interface IYoyo
      * @param block Block being touched.
      * @param yoyoEntity Yoyo entity doing the touching.
      */
-    void blockInteraction(ItemStack yoyo, EntityPlayer player, World world, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity);
+    void blockInteraction(ItemStack yoyo, PlayerEntity player, World world, BlockPos pos, BlockState state, Block block, YoyoEntity yoyoEntity);
 
     /**
      * Other things that should happen in the yoyo entity's ticking
      * @param yoyo Stack that was used to launch the yoyo.
      * @param yoyoEntity Yoyo entity being updated.
      */
-    default void onUpdate(ItemStack yoyo, EntityYoyo yoyoEntity) {}
+    default void onUpdate(ItemStack yoyo, YoyoEntity yoyoEntity) {}
 
     /**
      * A multiplier to the yoyo entity's movement speed when it is in water.
@@ -123,7 +123,7 @@ public interface IYoyo
      * @param yoyo Stack that was used to launch the yoyo.
      * @param ticks The exact amount of ticks (and partial ticks) that the yoyo has existed.
      */
-    @SideOnly(Side.CLIENT)
+    @Environment(EnvType.CLIENT)
     default int getCordColor(ItemStack yoyo, float ticks)
     {
         return 0xDDDDDD;
@@ -133,7 +133,7 @@ public interface IYoyo
      * Primarily used for gardening yoyos. The orientation the yoyos should be spinning in.
      * @param yoyo Stack that was used to launch the yoyo.
      */
-    @SideOnly(Side.CLIENT)
+    @Environment(EnvType.CLIENT)
     default RenderOrientation getRenderOrientation(ItemStack yoyo)
     {
         return RenderOrientation.Vertical;

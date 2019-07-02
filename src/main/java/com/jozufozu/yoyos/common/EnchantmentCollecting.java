@@ -30,11 +30,9 @@ import net.minecraft.util.ResourceLocation;
 
 public class EnchantmentCollecting extends Enchantment
 {
-    public EnchantmentCollecting(Rarity rarityIn, EnumEnchantmentType typeIn, EntityEquipmentSlot[] slots)
+    public EnchantmentCollecting()
     {
-        super(rarityIn, typeIn, slots);
-        this.setName("yoyos.collecting");
-        this.setRegistryName(new ResourceLocation(Yoyos.MODID, "collecting"));
+        super(Weight.UNCOMMON, );
     }
 
     @Override

@@ -26,41 +26,38 @@ import com.google.common.collect.Lists;
 import com.jozufozu.yoyos.common.*;
 import com.jozufozu.yoyos.compat.YoyoCompatibility;
 import com.jozufozu.yoyos.tinkers.TinkersYoyos;
+import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.itemgroup.FabricItemGroupBuilder;
+import net.fabricmc.fabric.api.entity.FabricEntityTypeBuilder;
+import net.minecraft.client.sound.Sound;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.enchantment.Enchantment;
+import net.minecraft.enchantment.EnchantmentTarget;
 import net.minecraft.enchantment.EnumEnchantmentType;
+import net.minecraft.entity.EntityCategory;
+import net.minecraft.entity.EntityDimensions;
+import net.minecraft.entity.EntityType;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.sound.SoundEvent;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.SoundEvent;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.util.EnumHelper;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraft.util.registry.Registry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 
-@Mod(name = Yoyos.NAME, modid = Yoyos.MODID, version = Yoyos.VERSION, dependencies = "after:tconstruct;after:plustic;after:botania", acceptedMinecraftVersions = "[1.12, 1.13)")
-public class Yoyos
+public class Yoyos implements ModInitializer
 {
-    @Mod.Instance(value = Yoyos.MODID)
-    public static Yoyos INSTANCE;
-
     public static final String MODID = "yoyos";
     public static final String NAME = "Yoyos";
     public static final String VERSION = "@VERSION@";
 
-    @SidedProxy(clientSide = "com.jozufozu.yoyos.client.ClientProxy", serverSide = "com.jozufozu.yoyos.common.CommonProxy")
-    public static CommonProxy proxy;
+    public static Logger LOG = LogManager.getLogger(MODID);
 
     public static File CONFIG_DIR;
 
@@ -76,36 +73,52 @@ public class Yoyos
     public static Item HOE_YOYO;
 
     public static Enchantment COLLECTING;
-    public static EnumEnchantmentType YOYO_ENCHANTMENT_TYPE = EnumHelper.addEnchantmentType("collecting", item -> item instanceof IYoyo);
-
-    public static SoundEvent YOYO_THROW;
-    public static SoundEvent YOYO_STICK;
-    public static SoundEvent YOYO_CHASE;
-
-    public static CreativeTabs YOYOS_TAB = new CreativeTabs("yoyos") {
+    public static EnchantmentTarget YOYO_ENCHANTMENT_TYPE = new EnchantmentTarget() {
         @Override
-        @Nonnull
-        public ItemStack getTabIconItem()
+        public boolean isAcceptableItem(Item item)
         {
-            if (ModConfig.vanillaYoyos.enable)
-                return new ItemStack(CREATIVE_YOYO);
-            return new ItemStack(CORD);
+            return item instanceof IYoyo;
         }
     };
 
-    public Yoyos()
-    {
-        MinecraftForge.EVENT_BUS.register(this);
-    }
+    public static Sound YOYO_THROW;
+    public static SoundEvent YOYO_STICK;
+    public static SoundEvent YOYO_CHASE;
 
-    @SubscribeEvent
-    public void registerItems(RegistryEvent.Register<Item> event)
-    {
-        IForgeRegistry<Item> registry = event.getRegistry();
-        // TODO: 1.13 remove cord when normal yoyos are disabled
-        registry.register(CORD = new Item().setCreativeTab(YOYOS_TAB).setRegistryName(MODID, "cord").setUnlocalizedName("yoyos.cord"));
+    public static ItemGroup YOYOS_TAB = FabricItemGroupBuilder.create(new Identifier(MODID, "yoyos"))
+                                                              .icon(() -> new ItemStack(CREATIVE_YOYO))
+                                                              .build();
 
-        if (!ModConfig.vanillaYoyos.enable) return;
+    public static final EntityType<YoyoEntity> YOYO_ENTITY_TYPE =
+            Registry.register(
+                    Registry.ENTITY_TYPE,
+                    new Identifier(MODID, "yoyo"),
+                    FabricEntityTypeBuilder.<YoyoEntity>create(EntityCategory.MISC, YoyoEntity::new)
+                            .disableSummon()
+                            .size(EntityDimensions.fixed(0.25f, 0.25f))
+                            .trackable(64, 2, true)
+                            .build()
+            );
+    public static final EntityType<StickyYoyoEntity> STICKY_YOYO_ENTITY_TYPE =
+            Registry.register(
+                    Registry.ENTITY_TYPE,
+                    new Identifier(MODID, "yoyo"),
+                    FabricEntityTypeBuilder.<StickyYoyoEntity>create(EntityCategory.MISC, StickyYoyoEntity::new)
+                            .disableSummon()
+                            .size(EntityDimensions.fixed(0.25f, 0.25f))
+                            .trackable(64, 2, true)
+                            .build()
+            );
+
+    @Override
+    public void onInitialize()
+    {
+        FabricEntityTypeBuilder.registerModEntity(new ResourceLocation(Yoyos.MODID, "yoyo"), YoyoEntity.class, "YoYo", 0, Yoyos.INSTANCE, 64, 4, false);
+        EntityRegistry.registerModEntity(new ResourceLocation(Yoyos.MODID, "yoyo_sticky"), StickyYoyoEntity.class, "Sticky_YoYo", 1, Yoyos.INSTANCE, 64, 4, true);
+
+
+
+        Registry.register(Registry.ITEM, new Identifier(MODID, "cord"), CORD);
 
         registry.register(CREATIVE_YOYO = new ItemYoyo("creative_yoyo", Item.ToolMaterial.GOLD).setMaxDamage(0));
         registry.register(WOODEN_YOYO = new ItemYoyo("wooden_yoyo", Item.ToolMaterial.WOOD));
@@ -115,12 +128,12 @@ public class Yoyos
         registry.register(GOLD_YOYO = new ItemYoyo("gold_yoyo", Item.ToolMaterial.GOLD));
         registry.register(SHEAR_YOYO = new ItemYoyo("shear_yoyo",
                                                     Item.ToolMaterial.IRON,
-                                                    EntityYoyo::new,
-                                                    Lists.newArrayList(ItemYoyo::shearEntity, ItemYoyo::collectItem, ItemYoyo::attackEntity),
-                                                    Lists.newArrayList(ItemYoyo::garden))
+                                                    YoyoEntity::new,
+                                                    Lists.newArrayList((yoyo, player, hand, yoyoEntity, targetEntity) -> ItemYoyo.shearEntity(yoyo, player, hand, yoyoEntity, targetEntity), (yoyo1, player1, hand1, yoyoEntity1, targetEntity1) -> ItemYoyo.collectItem(yoyo1, player1, hand1, yoyoEntity1, targetEntity1), (yoyo2, player2, hand2, yoyoEntity2, targetEntity2) -> ItemYoyo.attackEntity(yoyo2, player2, hand2, yoyoEntity2, targetEntity2)),
+                                                    Lists.newArrayList((yoyo3, player3, pos, state, block, yoyoEntity3) -> ItemYoyo.garden(yoyo3, player3, pos, state, block, yoyoEntity3)))
                 .setRenderOrientation(RenderOrientation.Horizontal));
         registry.register(HOE_YOYO = new ItemYoyo("hoe_yoyo", Item.ToolMaterial.DIAMOND)
-                .addBlockInteraction(ItemYoyo::farm, ItemYoyo::till));
+                .addBlockInteraction((yoyo, player, pos, state, block, yoyoEntity) -> ItemYoyo.farm(yoyo, player, pos, state, block, yoyoEntity), (yoyo1, player1, pos1, state1, block1, yoyoEntity1) -> ItemYoyo.till(yoyo1, player1, pos1, state1, block1, yoyoEntity1)));
         registry.register(STICKY_YOYO = new ItemStickyYoyo());
     }
 

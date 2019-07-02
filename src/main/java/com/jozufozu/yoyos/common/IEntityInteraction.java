@@ -23,9 +23,9 @@
 package com.jozufozu.yoyos.common;
 
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.Hand;
 
 @FunctionalInterface
 public interface IEntityInteraction
@@ -33,5 +33,5 @@ public interface IEntityInteraction
     /**
      * @return true if interaction should cease after this method
      */
-    boolean entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
+    boolean entityInteraction(ItemStack yoyo, PlayerEntity player, Hand hand, YoyoEntity yoyoEntity, Entity targetEntity);
 }

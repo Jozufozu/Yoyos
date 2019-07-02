@@ -22,41 +22,46 @@
 
 package com.jozufozu.yoyos.client;
 
-import com.jozufozu.yoyos.Yoyos;
-import com.jozufozu.yoyos.common.EntityStickyYoyo;
-import com.jozufozu.yoyos.common.EntityYoyo;
-import com.jozufozu.yoyos.network.MessageReelState;
-import com.jozufozu.yoyos.network.MessageYoyoRetracting;
+import com.jozufozu.yoyos.common.StickyYoyoEntity;
+import com.jozufozu.yoyos.common.YoyoEntity;
+import com.jozufozu.yoyos.network.ReelStateC2SPacket;
+import com.jozufozu.yoyos.network.YoyoRetractingC2SPacket;
 import com.jozufozu.yoyos.network.YoyoNetwork;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.event.world.WorldTickCallback;
+import net.fabricmc.fabric.api.event.player.UseItemCallback;
+import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.Hand;
+import net.minecraft.world.World;
 
-@SideOnly(Side.CLIENT)
-@Mod.EventBusSubscriber(value = Side.CLIENT, modid = Yoyos.MODID)
-public class NetworkHandlers
+@Environment(EnvType.CLIENT)
+public class NetworkHandlers implements ClientModInitializer
 {
     private static int lastReel;
 
-    @SubscribeEvent
-    public static void onTickWorldTick(TickEvent.WorldTickEvent event)
+    @Override
+    public void onInitializeClient()
     {
-        if (event.phase != TickEvent.Phase.START) return;
+        WorldTickCallback.EVENT.register(NetworkHandlers::onTickWorldTick);
+        UseItemCallback.EVENT.register(NetworkHandlers::onPlayerInteractRightClickItem);
+    }
 
+    public static void onTickWorldTick(World event)
+    {
         int reel = 0;
 
-        Minecraft mc = Minecraft.getMinecraft();
-        EntityYoyo yoyo = EntityYoyo.CASTERS.get(mc.player);
+        MinecraftClient mc = MinecraftClient.getInstance();
+        YoyoEntity yoyo = YoyoEntity.CASTERS.get(mc.player);
 
-        if (yoyo instanceof EntityStickyYoyo)
+        if (yoyo instanceof StickyYoyoEntity)
         {
-            if (mc.gameSettings.keyBindJump.isKeyDown()) reel += 1;
-            if (mc.gameSettings.keyBindSneak.isKeyDown()) reel -= 1;
+            if (mc.options.keyJump.isPressed()) reel += 1;
+            if (mc.options.keySneak.isPressed()) reel -= 1;
 
             int abs = Math.abs(reel);
             if (abs > 1)
@@ -64,23 +69,25 @@ public class NetworkHandlers
 
             if (reel != lastReel)
             {
-                YoyoNetwork.INSTANCE.sendToServer(new MessageReelState(reel));
+                ClientSidePacketRegistry.INSTANCE.sendToServer(new ReelStateC2SPacket(reel));
             }
         }
 
         lastReel = reel;
     }
 
-    @SubscribeEvent
-    public static void onPlayerInteractRightClickItem(PlayerInteractEvent.RightClickItem event)
+    public static ActionResult onPlayerInteractRightClickItem(PlayerEntity player, World world, Hand hand)
     {
-        EntityPlayer player = event.getEntityPlayer();
-
-        EntityYoyo yoyo = EntityYoyo.CASTERS.get(player);
-        if (yoyo != null && player == Minecraft.getMinecraft().player)
+        if (player == MinecraftClient.getInstance().player)
         {
-            YoyoNetwork.INSTANCE.sendToServer(new MessageYoyoRetracting(!yoyo.isRetracting()));
-            event.setCanceled(true);
+            YoyoEntity yoyo = YoyoEntity.CASTERS.get(player);
+            if (yoyo != null)
+            {
+                ClientSidePacketRegistry.INSTANCE.sendToServer(new YoyoRetractingC2SPacket(!yoyo.isRetracting()));
+                return ActionResult.SUCCESS;
+            }
         }
+
+        return ActionResult.PASS;
     }
 }

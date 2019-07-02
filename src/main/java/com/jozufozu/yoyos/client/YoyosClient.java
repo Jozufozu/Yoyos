@@ -22,17 +22,22 @@
 
 package com.jozufozu.yoyos.client;
 
-import com.jozufozu.yoyos.Yoyos;
 import com.jozufozu.yoyos.common.CommonProxy;
-import com.jozufozu.yoyos.common.EntityYoyo;
-import com.jozufozu.yoyos.common.ModConfig;
+import com.jozufozu.yoyos.common.YoyoEntity;
+import com.mojang.blaze3d.platform.GlStateManager;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.client.render.EntityRendererRegistry;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.item.Item;
+import net.minecraft.util.AbsoluteHand;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.EnumHandSide;
 import net.minecraft.util.math.MathHelper;
@@ -45,42 +50,21 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-@SideOnly(Side.CLIENT)
-public class ClientProxy extends CommonProxy
+@Environment(EnvType.CLIENT)
+public class YoyosClient extends CommonProxy
 {
-    @SubscribeEvent
-    public void onModelRegistry(ModelRegistryEvent event)
-    {
-        registerModel(Yoyos.CORD);
-        
-        if (!ModConfig.vanillaYoyos.enable)
-            return;
-        
-        registerModel(Yoyos.WOODEN_YOYO);
-        registerModel(Yoyos.STONE_YOYO);
-        registerModel(Yoyos.IRON_YOYO);
-        registerModel(Yoyos.DIAMOND_YOYO);
-        registerModel(Yoyos.GOLD_YOYO);
-        registerModel(Yoyos.SHEAR_YOYO);
-        registerModel(Yoyos.HOE_YOYO);
-        registerModel(Yoyos.STICKY_YOYO);
-        registerModel(Yoyos.CREATIVE_YOYO);
-    }
-
-    @SubscribeEvent
-    @SideOnly(Side.CLIENT)
     public void onRenderHand(RenderSpecificHandEvent event)
     {
-        Minecraft mc = Minecraft.getMinecraft();
+        MinecraftClient mc = MinecraftClient.getInstance();
 
-        EntityPlayerSP player = mc.player;
+        ClientPlayerEntity player = mc.player;
 
-        EntityYoyo yoyo = EntityYoyo.CASTERS.get(player);
+        YoyoEntity yoyo = YoyoEntity.CASTERS.get(player);
         if (yoyo == null || yoyo.getHand() != event.getHand()) return;
 
         if (player.isInvisible()) return;
 
-        EnumHandSide enumhandside = event.getHand() == EnumHand.MAIN_HAND ? player.getPrimaryHand() : player.getPrimaryHand().opposite();
+        AbsoluteHand enumhandside = event.getHand() == EnumHand.MAIN_HAND ? player.getPrimaryHand() : player.getPrimaryHand().opposite();
 
         float swingProgress = event.getSwingProgress();
 
@@ -91,18 +75,18 @@ public class ClientProxy extends CommonProxy
         float f2 = -0.3F * MathHelper.sin(f1 * (float)Math.PI);
         float f3 = 0.4F * MathHelper.sin(f1 * ((float)Math.PI * 2F));
         float f4 = -0.4F * MathHelper.sin(swingProgress * (float)Math.PI);
-        GlStateManager.translate(mirror * (f2 + 0.64000005F), f3 + -0.6F + event.getEquipProgress() * -0.6F, f4 + -0.71999997F);
-        GlStateManager.rotate(mirror * 45.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.translated(mirror * (f2 + 0.64000005F), f3 + -0.6F + event.getEquipProgress() * -0.6F, f4 + -0.71999997F);
+        GlStateManager.rotated(mirror * 45.0F, 0.0F, 1.0F, 0.0F);
         float f5 = MathHelper.sin(swingProgress * swingProgress * (float)Math.PI);
         float f6 = MathHelper.sin(f1 * (float)Math.PI);
-        GlStateManager.rotate(mirror * f6 * 70.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotated(mirror * f6 * 70.0F, 0.0F, 1.0F, 0.0F);
         GlStateManager.rotate(mirror * f5 * -20.0F, 0.0F, 0.0F, 1.0F);
         mc.getTextureManager().bindTexture(player.getLocationSkin());
-        GlStateManager.translate(mirror * -1.0F, 3.6F, 3.5F);
-        GlStateManager.rotate(mirror * 120.0F, 0.0F, 0.0F, 1.0F);
-        GlStateManager.rotate(200.0F, 1.0F, 0.0F, 0.0F);
-        GlStateManager.rotate(mirror * -135.0F, 0.0F, 1.0F, 0.0F);
-        GlStateManager.translate(mirror * 5.6F, 0.0F, 0.0F);
+        GlStateManager.translated(mirror * -1.0F, 3.6F, 3.5F);
+        GlStateManager.rotated(mirror * 120.0F, 0.0F, 0.0F, 1.0F);
+        GlStateManager.rotated(200.0F, 1.0F, 0.0F, 0.0F);
+        GlStateManager.rotated(mirror * -135.0F, 0.0F, 1.0F, 0.0F);
+        GlStateManager.translated(mirror * 5.6F, 0.0F, 0.0F);
         RenderPlayer renderplayer = (RenderPlayer)mc.getRenderManager().<AbstractClientPlayer>getEntityRenderObject(player);
         GlStateManager.disableCull();
 
@@ -125,8 +109,11 @@ public class ClientProxy extends CommonProxy
     public void preInit(FMLPreInitializationEvent event)
     {
         super.preInit(event);
-        
-        RenderingRegistry.registerEntityRenderingHandler(EntityYoyo.class, RenderYoYo::new);
+
+        EntityRendererRegistry.INSTANCE.register(YoyoEntity.class, ((dispatcher, context) -> new YoyoRenderer<HerosProjectileEntity>(dispatcher, context.getItemRenderer())
+
+        ));
+
     }
     
     @Override

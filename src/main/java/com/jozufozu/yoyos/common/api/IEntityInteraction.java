@@ -20,16 +20,19 @@
  * SOFTWARE.
  */
 
-package com.jozufozu.yoyos.common;
+package com.jozufozu.yoyos.common.api;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.state.IBlockState;
+import com.jozufozu.yoyos.common.EntityYoyo;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.EnumHand;
 
 @FunctionalInterface
-public interface IBlockInteraction
+public interface IEntityInteraction
 {
-    boolean blockInteraction(ItemStack yoyo, EntityPlayer player, BlockPos pos, IBlockState state, Block block, EntityYoyo yoyoEntity);
+    /**
+     * @return true if interaction should cease after this method
+     */
+    boolean entityInteraction(ItemStack yoyo, EntityPlayer player, EnumHand hand, EntityYoyo yoyoEntity, Entity targetEntity);
 }

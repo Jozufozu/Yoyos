@@ -22,7 +22,7 @@ entity.yoyo.stick.subtitle=Yoyo sticks
 entity.yoyo.chase.subtitle=Yoyo called
 
 enchantment.yoyos.collecting=Collecting
-yoyos.jei.info.collecting=This enchantment allows yoyos to pick up items.
+enchantment.yoyos.collecting.desc=Yoyos pick up items and return them when the yoyo is retracted
 
 yoyos.config.vanilla=Vanilla Yoyos
 yoyos.config.enable=Enable

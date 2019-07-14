@@ -23,6 +23,7 @@
 package com.jozufozu.yoyos.common;
 
 import com.jozufozu.yoyos.Yoyos;
+import com.jozufozu.yoyos.common.api.IYoyo;
 import com.jozufozu.yoyos.network.MessageCollectedDrops;
 import com.jozufozu.yoyos.network.YoyoNetwork;
 import net.minecraft.block.Block;
@@ -38,6 +39,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.util.*;
 import net.minecraft.util.math.*;
@@ -60,33 +64,29 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 {
     public static final HashMap<Entity, EntityYoyo> CASTERS = new HashMap<>();
 
+    private static final DataParameter<ItemStack> YOYO_STACK = EntityDataManager.createKey(EntityYoyo.class, DataSerializers.ITEM_STACK);
+    private static final DataParameter<Byte> HAND = EntityDataManager.createKey(EntityYoyo.class, DataSerializers.BYTE);
+    private static final DataParameter<Boolean> RETRACTING = EntityDataManager.createKey(EntityYoyo.class, DataSerializers.BOOLEAN);
+    private static final DataParameter<Integer> MAX_TIME = EntityDataManager.createKey(EntityYoyo.class, DataSerializers.VARINT);
+    private static final DataParameter<Integer> REMAINING_TIME = EntityDataManager.createKey(EntityYoyo.class, DataSerializers.VARINT);
+    private static final DataParameter<Float> WEIGHT = EntityDataManager.createKey(EntityYoyo.class, DataSerializers.FLOAT);
+    private static final DataParameter<Float> CURRENT_LENGTH = EntityDataManager.createKey(EntityYoyo.class, DataSerializers.FLOAT);
+    private static final DataParameter<Float> MAX_LENGTH = EntityDataManager.createKey(EntityYoyo.class, DataSerializers.FLOAT);
+    private static final DataParameter<Integer> MAX_COLLECTED_DROPS = EntityDataManager.createKey(EntityYoyo.class, DataSerializers.VARINT);
+
     protected static final int MAX_RETRACT_TIME = 40;
     public ArrayList<ItemStack> collectedDrops = new ArrayList<>();
     public int numCollectedDrops = 0;
-    public int maxCollectedDrops;
     protected boolean needCollectedSync;
 
     protected EntityPlayer thrower;
-    protected ItemStack yoyoStack = ItemStack.EMPTY;
     protected ItemStack yoyoStackLastTick = ItemStack.EMPTY;
     protected IYoyo yoyo = null;
-    protected EnumHand hand;
-
-    protected float weight;
-
-    protected float cordLength;
-    protected float maxLength;
 
     protected int attackCool;
-    protected int maxCool;
+    protected int attackInterval;
     protected boolean shouldResetCool;
 
-    protected int timeoutCounter;
-    protected int duration;
-
-    protected boolean interactsWithBlocks;
-
-    protected boolean isRetracting = false;
     protected boolean canCancelRetract = true;
     protected int retractionTimeout = 0;
 
@@ -94,33 +94,25 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
     protected boolean shouldGetStats = true;
 
+    protected boolean doesBlockInteraction = true;
 
     public EntityYoyo(World world)
     {
         super(world);
+        setNoGravity(true);
         ignoreFrustumCheck = true;
         width = 0.25F;
         height = 0.25F;
     }
 
-    public EntityYoyo(World world, EntityPlayer player)
+    public EntityYoyo(World world, EntityPlayer player, EnumHand hand)
     {
         this(world);
         thrower = player;
 
         CASTERS.put(player, this);
 
-        yoyoStack = thrower.getHeldItemMainhand();
-
-        if (yoyoStack == ItemStack.EMPTY)
-        {
-            yoyoStack = thrower.getHeldItemOffhand();
-
-            if (yoyoStack != ItemStack.EMPTY) hand = EnumHand.OFF_HAND;
-        }
-        else hand = EnumHand.MAIN_HAND;
-
-        yoyoStackLastTick = yoyoStack;
+        setHand(hand);
 
         Vec3d handPos = getPlayerHandPos(1);
         setPosition(handPos.x, handPos.y, handPos.z);
@@ -132,7 +124,15 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     @Override
     protected void entityInit()
     {
-        setNoGravity(true);
+        this.getDataManager().register(YOYO_STACK, ItemStack.EMPTY);
+        this.getDataManager().register(HAND, (byte) EnumHand.MAIN_HAND.ordinal());
+        this.getDataManager().register(RETRACTING, false);
+        this.getDataManager().register(MAX_TIME, -1);
+        this.getDataManager().register(REMAINING_TIME, -1);
+        this.getDataManager().register(WEIGHT, 1.0f);
+        this.getDataManager().register(CURRENT_LENGTH, 1.0f);
+        this.getDataManager().register(MAX_LENGTH, 1.0f);
+        this.getDataManager().register(MAX_COLLECTED_DROPS, 0);
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -153,6 +153,12 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         event.setCanceled(true);
     }
 
+    @Nullable
+    public IYoyo getYoyo()
+    {
+        return yoyo;
+    }
+
     @Override
     public Entity getThrower()
     {
@@ -169,60 +175,149 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         }
     }
 
-    @Nullable
-    public IYoyo getYoyo()
-    {
-        return yoyo;
-    }
-
     public ItemStack getYoyoStack()
     {
-        return yoyoStack;
+        return this.getDataManager().get(YOYO_STACK);
     }
 
-    public float getWeight()
+    public void setYoyoStack(ItemStack stack)
     {
-        return weight;
-    }
-
-    public float getCordLength()
-    {
-        return cordLength;
-    }
-
-    public int getDuration()
-    {
-        return duration;
+        this.getDataManager().set(YOYO_STACK, stack);
+        this.getDataManager().setDirty(YOYO_STACK);
     }
 
     public EnumHand getHand()
     {
-        return hand;
+        return EnumHand.values()[this.getDataManager().get(HAND)];
+    }
+
+    public void setHand(EnumHand hand)
+    {
+        this.getDataManager().set(HAND, (byte) hand.ordinal());
+        this.getDataManager().setDirty(HAND);
+    }
+
+    public boolean isRetracting()
+    {
+        return this.getDataManager().get(RETRACTING);
+    }
+
+    public void setRetracting(boolean retracting)
+    {
+        if (canCancelRetract || !isRetracting())
+        {
+            this.getDataManager().set(RETRACTING, retracting);
+            this.getDataManager().setDirty(RETRACTING);
+        }
+    }
+
+    public void forceRetract()
+    {
+        setRetracting(true);
+        canCancelRetract = false;
+    }
+
+    public int getMaxTime()
+    {
+        return this.getDataManager().get(MAX_TIME);
+    }
+
+    public void setMaxTime(int duration)
+    {
+        this.getDataManager().set(MAX_TIME, duration);
+        this.getDataManager().setDirty(MAX_TIME);
+    }
+
+    public int getRemainingTime()
+    {
+        return this.getDataManager().get(REMAINING_TIME);
+    }
+
+    public void setRemainingTime(int duration)
+    {
+        this.getDataManager().set(REMAINING_TIME, duration);
+        this.getDataManager().setDirty(REMAINING_TIME);
+    }
+
+    public int decrementRemainingTime()
+    {
+        return decrementRemainingTime(1);
+    }
+
+    public int decrementRemainingTime(int amount)
+    {
+        int out = getRemainingTime() - amount;
+        setRemainingTime(out);
+        return out;
+    }
+
+    public float getWeight()
+    {
+        return this.getDataManager().get(WEIGHT);
+    }
+
+    public void setWeight(float weight)
+    {
+        this.getDataManager().set(WEIGHT, weight);
+        this.getDataManager().setDirty(WEIGHT);
+    }
+
+    public float getCurrentLength()
+    {
+        return this.getDataManager().get(CURRENT_LENGTH);
+    }
+
+    public void setCurrentLength(float length)
+    {
+        this.getDataManager().set(CURRENT_LENGTH, length);
+        this.getDataManager().setDirty(CURRENT_LENGTH);
+    }
+
+    public float getMaxLength()
+    {
+        return this.getDataManager().get(MAX_LENGTH);
+    }
+
+    public void setMaxLength(float length)
+    {
+        this.getDataManager().set(MAX_LENGTH, length);
+        this.getDataManager().setDirty(MAX_LENGTH);
+    }
+
+    public boolean doesBlockInteraction()
+    {
+        return doesBlockInteraction;
+    }
+
+    public void setInteractsWithBlocks(boolean blockInteraction)
+    {
+        doesBlockInteraction = blockInteraction;
+    }
+
+    public int getMaxCollectedDrops()
+    {
+        return this.getDataManager().get(MAX_COLLECTED_DROPS);
+    }
+
+    public void setMaxCollectedDrops(int numCollectedDrops)
+    {
+        this.getDataManager().set(MAX_COLLECTED_DROPS, numCollectedDrops);
+        this.getDataManager().setDirty(MAX_COLLECTED_DROPS);
     }
 
     public boolean isCollecting()
     {
-        return maxCollectedDrops > 0;
+        return getMaxCollectedDrops() > 0;
     }
 
     public boolean canAttack()
     {
-        return attackCool >= maxCool;
+        return attackCool >= attackInterval;
     }
 
     public void resetAttackCooldown()
     {
         shouldResetCool = true;
-    }
-
-    public int getTimeout()
-    {
-        return timeoutCounter;
-    }
-
-    public void increaseTimeout(int n)
-    {
-        timeoutCounter += n;
     }
 
     public Vec3d getPlayerHandPos(float partialTicks)
@@ -252,35 +347,24 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         double throwerLookWidth = Math.cos(pitch * 0.01745329238474369D);
 
         float side = -1;
-        if ((thrower.getPrimaryHand() == EnumHandSide.RIGHT) == (hand == EnumHand.MAIN_HAND)) side = 1;
+        if ((thrower.getPrimaryHand() == EnumHandSide.RIGHT) == (getHand() == EnumHand.MAIN_HAND)) side = 1;
 
         return new Vec3d(posX - throwerLookOffsetX * side * 0.4D - throwerLookOffsetZ * 0.5D * throwerLookWidth, posY + thrower.eyeHeight * 0.85D - throwerLookOffsetY * 0.5D - 0.25D, posZ - throwerLookOffsetZ * side * 0.4D + throwerLookOffsetX * 0.5D * throwerLookWidth);
     }
 
     public float getRotation(int age, float partialTicks)
     {
-        float ageInTicks = age + partialTicks;
+        int maxTime = getMaxTime();
+        float ageInTicks;
+
+        if (maxTime < 0) ageInTicks = age + partialTicks;
+        else ageInTicks = maxTime - getRemainingTime() + partialTicks;
+
         float multiplier = 35;
 
-        if (duration != -1) multiplier *= 2 - ageInTicks / ((float) duration);
+        if (maxTime >= 0) multiplier *= 2 - ageInTicks / ((float) maxTime);
 
         return ageInTicks * multiplier;
-    }
-
-    public boolean isRetracting()
-    {
-        return isRetracting;
-    }
-
-    public void setRetracting(boolean retracting)
-    {
-        if (canCancelRetract || !isRetracting) isRetracting = retracting;
-    }
-
-    public void forceRetract()
-    {
-        canCancelRetract = false;
-        isRetracting = true;
     }
 
     @Override
@@ -294,14 +378,14 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
             if (yoyo == null) return;
 
-            if (duration >= 0 && ++timeoutCounter >= duration) forceRetract();
+            if (getMaxTime() >= 0 && decrementRemainingTime() < 0) forceRetract();
 
             updateMotion();
             moveAndCollide();
 
-            yoyo.onUpdate(yoyoStack, this);
+            yoyo.onUpdate(getYoyoStack(), this);
 
-            if (!world.isRemote && interactsWithBlocks) worldInteraction();
+            if (!world.isRemote && doesBlockInteraction()) worldInteraction();
 
             if (isCollecting()) updateCapturedDrops();
 
@@ -315,15 +399,9 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     @Nullable
     protected IYoyo checkAndGetYoyoObject()
     {
-        yoyoStack = thrower.getHeldItemMainhand();
-
-        if (yoyoStack == ItemStack.EMPTY || !(yoyoStack.getItem() instanceof IYoyo))
-        {
-            yoyoStack = thrower.getHeldItemOffhand();
-
-            if (yoyoStack != ItemStack.EMPTY) hand = EnumHand.OFF_HAND;
-        }
-        else hand = EnumHand.MAIN_HAND;
+        EnumHand hand = getHand();
+        ItemStack yoyoStack = thrower.getHeldItem(hand);
+        setYoyoStack(yoyoStack);
 
         int currentSlot = hand == EnumHand.MAIN_HAND ? thrower.inventory.currentItem : -2;
 
@@ -350,32 +428,32 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
         IYoyo yoyo = (IYoyo) yoyoStack.getItem();
 
-        getStats(yoyo);
+        if (!world.isRemote && shouldGetStats)
+        {
+            setMaxCollectedDrops(yoyo.getMaxCollectedDrops(yoyoStack));
+            attackInterval = yoyo.getAttackInterval(yoyoStack);
+            int duration = yoyo.getDuration(yoyoStack);
+            setMaxTime(duration);
+            setRemainingTime(duration);
+
+            float maxLength = yoyo.getLength(yoyoStack);
+            setCurrentLength(maxLength);
+            setMaxLength(maxLength);
+            setWeight(yoyo.getWeight(yoyoStack));
+
+            setInteractsWithBlocks(yoyo.interactsWithBlocks(yoyoStack));
+
+            shouldGetStats = false;
+        }
 
         lastSlot = currentSlot;
 
         return yoyo;
     }
 
-    protected void getStats(IYoyo yoyo)
-    {
-        if (shouldGetStats)
-        {
-            maxCollectedDrops = yoyo.getMaxCollectedDrops(yoyoStack);
-            maxCool = yoyo.getAttackInterval(yoyoStack);
-            duration = yoyo.getDuration(yoyoStack);
-            cordLength = maxLength = yoyo.getLength(yoyoStack);
-            weight = yoyo.getWeight(yoyoStack);
-
-            interactsWithBlocks = yoyo.interactsWithBlocks(yoyoStack);
-
-            shouldGetStats = false;
-        }
-    }
-
     protected void updateMotion()
     {
-        Vec3d motion = getTarget().subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / weight, 1.0));
+        Vec3d motion = getTarget().subtract(posX, posY + height / 2, posZ).scale(Math.min(1 / getWeight(), 1.0));
 
         motionX = motion.x;
         motionY = motion.y;
@@ -384,7 +462,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         //Slow down in water, unless it has the modifier "aquadynamic"
         if (inWater)
         {
-            float multiplier = yoyo.getWaterMovementModifier(yoyoStack);
+            float multiplier = yoyo.getWaterMovementModifier(getYoyoStack());
             motionX *= multiplier;
             motionY *= multiplier;
             motionZ *= multiplier;
@@ -411,6 +489,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             Vec3d eyePos = new Vec3d(thrower.posX, thrower.posY + thrower.eyeHeight, thrower.posZ);
             Vec3d lookVec = thrower.getLookVec();
 
+            double cordLength = getCurrentLength();
             Vec3d target = new Vec3d(eyePos.x + lookVec.x * cordLength, eyePos.y + lookVec.y * cordLength, eyePos.z + lookVec.z * cordLength);
             retractionTimeout = 0;
             RayTraceResult rayTraceResult = getTargetLook(eyePos, target);
@@ -497,7 +576,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
     public void interactWithEntity(Entity entity)
     {
-        yoyo.entityInteraction(yoyoStack, thrower, hand, this, entity);
+        yoyo.entityInteraction(getYoyoStack(), thrower, getHand(), this, entity);
     }
 
     protected void worldInteraction()
@@ -513,7 +592,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
 
             if (block != Blocks.AIR && state.getBoundingBox(world, checkPos).offset(checkPos).intersects(entityBox))
             {
-                yoyo.blockInteraction(yoyoStack, thrower, world, checkPos, state, block, this);
+                yoyo.blockInteraction(getYoyoStack(), thrower, world, checkPos, state, block, this);
             }
         }
     }
@@ -591,7 +670,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
     {
         if (!isCollecting()) return stack;
 
-        int maxTake = maxCollectedDrops - numCollectedDrops;
+        int maxTake = getMaxCollectedDrops() - numCollectedDrops;
 
         ItemStack take = stack.splitStack(maxTake);
         collectedDrops.add(take);
@@ -626,6 +705,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
         double dx = posX - thrower.posX;
         double dy = (posY + height * 0.5) - (thrower.posY + thrower.eyeHeight);
 
+        float cordLength = getCurrentLength();
         if (dy < 0 && cordLength < thrower.eyeHeight) dy += thrower.eyeHeight * 1.2;
 
         double dz = posZ - thrower.posZ;
@@ -637,7 +717,7 @@ public class EntityYoyo extends Entity implements IThrowableEntity
             double scale = Math.min(0.04 * stretch * stretch, 0.4);
             thrower.addVelocity(dx * scale, dy * scale, dz * scale);
             thrower.fallDistance = 0;
-            if (isRetracting) setDead();
+            if (isRetracting()) setDead();
         }
     }
 

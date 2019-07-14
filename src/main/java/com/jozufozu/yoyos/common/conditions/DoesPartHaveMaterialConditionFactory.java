@@ -27,15 +27,20 @@ import net.minecraft.util.JsonUtils;
 import net.minecraftforge.common.crafting.IConditionFactory;
 import net.minecraftforge.common.crafting.JsonContext;
 import net.minecraftforge.fml.common.Loader;
+import slimeknights.tconstruct.library.TinkerRegistry;
 
 import java.util.function.BooleanSupplier;
 
-public class IsModLoadedConditionFactory implements IConditionFactory
+public class DoesPartHaveMaterialConditionFactory implements IConditionFactory
 {
     @Override
     public BooleanSupplier parse(JsonContext context, JsonObject json)
     {
-        String modName = JsonUtils.getString(json, "modid", "");
-        return () -> Loader.isModLoaded(modName);
+        if (Loader.isModLoaded("tcontstruct")) return () -> false;
+
+        String part = JsonUtils.getString(json, "part", "");
+        String materialId = JsonUtils.getString(json, "material", "");
+
+        return () -> TinkerRegistry.getAllMaterialsWithStats(part).stream().anyMatch(material -> material.identifier.equals(materialId));
     }
 }

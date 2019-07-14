@@ -20,8 +20,10 @@
  * SOFTWARE.
  */
 
-package com.jozufozu.yoyos.common;
+package com.jozufozu.yoyos.common.api;
 
+import com.jozufozu.yoyos.common.EntityYoyo;
+import com.jozufozu.yoyos.common.RenderOrientation;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;

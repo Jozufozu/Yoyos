@@ -32,6 +32,7 @@ import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.passive.EntityAmbientCreature;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.Vec3d;
@@ -57,9 +58,9 @@ public class EntityChaserYoyo extends EntityYoyo
         super(world);
     }
 
-    public EntityChaserYoyo(World world, EntityPlayer player)
+    public EntityChaserYoyo(World world, EntityPlayer player, EnumHand hand)
     {
-        super(world, player);
+        super(world, player, hand);
     }
 
     public void setTargetEntity(@Nullable Entity target)
@@ -102,7 +103,7 @@ public class EntityChaserYoyo extends EntityYoyo
     @Override
     public void interactWithEntity(Entity entity)
     {
-        if (attackCool >= maxCool && entity == target) forgetTargetEntity();
+        if (attackCool >= attackInterval && entity == target) forgetTargetEntity();
 
         super.interactWithEntity(entity);
     }
@@ -110,7 +111,7 @@ public class EntityChaserYoyo extends EntityYoyo
     @Override
     public Vec3d getTarget()
     {
-        if (target != null && !isRetracting && !target.isDead)
+        if (target != null && !isRetracting() && !target.isDead)
             return new Vec3d(target.posX, target.posY + target.height * 0.5, target.posZ);
 
         return super.getTarget();
@@ -124,9 +125,10 @@ public class EntityChaserYoyo extends EntityYoyo
 
     public void acquireTargetEntity()
     {
-        if (isRetracting) return;
-        if (!ManaItemHandler.requestManaExact(yoyoStack, thrower, 200, false)) return;
+        if (isRetracting()) return;
+        if (!ManaItemHandler.requestManaExact(getYoyoStack(), thrower, 200, false)) return;
 
+        float maxLength = getMaxLength();
         AxisAlignedBB searchBox = new AxisAlignedBB(thrower.posX - maxLength, thrower.posY - maxLength, thrower.posZ - maxLength, thrower.posX + maxLength, thrower.posY + maxLength, thrower.posZ + maxLength);
 
         Vec3d lookVec = thrower.getLookVec();
@@ -166,12 +168,12 @@ public class EntityChaserYoyo extends EntityYoyo
                     bestTarget = testEntity;
                 }
             }
-        } // Here, we take the entity most closely aligned with the player's view
+        }
 
         if (bestTarget != lastTarget)
         {
             target = bestTarget;
-            ManaItemHandler.requestManaExact(yoyoStack, thrower, 200, true);
+            ManaItemHandler.requestManaExact(getYoyoStack(), thrower, 200, true);
             world.playSound(null, thrower.posX, thrower.posY + thrower.eyeHeight, thrower.posZ, Yoyos.YOYO_CHASE, SoundCategory.PLAYERS, 0.4F, 1.2F + world.rand.nextFloat() * 0.6F);
 
             YoyoNetwork.INSTANCE.sendToAllTracking(new MessageAcquireTarget.MessageTargetUpdate(this, bestTarget), this);

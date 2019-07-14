@@ -24,30 +24,64 @@ package com.jozufozu.yoyos.common;
 
 import com.jozufozu.yoyos.Yoyos;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 public class EntityStickyYoyo extends EntityYoyo
 {
+    private static final DataParameter<Byte> REEL_DIRECTION = EntityDataManager.createKey(EntityStickyYoyo.class, DataSerializers.BYTE);
+    private static final DataParameter<Boolean> STUCK = EntityDataManager.createKey(EntityStickyYoyo.class, DataSerializers.BOOLEAN);
+
+    private int stuckSince;
+
     public EntityStickyYoyo(World world)
     {
         super(world);
     }
 
-    public EntityStickyYoyo(World world, EntityPlayer player)
+    public EntityStickyYoyo(World world, EntityPlayer player, EnumHand hand)
     {
-        super(world, player);
+        super(world, player, hand);
     }
 
-    private boolean stuck = false;
-    private int stuckSince = 0;
-
-    private int reelDirection;
-
-    public void setReelDirection(int reelDirection)
+    @Override
+    protected void entityInit()
     {
-        this.reelDirection = reelDirection;
+        super.entityInit();
+        this.getDataManager().register(REEL_DIRECTION, (byte) 0);
+        this.getDataManager().register(STUCK, false);
+    }
+
+    public int getReelDirection()
+    {
+        return this.getDataManager().get(REEL_DIRECTION);
+    }
+
+    public void setReelDirection(byte reelDirection)
+    {
+        this.getDataManager().set(REEL_DIRECTION, reelDirection);
+        this.getDataManager().setDirty(REEL_DIRECTION);
+    }
+
+    public boolean isStuck()
+    {
+        return this.getDataManager().get(STUCK);
+    }
+
+    public void setStuck(boolean stuck)
+    {
+        this.getDataManager().set(STUCK, stuck);
+        this.getDataManager().setDirty(STUCK);
+    }
+
+    public void changeLength(float amount)
+    {
+        setCurrentLength(Math.min(getCurrentLength() + amount, getMaxLength()));
     }
 
     @Override
@@ -71,15 +105,15 @@ public class EntityStickyYoyo extends EntityYoyo
             double dz = thrower.posZ - posZ;
             double distanceSqr = dx * dx + dy * dy + dz * dz;
 
-            if (reelDirection < 0 && cordLength > 0.1 && distanceSqr < cordLength * cordLength + 8)
-                cordLength -= 0.5;
+            if (getReelDirection() < 0 && getCurrentLength() > 0.1 && distanceSqr < getCurrentLength() * getCurrentLength() + 8)
+                changeLength(-0.5f);
 
-            if (reelDirection > 0 && cordLength < maxLength)
+            if (getReelDirection() > 0 && getCurrentLength() < getMaxLength())
             {
-                if (distanceSqr < cordLength * cordLength + 2)
-                    cordLength += 0.1;
+                if (distanceSqr < getCurrentLength() * getCurrentLength() + 2)
+                    changeLength(0.1f);
                 else
-                    cordLength = MathHelper.sqrt(distanceSqr);
+                    setCurrentLength(MathHelper.sqrt(distanceSqr));
             }
 
             if (!isRetracting() && !world.getCollisionBoxes(this, getEntityBoundingBox().grow(0.1)).isEmpty())
@@ -88,32 +122,32 @@ public class EntityStickyYoyo extends EntityYoyo
                 motionY = 0;
                 motionZ = 0;
 
-                if (!stuck)
+                if (!isStuck())
                 {
-                    stuckSince = timeoutCounter;
-                    cordLength = MathHelper.sqrt(distanceSqr);
+                    stuckSince = ticksExisted;
+                    setCurrentLength(MathHelper.sqrt(distanceSqr));
                     world.playSound(null, posX, posY, posZ, Yoyos.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f);
-                    yoyo.damageItem(yoyoStack, 1, thrower);
+                    yoyo.damageItem(getYoyoStack(), 1, thrower);
                 }
-                stuck = true;
+                setStuck(true);
 
                 handlePlayerPulling();
             }
             else
             {
-                if (isRetracting() && stuck) setDead();
+                if (isRetracting() && isStuck()) setDead();
 
-                if (duration >= 0 && ++timeoutCounter >= duration)
+                if (decrementRemainingTime() == 0)
                     forceRetract();
 
                 updateMotion();
 
                 moveAndCollide();
 
-                if (!world.isRemote && interactsWithBlocks)
+                if (!world.isRemote && doesBlockInteraction())
                     worldInteraction();
 
-                stuck = false;
+                setStuck(false);
             }
 
             if (isCollecting())
@@ -127,6 +161,6 @@ public class EntityStickyYoyo extends EntityYoyo
     @Override
     public float getRotation(int age, float partialTicks)
     {
-        return stuck ? super.getRotation(stuckSince, 0) : super.getRotation(age - stuckSince, partialTicks);
+        return isStuck() ? super.getRotation(stuckSince, 0) : super.getRotation(age - stuckSince, partialTicks);
     }
 }

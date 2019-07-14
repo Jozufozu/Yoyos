@@ -1,7 +1,7 @@
 {
     "conditions": {
-        "is_mod_loaded": "com.jozufozu.yoyos.common.conditions.IsModLoadedConditionFactory",
         "are_yoyos_enabled": "com.jozufozu.yoyos.common.conditions.AreYoyosEnabledFactory",
-        "is_botania_enabled": "com.jozufozu.yoyos.common.conditions.IsBotaniaEnabledFactory"
+        "is_botania_enabled": "com.jozufozu.yoyos.common.conditions.IsBotaniaEnabledFactory",
+        "does_part_have_material": "com.jozufozu.yoyos.common.conditions.DoesPartHaveMaterialConditionFactory"
     }
 }

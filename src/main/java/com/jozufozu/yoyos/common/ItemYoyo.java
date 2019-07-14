@@ -27,6 +27,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.jozufozu.yoyos.Yoyos;
+import com.jozufozu.yoyos.common.api.IBlockInteraction;
+import com.jozufozu.yoyos.common.api.IEntityInteraction;
+import com.jozufozu.yoyos.common.api.IYoyo;
+import com.jozufozu.yoyos.common.api.YoyoFactory;
 import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.resources.I18n;
@@ -68,7 +72,6 @@ import net.minecraftforge.oredict.OreDictionary;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.function.BiFunction;
 
 public class ItemYoyo extends Item implements IYoyo
 {
@@ -76,7 +79,7 @@ public class ItemYoyo extends Item implements IYoyo
 
     private final float attackDamage;
     protected final ToolMaterial material;
-    protected BiFunction<World, EntityPlayer, EntityYoyo> yoyoFactory;
+    protected YoyoFactory yoyoFactory;
     protected RenderOrientation renderOrientation = RenderOrientation.Vertical;
     protected ArrayList<IEntityInteraction> entityInteractions;
     protected ArrayList<IBlockInteraction> blockInteractions;
@@ -86,12 +89,12 @@ public class ItemYoyo extends Item implements IYoyo
         this(name, material, EntityYoyo::new);
     }
 
-    public ItemYoyo(String name, ToolMaterial material, BiFunction<World, EntityPlayer, EntityYoyo> yoyoFactory)
+    public ItemYoyo(String name, ToolMaterial material, YoyoFactory yoyoFactory)
     {
         this(name, material, yoyoFactory, Lists.newArrayList(ItemYoyo::collectItem, ItemYoyo::attackEntity), new ArrayList<>());
     }
     
-    public ItemYoyo(String name, ToolMaterial material, BiFunction<World, EntityPlayer, EntityYoyo> yoyoFactory, @Nonnull ArrayList<IEntityInteraction> entityInteractions, @Nonnull ArrayList<IBlockInteraction> blockInteractions)
+    public ItemYoyo(String name, ToolMaterial material, YoyoFactory yoyoFactory, @Nonnull ArrayList<IEntityInteraction> entityInteractions, @Nonnull ArrayList<IBlockInteraction> blockInteractions)
     {
         this.yoyoFactory = yoyoFactory;
         this.entityInteractions = entityInteractions;
@@ -185,7 +188,7 @@ public class ItemYoyo extends Item implements IYoyo
         {
             if (itemStack.getItemDamage() <= itemStack.getMaxDamage() || this == Yoyos.CREATIVE_YOYO)
             {
-                EntityYoyo yoyo = yoyoFactory.apply(worldIn, playerIn);
+                EntityYoyo yoyo = yoyoFactory.create(worldIn, playerIn, hand);
                 worldIn.spawnEntity(yoyo);
 
                 worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.YOYO_THROW, SoundCategory.NEUTRAL, 0.5F, 0.4F / (itemRand.nextFloat() * 0.4F + 0.8F));
@@ -378,7 +381,7 @@ public class ItemYoyo extends Item implements IYoyo
                     yoyoEntity.createItemDropOrCollect(stack, pos);
                 }
 
-                yoyoEntity.increaseTimeout(10);
+                yoyoEntity.decrementRemainingTime(10);
             }
 
             return true;
@@ -447,7 +450,7 @@ public class ItemYoyo extends Item implements IYoyo
                     block.breakBlock(world, pos, state);
 
                     yoyoEntity.getYoyo().damageItem(yoyo, 1, player);
-                    yoyoEntity.increaseTimeout(10);
+                    yoyoEntity.decrementRemainingTime(10);
 
                     for (ItemStack stack : stacks)
                     {
@@ -563,7 +566,7 @@ public class ItemYoyo extends Item implements IYoyo
         state.getBlock().getDrops(drops, world, pos, state, fortune);
         ForgeEventFactory.fireBlockHarvesting(drops, world, pos, state, fortune, 1.0F, false, player);
 
-        yoyoEntity.increaseTimeout(10);
+        yoyoEntity.decrementRemainingTime(10);
 
         return drops;
     }
@@ -582,7 +585,7 @@ public class ItemYoyo extends Item implements IYoyo
             if (!targetEntity.hitByEntity(player))
             {
                 yoyoEntity.resetAttackCooldown();
-                yoyoEntity.increaseTimeout(10);
+                yoyoEntity.decrementRemainingTime(10);
                 yoyoEntity.getYoyo().damageItem(yoyo, 1, player);
 
                 float damage = (float) player.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue();

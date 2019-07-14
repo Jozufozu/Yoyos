@@ -13,7 +13,7 @@ entity.yoyo.throw.subtitle=悠悠球：抛出
 entity.yoyo.stick.subtitle=悠悠球：粘黏
 
 enchantment.yoyos.collecting=收集
-yoyos.jei.info.collecting=此效果允许让悠悠球吸收周围物品。
+enchantment.yoyos.collecting.desc=此效果允许让悠悠球吸收周围物品。
 
 yoyos.config.vanilla=原版悠悠球
 yoyos.config.enable=启用

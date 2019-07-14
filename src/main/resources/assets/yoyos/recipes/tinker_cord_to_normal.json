@@ -1,0 +1,12 @@
+{
+    "type": "minecraft:crafting_shapeless",
+    "conditions": [
+        { "type": "forge:mod_loaded", "modid": "tconstruct" },
+        { "type": "yoyos:does_part_have_material", "part": "cord", "material": "string" }
+    ],
+    "ingredients": [{ "type": "minecraft:item_nbt", "item": "yoyos:yoyo_cord", "data": 0, "nbt": { "Material": "string" } }
+    ],
+    "result": {
+        "item": "yoyos:cord"
+    }
+}

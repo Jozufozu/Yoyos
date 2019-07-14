@@ -20,7 +20,7 @@
  * SOFTWARE.
  */
 
-package com.jozufozu.yoyos.common;
+package com.jozufozu.yoyos.compat;
 
 import com.jozufozu.yoyos.Yoyos;
 import mezz.jei.api.IModPlugin;
@@ -40,6 +40,6 @@ public class JEIYoyoInfo implements IModPlugin
     {
         registry.addIngredientInfo(ItemEnchantedBook.getEnchantedItemStack(new EnchantmentData(Yoyos.COLLECTING, 1)),
                                    ItemStack.class,
-                                   "yoyos.jei.info.collecting");
+                                   "enchantment.yoyos.collecting.desc");
     }
 }

@@ -48,7 +48,7 @@ public class NetworkHandlers
     {
         if (event.phase != TickEvent.Phase.START) return;
 
-        int reel = 0;
+        byte reel = 0;
 
         Minecraft mc = Minecraft.getMinecraft();
         EntityYoyo yoyo = EntityYoyo.CASTERS.get(mc.player);

@@ -25,8 +25,6 @@ package com.jozufozu.yoyos.network;
 import com.jozufozu.yoyos.common.EntityStickyYoyo;
 import com.jozufozu.yoyos.common.EntityYoyo;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -41,11 +39,11 @@ public class MessageReelState implements IMessage
      * -1 - reel in
      * 1 - reel out
      */
-    private int direction;
+    private byte direction;
 
     public MessageReelState() { }
 
-    public MessageReelState(int dir)
+    public MessageReelState(byte dir)
     {
         direction = dir;
     }
@@ -62,53 +60,6 @@ public class MessageReelState implements IMessage
         direction = buf.readByte();
     }
 
-    public static class MessageReelStateReply implements IMessage
-    {
-        private int direction;
-        private int yoyoID;
-
-        public MessageReelStateReply() { }
-
-        public MessageReelStateReply(EntityYoyo yoyo, MessageReelState message)
-        {
-            yoyoID = yoyo.getEntityId();
-            direction = message.direction;
-        }
-
-        @Override
-        public void toBytes(ByteBuf buf)
-        {
-            buf.writeInt(yoyoID);
-            buf.writeByte(direction);
-        }
-
-        @Override
-        public void fromBytes(ByteBuf buf)
-        {
-            yoyoID = buf.readInt();
-            direction = buf.readByte();
-        }
-
-        public static class Handler implements IMessageHandler<MessageReelStateReply, IMessage>
-        {
-            @Override
-            @Nullable
-            public IMessage onMessage(MessageReelStateReply message, MessageContext ctx)
-            {
-                Minecraft minecraft = Minecraft.getMinecraft();
-                minecraft.addScheduledTask(() -> {
-                    Entity maybeYoyo = minecraft.world.getEntityByID(message.yoyoID);
-
-                    if (maybeYoyo instanceof EntityStickyYoyo)
-                    {
-                        ((EntityStickyYoyo) maybeYoyo).setReelDirection(message.direction);
-                    }
-                });
-                return null;
-            }
-        }
-    }
-
     public static class Handler implements IMessageHandler<MessageReelState, IMessage>
     {
         @Override
@@ -122,8 +73,6 @@ public class MessageReelState implements IMessage
                 if (maybeYoyo instanceof EntityStickyYoyo)
                 {
                     ((EntityStickyYoyo) maybeYoyo).setReelDirection(message.direction);
-
-                    YoyoNetwork.INSTANCE.sendToAllTracking(new MessageReelStateReply(maybeYoyo, message), maybeYoyo);
                 }
             });
             return null;

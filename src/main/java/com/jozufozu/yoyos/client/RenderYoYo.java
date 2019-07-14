@@ -23,8 +23,8 @@
 package com.jozufozu.yoyos.client;
 
 import com.jozufozu.yoyos.common.EntityYoyo;
-import com.jozufozu.yoyos.common.IYoyo;
 import com.jozufozu.yoyos.common.RenderOrientation;
+import com.jozufozu.yoyos.common.api.IYoyo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.model.IBakedModel;
@@ -85,7 +85,10 @@ public class RenderYoYo extends Render<EntityYoyo>
         GlStateManager.translate(x, y + entityYoyo.height / 2, z);
         GlStateManager.scale(.5, .5, .5);
 
-        Vec3d pointTo = entityYoyo.getPlayerHandPos(partialTicks).subtract(entityYoyo.posX, entityYoyo.posY, entityYoyo.posZ).normalize();
+        double yoyoPosX = interpolateValue(entityYoyo.prevPosX, entityYoyo.posX, (double) partialTicks);
+        double yoyoPosY = interpolateValue(entityYoyo.prevPosY, entityYoyo.posY, (double) partialTicks) - entityYoyo.height;
+        double yoyoPosZ = interpolateValue(entityYoyo.prevPosZ, entityYoyo.posZ, (double) partialTicks);
+        Vec3d pointTo = entityYoyo.getPlayerHandPos(partialTicks).subtract(yoyoPosX, yoyoPosY, yoyoPosZ).normalize();
 
         float yaw = (float) (Math.atan2(pointTo.x, pointTo.z) * -180 / Math.PI);
 
@@ -100,7 +103,7 @@ public class RenderYoYo extends Render<EntityYoyo>
             GlStateManager.rotate(270 - yaw, 0, 1, 0);   //face away from player
         }
 
-        GlStateManager.rotate(entityYoyo.getRotation(entityYoyo.getTimeout(), partialTicks), 0, 0, 1);    //spin around
+        GlStateManager.rotate(entityYoyo.getRotation(entityYoyo.ticksExisted, partialTicks), 0, 0, 1);    //spin around
 
         if (this.renderOutlines)
         {

@@ -22,8 +22,13 @@
 
 package com.jozufozu.yoyos.tinkers;
 
+import com.google.common.collect.Multimap;
 import com.jozufozu.yoyos.Yoyos;
-import com.jozufozu.yoyos.common.*;
+import com.jozufozu.yoyos.common.EntityStickyYoyo;
+import com.jozufozu.yoyos.common.EntityYoyo;
+import com.jozufozu.yoyos.common.ItemYoyo;
+import com.jozufozu.yoyos.common.RenderOrientation;
+import com.jozufozu.yoyos.common.api.IYoyo;
 import com.jozufozu.yoyos.tinkers.materials.*;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -32,8 +37,11 @@ import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -165,6 +173,18 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
         }
     }
 
+    public Multimap<String, AttributeModifier> getAttributeModifiers(EntityEquipmentSlot equipmentSlot, ItemStack stack)
+    {
+        Multimap<String, AttributeModifier> multimap = super.getAttributeModifiers(equipmentSlot, stack);
+
+        if(equipmentSlot == EntityEquipmentSlot.OFFHAND && !ToolHelper.isBroken(stack)) {
+            multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.getName(), new AttributeModifier(ATTACK_DAMAGE_MODIFIER, "Weapon modifier", ToolHelper.getActualAttack(stack), 0));
+            multimap.put(SharedMonsterAttributes.ATTACK_SPEED.getName(), new AttributeModifier(ATTACK_SPEED_MODIFIER, "Weapon modifier", ToolHelper.getActualAttackSpeed(stack) - 4d, 0));
+        }
+
+        return multimap;
+    }
+
     @Override
     public ActionResult<ItemStack> onItemRightClick(World worldIn, EntityPlayer playerIn, EnumHand hand)
     {
@@ -175,9 +195,9 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
             {
                 EntityYoyo yoyo;
                 if (isSticky(itemStackIn))
-                    yoyo = new EntityStickyYoyo(worldIn, playerIn);
+                    yoyo = new EntityStickyYoyo(worldIn, playerIn, hand);
                 else
-                    yoyo = new EntityYoyo(worldIn, playerIn);
+                    yoyo = new EntityYoyo(worldIn, playerIn, hand);
 
                 worldIn.spawnEntity(yoyo);
 

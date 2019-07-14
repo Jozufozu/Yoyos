@@ -1,6 +1,6 @@
 {
     "type": "minecraft:crafting_shapeless",
-    "conditions": [{ "type": "yoyos:is_mod_loaded", "modid": "tconstruct" }],
+    "conditions": [{ "type": "forge:mod_loaded", "modid": "tconstruct" }],
     "ingredients": [
         [
             { "item": "yoyos:cord" },

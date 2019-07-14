@@ -24,6 +24,7 @@ package com.jozufozu.yoyos;
 
 import com.google.common.collect.Lists;
 import com.jozufozu.yoyos.common.*;
+import com.jozufozu.yoyos.common.api.IYoyo;
 import com.jozufozu.yoyos.compat.YoyoCompatibility;
 import com.jozufozu.yoyos.tinkers.TinkersYoyos;
 import net.minecraft.creativetab.CreativeTabs;

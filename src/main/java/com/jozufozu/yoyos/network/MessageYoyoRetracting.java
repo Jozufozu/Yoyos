@@ -24,8 +24,6 @@ package com.jozufozu.yoyos.network;
 
 import com.jozufozu.yoyos.common.EntityYoyo;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -55,54 +53,6 @@ public class MessageYoyoRetracting implements IMessage
     {
         buf.writeBoolean(retracting);
     }
-
-    public static class MessageYoyoRetractingReply implements IMessage
-    {
-        private int yoyoID;
-
-        private boolean retracting;
-
-        public MessageYoyoRetractingReply() { }
-
-        public MessageYoyoRetractingReply(EntityYoyo yoyo)
-        {
-            this.yoyoID = yoyo.getEntityId();
-            this.retracting = yoyo.isRetracting();
-        }
-
-        @Override
-        public void toBytes(ByteBuf buf)
-        {
-            buf.writeInt(yoyoID);
-            buf.writeBoolean(retracting);
-        }
-
-        @Override
-        public void fromBytes(ByteBuf buf)
-        {
-            yoyoID = buf.readInt();
-            retracting = buf.readBoolean();
-        }
-
-        public static class Handler implements IMessageHandler<MessageYoyoRetractingReply, IMessage>
-        {
-            @Override
-            @Nullable
-            public IMessage onMessage(MessageYoyoRetractingReply message, MessageContext ctx)
-            {
-                Minecraft mc = Minecraft.getMinecraft();
-                mc.addScheduledTask(() -> {
-                    Entity maybeYoYo = mc.world.getEntityByID(message.yoyoID);
-
-                    if (maybeYoYo instanceof EntityYoyo)
-                    {
-                        ((EntityYoyo) maybeYoYo).setRetracting(message.retracting);
-                    }
-                });
-                return null;
-            }
-        }
-    }
     
     public static class Handler implements IMessageHandler<MessageYoyoRetracting, IMessage>
     {
@@ -117,8 +67,6 @@ public class MessageYoyoRetracting implements IMessage
                 if (maybeYoyo != null)
                 {
                     maybeYoyo.setRetracting(message.retracting);
-
-                    YoyoNetwork.INSTANCE.sendToAllTracking(new MessageYoyoRetractingReply(maybeYoyo), maybeYoyo);
                 }
             });
             return null;

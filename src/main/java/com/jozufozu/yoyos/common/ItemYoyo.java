@@ -613,6 +613,8 @@ public class ItemYoyo extends Item implements IYoyo
                     boolean setEntityOnFire = false;
                     int fireAspect = EnchantmentHelper.getFireAspectModifier(player);
 
+                    if (yoyoEntity.isBurning()) fireAspect += 1;
+
                     if (targetEntity instanceof EntityLivingBase)
                     {
                         targetHealth = ((EntityLivingBase) targetEntity).getHealth();

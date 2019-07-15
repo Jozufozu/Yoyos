@@ -68,7 +68,6 @@ public class ClientProxy extends CommonProxy
     }
 
     @SubscribeEvent
-    @SideOnly(Side.CLIENT)
     public void onRenderHand(RenderSpecificHandEvent event)
     {
         Minecraft mc = Minecraft.getMinecraft();
@@ -120,7 +119,7 @@ public class ClientProxy extends CommonProxy
 
         event.setCanceled(true);
     }
-    
+
     @Override
     public void preInit(FMLPreInitializationEvent event)
     {

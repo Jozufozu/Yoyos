@@ -302,7 +302,10 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
             return;
         }
 
-        ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target, yoyoEntity);
+        if (ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target, yoyoEntity) && yoyoEntity.isBurning() && target instanceof EntityLivingBase && !target.isBurning())
+        {
+            target.setFire(1);
+        }
     }
 
     @Override

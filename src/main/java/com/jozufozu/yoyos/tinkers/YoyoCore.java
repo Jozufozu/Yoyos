@@ -296,11 +296,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
         NBTTagList tagList = TagUtil.getModifiersTagList(yoyo);
         int index = TinkerUtil.getIndexInCompoundList(tagList, "gardening");
 
-        if (index != -1)
-        {
-            ItemYoyo.shearEntity(yoyo, player, hand, yoyoEntity, target);
-            return;
-        }
+        if (index != -1 && ItemYoyo.shearEntity(yoyo, player, hand, yoyoEntity, target)) return;
 
         if (ToolHelper.attackEntity(yoyo, ((ToolCore) yoyo.getItem()), player, target, yoyoEntity) && yoyoEntity.isBurning() && target instanceof EntityLivingBase && !target.isBurning())
         {
@@ -312,13 +308,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     public boolean interactsWithBlocks(ItemStack yoyo)
     {
         NBTTagList tagList = TagUtil.getModifiersTagList(yoyo);
-        int index = TinkerUtil.getIndexInCompoundList(tagList, "gardening");
-
-        if (index != -1) return true;
-
-        index = TinkerUtil.getIndexInCompoundList(tagList, "farming");
-
-        return index != -1;
+        return (TinkerUtil.getIndexInCompoundList(tagList, "gardening") != -1) || (TinkerUtil.getIndexInCompoundList(tagList, "farming") != -1);
     }
 
     @Override

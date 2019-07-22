@@ -24,44 +24,34 @@ package com.jozufozu.yoyos.client;
 
 import com.jozufozu.yoyos.common.StickyYoyoEntity;
 import com.jozufozu.yoyos.common.YoyoEntity;
-import com.jozufozu.yoyos.network.ReelStateC2SPacket;
-import com.jozufozu.yoyos.network.YoyoRetractingC2SPacket;
+import com.jozufozu.yoyos.network.SReelDirectionPacket;
+import com.jozufozu.yoyos.network.SYoyoRetractingPacket;
 import com.jozufozu.yoyos.network.YoyoNetwork;
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.event.world.WorldTickCallback;
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
-import net.fabricmc.fabric.api.network.ClientSidePacketRegistry;
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-@Environment(EnvType.CLIENT)
-public class NetworkHandlers implements ClientModInitializer
+@OnlyIn(Dist.CLIENT)
+public class NetworkHandlers
 {
     private static int lastReel;
 
-    @Override
-    public void onInitializeClient()
+    public static void onTickWorldTick(TickEvent.WorldTickEvent event)
     {
-        WorldTickCallback.EVENT.register(NetworkHandlers::onTickWorldTick);
-        UseItemCallback.EVENT.register(NetworkHandlers::onPlayerInteractRightClickItem);
-    }
+        if (event.phase != TickEvent.Phase.START) return;
 
-    public static void onTickWorldTick(World event)
-    {
-        int reel = 0;
+        byte reel = 0;
 
-        MinecraftClient mc = MinecraftClient.getInstance();
+        Minecraft mc = Minecraft.getInstance();
         YoyoEntity yoyo = YoyoEntity.CASTERS.get(mc.player);
 
         if (yoyo instanceof StickyYoyoEntity)
         {
-            if (mc.options.keyJump.isPressed()) reel += 1;
-            if (mc.options.keySneak.isPressed()) reel -= 1;
+            if (mc.gameSettings.keyBindJump.isKeyDown()) reel += 1;
+            if (mc.gameSettings.keyBindSneak.isKeyDown()) reel -= 1;
 
             int abs = Math.abs(reel);
             if (abs > 1)
@@ -69,25 +59,22 @@ public class NetworkHandlers implements ClientModInitializer
 
             if (reel != lastReel)
             {
-                ClientSidePacketRegistry.INSTANCE.sendToServer(new ReelStateC2SPacket(reel));
+                YoyoNetwork.INSTANCE.sendToServer(new SReelDirectionPacket(reel));
             }
         }
 
         lastReel = reel;
     }
 
-    public static ActionResult onPlayerInteractRightClickItem(PlayerEntity player, World world, Hand hand)
+    public static void onPlayerInteractRightClickItem(PlayerInteractEvent.RightClickItem event)
     {
-        if (player == MinecraftClient.getInstance().player)
-        {
-            YoyoEntity yoyo = YoyoEntity.CASTERS.get(player);
-            if (yoyo != null)
-            {
-                ClientSidePacketRegistry.INSTANCE.sendToServer(new YoyoRetractingC2SPacket(!yoyo.isRetracting()));
-                return ActionResult.SUCCESS;
-            }
-        }
+        PlayerEntity player = event.getEntityPlayer();
 
-        return ActionResult.PASS;
+        YoyoEntity yoyo = YoyoEntity.CASTERS.get(player.getUniqueID());
+        if (yoyo != null && player == Minecraft.getInstance().player)
+        {
+            YoyoNetwork.INSTANCE.sendToServer(new SYoyoRetractingPacket(!yoyo.isRetracting()));
+            event.setCanceled(true);
+        }
     }
 }

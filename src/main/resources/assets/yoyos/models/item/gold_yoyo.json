@@ -1,6 +1,6 @@
 {
     "parent": "item/handheld",
     "textures": {
-        "layer0": "yoyos:items/gold_yoyo"
+        "layer0": "yoyos:item/gold_yoyo"
     }
 }

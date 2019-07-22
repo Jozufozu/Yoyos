@@ -1,9 +1,9 @@
 {
     "textures": {
-        "layer0": "yoyos:items/yoyo/cord",
-        "layer1": "yoyos:items/yoyo/body",
-        "layer2": "yoyos:items/yoyo/body1",
-        "layer3": "yoyos:items/yoyo/axle"
+        "layer0": "yoyos:item/yoyo/cord",
+        "layer1": "yoyos:item/yoyo/body",
+        "layer2": "yoyos:item/yoyo/body1",
+        "layer3": "yoyos:item/yoyo/axle"
     },
     "display": {
         "thirdperson_righthand": {

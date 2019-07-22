@@ -22,65 +22,66 @@
 
 package com.jozufozu.yoyos.client;
 
-import com.jozufozu.yoyos.common.YoyoEntity;
-import com.jozufozu.yoyos.common.IYoyo;
 import com.jozufozu.yoyos.common.RenderOrientation;
+import com.jozufozu.yoyos.common.YoyoEntity;
+import com.jozufozu.yoyos.common.api.IYoyo;
 import com.mojang.blaze3d.platform.GlStateManager;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormats;
-import net.minecraft.client.render.VisibleRegion;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.item.ItemRenderer;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.render.model.json.ModelTransformation;
-import net.minecraft.client.texture.SpriteAtlasTexture;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.ItemRenderer;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.culling.ICamera;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.client.renderer.model.IBakedModel;
+import net.minecraft.client.renderer.model.ItemCameraTransforms.TransformType;
+import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityPose;
+import net.minecraft.entity.Pose;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.AbsoluteHand;
+import net.minecraft.profiler.IProfiler;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
+import net.minecraft.util.HandSide;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.annotation.Nonnull;
 import java.util.Random;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class YoyoRenderer extends EntityRenderer<YoyoEntity>
 {
     private ItemRenderer itemRenderer;
     private Random random = new Random();
 
-    public YoyoRenderer(EntityRenderDispatcher renderManager)
+    public YoyoRenderer(EntityRendererManager renderManager)
     {
         super(renderManager);
-        itemRenderer = MinecraftClient.getInstance().getItemRenderer();
+        itemRenderer = Minecraft.getInstance().getItemRenderer();
     }
 
     @Override
-    public boolean isVisible(YoyoEntity entity_1, VisibleRegion visibleRegion_1, double double_1, double double_2, double double_3)
+    public boolean shouldRender(YoyoEntity yoyoEntity, ICamera camera, double x, double y, double z)
     {
-        return super.isVisible(entity_1, visibleRegion_1, double_1, double_2, double_3);
+        return true;
     }
 
     @Override
-    public void render(YoyoEntity yoyoEntity, double x, double y, double z, float entityYaw, float partialTicks)
+    public void doRender(YoyoEntity yoyoEntity, double x, double y, double z, float entityYaw, float partialTicks)
     {
-        Profiler mcProfiler = MinecraftClient.getInstance().getProfiler();
-        mcProfiler.push("renderYoyo");
+        IProfiler mcProfiler = Minecraft.getInstance().getProfiler();
+        mcProfiler.startSection("renderYoyo");
         
         GlStateManager.pushMatrix();
         GlStateManager.translated(x, y + yoyoEntity.getHeight() / 2, z);
         GlStateManager.scaled(.5, .5, .5);
 
-        Vec3d pointTo = yoyoEntity.getPlayerHandPos(partialTicks).subtract(yoyoEntity.x, yoyoEntity.y, yoyoEntity.z).normalize();
+        Vec3d pointTo = yoyoEntity.getPlayerHandPos(partialTicks).subtract(yoyoEntity.posX, yoyoEntity.posY, yoyoEntity.posZ).normalize();
 
         float yaw = (float) (Math.atan2(pointTo.x, pointTo.z) * -180 / Math.PI);
 
@@ -95,19 +96,19 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
             GlStateManager.rotated(270 - yaw, 0, 1, 0);   //face away from player
         }
 
-        GlStateManager.rotated(yoyoEntity.getRotation(yoyoEntity.getTimeout(), partialTicks), 0, 0, 1);    //spin around
+        GlStateManager.rotated(yoyoEntity.getRotation(yoyoEntity.getRemainingTime(), partialTicks), 0, 0, 1);    //spin around
 
         if (this.renderOutlines)
         {
             GlStateManager.enableColorMaterial();
-            GlStateManager.enableOutlineMode(this.getTeamColor(entityYoyo));
+            GlStateManager.setupSolidRenderingTextureCombine(this.getTeamColor(yoyoEntity));
         }
 
-        itemRenderer.renderItem(yoyoEntity.getYoyoStack(), ModelTransformation.Type.NONE);
+        itemRenderer.renderItem(yoyoEntity.getYoyoStack(), TransformType.NONE);
 
         GlStateManager.popMatrix();
     
-        if (yoyoEntity.isCollecting() && !yoyoEntity.collectedDrops.isEmpty())
+        if (yoyoEntity.isCollecting() && !yoyoEntity.getCollectedDrops().isEmpty())
         {
             renderCollectedItems(yoyoEntity, partialTicks);
         }
@@ -118,13 +119,13 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
     
         if (this.renderOutlines)
         {
-            GlStateManager.disableOutlineMode();
+            GlStateManager.tearDownSolidRenderingTextureCombine();
             GlStateManager.disableColorMaterial();
         }
         
-        super.render(yoyoEntity, x, y, z, entityYaw, partialTicks);
+        super.doRender(yoyoEntity, x, y, z, entityYaw, partialTicks);
         
-        mcProfiler.pop();
+        mcProfiler.endSection();
     }
 
     public void renderCollectedItems(YoyoEntity entity, float partialTicks)
@@ -132,7 +133,7 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
         boolean boundTexture = false;
         if (this.bindEntityTexture(entity))
         {
-            this.renderManager.textureManager.getTexture(this.getTexture(entity)).pushFilter(false, false);
+            this.renderManager.textureManager.getTexture(this.getEntityTexture(entity)).setBlurMipmap(false, false);
             boundTexture = true;
         }
 
@@ -142,10 +143,10 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
         GlStateManager.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 
         int i = 0;
-        for (ItemStack drop : entity.collectedDrops)
+        for (ItemStack drop : entity.getCollectedDrops())
         {
             int count = drop.getCount();
-            int max = drop.getMaxCount();
+            int max = drop.getMaxStackSize();
 
             while (count > 0)
             {
@@ -160,7 +161,7 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
 
         if (boundTexture)
         {
-            this.renderManager.textureManager.getTexture(this.getTexture(entity)).popFilter();
+            this.renderManager.textureManager.getTexture(this.getEntityTexture(entity)).restoreLastBlurMipmap();
         }
     }
 
@@ -173,18 +174,18 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
 
         y = y - (1.6 - thrower.getHeight()) * 0.5;
         Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBufferBuilder();
+        BufferBuilder bufferBuilder = tessellator.getBuffer();
 
-        boolean rightHand = (player.getMainHand() == AbsoluteHand.RIGHT) == (entity.getHand() == Hand.MAIN_HAND);
+        boolean rightHand = (player.getPrimaryHand() == HandSide.RIGHT) == (entity.getHand() == Hand.MAIN_HAND);
 
         Vec3d handPos;
 
-        if (MinecraftClient.getInstance().options.perspective != 0 || player.getEntityId() != MinecraftClient.getInstance().player.getEntityId())
+        if (Minecraft.getInstance().gameSettings.thirdPersonView != 0 || player.getEntityId() != Minecraft.getInstance().player.getEntityId())
         {
-            double posX = interpolateValue(thrower.prevX, thrower.x, (double) partialTicks);
-            double posY = interpolateValue(thrower.prevY, thrower.y, (double) partialTicks) + 1.272;
-            double posZ = interpolateValue(thrower.prevZ, thrower.z, (double) partialTicks);
-            double bodyRotation = interpolateValue(player.prevYaw, player.yaw, partialTicks);
+            double posX = interpolateValue(thrower.prevPosX, thrower.posX, (double) partialTicks);
+            double posY = interpolateValue(thrower.prevPosY, thrower.posY, (double) partialTicks) + 1.272;
+            double posZ = interpolateValue(thrower.prevPosZ, thrower.posZ, (double) partialTicks);
+            double bodyRotation = interpolateValue(player.prevRotationYaw, player.rotationYaw, partialTicks);
 
             bodyRotation = Math.toRadians(bodyRotation);
 
@@ -199,9 +200,9 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
 
             double f = 1.0;
 
-            if (player.getPose() == EntityPose.FALL_FLYING)
+            if (player.getPose() == Pose.FALL_FLYING)
             {
-                f = thrower.getVelocity().lengthSquared();
+                f = thrower.getMotion().lengthSquared();
                 f = f / 0.2F;
                 f = f * f * f;
             }
@@ -211,8 +212,8 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
                 f = 1.0F;
             }
 
-            float limbSwing = player.handSwingTicks;
-            float limbSwingAmount = player.getHandSwingProgress(partialTicks);
+            float limbSwing = player.swingProgressInt;
+            float limbSwingAmount = player.getSwingProgress(partialTicks);
 
             double pitch = Math.cos(limbSwing * 0.6662 + (rightHand ? 0 : Math.PI)) * 2.0 * limbSwingAmount * 0.5 / f;
 
@@ -223,10 +224,10 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
                 posY -= 0.4;
             }
 
-            pitch += (rightHand ? -1 : 1) * Math.sin((player.totalExperience + partialTicks) * 0.067) * 0.05;
+            pitch += (rightHand ? -1 : 1) * Math.sin((player.ticksExisted + partialTicks) * 0.067) * 0.05;
 
             double roll = Math.PI;
-            double yaw = bodyRotation + Math.cos((player.age + partialTicks) * 0.09) * 0.05 + 0.05;
+            double yaw = bodyRotation + Math.cos((player.ticksExisted + partialTicks) * 0.09) * 0.05 + 0.05;
 
             posX += -1 * Math.sin(roll) * Math.cos(yaw) - Math.cos(roll) * Math.sin(pitch) * Math.sin(yaw);
             posY += Math.cos(pitch) * Math.cos(roll);
@@ -236,12 +237,12 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
         }
         else
         {
-            double posX = interpolateValue(thrower.prevX, thrower.x, (double) partialTicks);
-            double posY = interpolateValue(thrower.prevY, thrower.y, (double) partialTicks) + 1.1;
-            double posZ = interpolateValue(thrower.prevZ, thrower.z, (double) partialTicks);
+            double posX = interpolateValue(thrower.prevPosX, thrower.posX, (double) partialTicks);
+            double posY = interpolateValue(thrower.prevPosY, thrower.posY, (double) partialTicks) + 1.1;
+            double posZ = interpolateValue(thrower.prevPosZ, thrower.posZ, (double) partialTicks);
 
-            double rotationYaw = Math.toRadians(interpolateValue(player.prevYaw, player.yaw, partialTicks));
-            double rotationPitch = Math.toRadians(interpolateValue(player.prevPitch, player.pitch, partialTicks));
+            double rotationYaw = Math.toRadians(interpolateValue(player.prevRotationYaw, player.rotationYaw, partialTicks));
+            double rotationPitch = Math.toRadians(interpolateValue(player.prevRotationPitch, player.rotationPitch, partialTicks));
 
             double mirror = (rightHand ? -1 : 1);
             double radius = 0.1;
@@ -255,9 +256,9 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
             handPos = new Vec3d(posX, posY, posZ);
         }
 
-        double yoyoPosX = interpolateValue(entity.prevX, entity.x, (double) partialTicks);
-        double yoyoPosY = interpolateValue(entity.prevY, entity.y, (double) partialTicks) - entity.getHeight();
-        double yoyoPosZ = interpolateValue(entity.prevZ, entity.z, (double) partialTicks);
+        double yoyoPosX = interpolateValue(entity.prevPosX, entity.posX, (double) partialTicks);
+        double yoyoPosY = interpolateValue(entity.prevPosY, entity.posY, (double) partialTicks) - entity.getHeight();
+        double yoyoPosZ = interpolateValue(entity.prevPosZ, entity.posZ, (double) partialTicks);
 
         double xDiff = handPos.x - yoyoPosX;
         double yDiff = handPos.y - yoyoPosY;
@@ -271,7 +272,7 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
         IYoyo yoyo = entity.getYoyo();
         if (yoyo != null)
         {
-            color = yoyo.getCordColor(entity.getYoyoStack(), entity.age + partialTicks);
+            color = yoyo.getCordColor(entity.getYoyoStack(), entity.ticksExisted + partialTicks);
         }
     
         float stringR = ((color >> 16) & 255) / 255F;
@@ -280,7 +281,7 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
 
         for (int i = 0; i < 2; i++)
         {
-            bufferBuilder.begin(5, VertexFormats.POSITION_COLOR);
+            bufferBuilder.begin(5, DefaultVertexFormats.POSITION_COLOR);
             for (int j = 0; j <= 24; ++j)
             {
                 float r = stringR;
@@ -300,8 +301,8 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
                 double y1 = y + yDiff * (segment * segment + segment) * 0.5;
                 double z1 = z + zDiff * segment;
 
-                bufferBuilder.vertex(x1 - 0.0125, y1, z1 + zag).color(r, g, b, 1.0F).next();
-                bufferBuilder.vertex(x1 + 0.0125, y1, z1 - zag).color(r, g, b, 1.0F).next();
+                bufferBuilder.pos(x1 - 0.0125, y1, z1 + zag).color(r, g, b, 1.0F).endVertex();
+                bufferBuilder.pos(x1 + 0.0125, y1, z1 - zag).color(r, g, b, 1.0F).endVertex();
             }
             tessellator.draw();
         }
@@ -311,19 +312,19 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
         GlStateManager.enableCull();
     }
     
-    private int transformModelCount(YoyoEntity yoyo, ItemStack itemStack, float partialTicks, BakedModel model)
+    private int transformModelCount(YoyoEntity yoyo, ItemStack itemStack, float partialTicks, IBakedModel model)
     {
-        boolean gui3d = model.hasDepthInGui();
+        boolean gui3d = model.isGui3d();
         int count = this.getModelCount(itemStack);
         
-        double bob = Math.sin((random.nextDouble() + yoyo.age + partialTicks) / 10.0 + random.nextDouble() * Math.PI * 2.0) * 0.1 + 0.1;
+        double bob = Math.sin((random.nextDouble() + yoyo.ticksExisted + partialTicks) / 10.0 + random.nextDouble() * Math.PI * 2.0) * 0.1 + 0.1;
         
-        double scale = model.getTransformation().getTransformation(ModelTransformation.Type.GROUND).scale.y();
+        double scale = model.getItemCameraTransforms().getTransform(TransformType.GROUND).scale.getY();
         GlStateManager.translated(0,  bob + 0.25 * scale, 0);
         
-        if (gui3d || this.renderManager.gameOptions != null)
+        if (gui3d || this.renderManager.options != null)
         {
-            double angle = ((random.nextDouble() + yoyo.age + partialTicks) / 20.0 + random.nextDouble() * Math.PI * 2.0) * (180.0 / Math.PI);
+            double angle = ((random.nextDouble() + yoyo.ticksExisted + partialTicks) / 20.0 + random.nextDouble() * Math.PI * 2.0) * (180.0 / Math.PI);
             GlStateManager.rotated((float) angle, 0.0F, 1.0F, 0.0F);
         }
         
@@ -359,13 +360,13 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
     {
         GlStateManager.pushMatrix();
 
-        long seed = (Item.getRawId(itemStack.getItem()) * 31 + i) * 31 + itemStack.getCount();
+        long seed = (Item.getIdFromItem(itemStack.getItem()) * 31 + i) * 31 + itemStack.getCount();
 
         this.random.setSeed(seed);
         
-        BakedModel bakedModel = this.itemRenderer.getModel(itemStack, yoyo.world, null);
+        IBakedModel bakedModel = this.itemRenderer.getModelWithOverrides(itemStack);
         int modelCount = this.transformModelCount(yoyo, itemStack, partialTicks, bakedModel);
-        boolean gui3d = bakedModel.hasDepthInGui();
+        boolean gui3d = bakedModel.isGui3d();
         
         if (!gui3d)
         {
@@ -389,7 +390,7 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
                     GlStateManager.translated(f7, f9, f6);
                 }
                 
-                this.itemRenderer.renderItem(itemStack, ModelTransformation.Type.GROUND);
+                this.itemRenderer.renderItem(itemStack, TransformType.GROUND);
                 GlStateManager.popMatrix();
             }
             else
@@ -403,7 +404,7 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
                     GlStateManager.translated(f8, f10, 0.0F);
                 }
                 
-                this.itemRenderer.renderItem(itemStack, ModelTransformation.Type.GROUND);
+                this.itemRenderer.renderItem(itemStack, TransformType.GROUND);
                 GlStateManager.popMatrix();
                 GlStateManager.translated(0.0F, 0.0F, 0.09375F);
             }
@@ -422,10 +423,10 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
         return start + (end - start) * pct;
     }
 
-
     @Override
-    protected Identifier getTexture(YoyoEntity yoyoEntity)
+    @Nonnull
+    protected ResourceLocation getEntityTexture(YoyoEntity yoyoEntity)
     {
-        return SpriteAtlasTexture.BLOCK_ATLAS_TEX;
+        return AtlasTexture.LOCATION_BLOCKS_TEXTURE;
     }
 }

@@ -22,15 +22,26 @@
 
 package com.jozufozu.yoyos.network;
 
+import com.jozufozu.yoyos.Yoyos;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.network.NetworkRegistry;
+import net.minecraftforge.fml.network.simple.SimpleChannel;
+
 public class YoyoNetwork
 {
+    public static final String PROTOCOL = "1";
+    public static final SimpleChannel INSTANCE = NetworkRegistry.ChannelBuilder.named(new ResourceLocation(Yoyos.MODID, "yoyos"))
+                                                                               .networkProtocolVersion(() -> PROTOCOL)
+                                                                               .clientAcceptedVersions(s -> true)
+                                                                               .serverAcceptedVersions(s -> true)
+                                                                               .simpleChannel();
+    
+    private static int ID = 0;
+    
     public static void initialize()
     {
-        YoyoRetractingC2SPacket.init();
-        YoyoRetractingC2SPacket.YoyoRetractingS2CPacket.init();
-        ReelStateC2SPacket.init();
-        ReelStateC2SPacket.ReelStateS2CPacket.init();
-
-        CollectedDropsS2CPacket.init();
+        INSTANCE.registerMessage(ID++, SYoyoRetractingPacket.class, SYoyoRetractingPacket::encode, SYoyoRetractingPacket::new, SYoyoRetractingPacket::onMessage);
+        INSTANCE.registerMessage(ID++, SReelDirectionPacket.class, SReelDirectionPacket::encode, SReelDirectionPacket::new, SReelDirectionPacket::onMessage);
+        INSTANCE.registerMessage(ID++, CCollectedDropsPacket.class, CCollectedDropsPacket::encode, CCollectedDropsPacket::new, CCollectedDropsPacket::onMessage);
     }
 }

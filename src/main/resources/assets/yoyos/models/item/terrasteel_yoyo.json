@@ -1,7 +1,7 @@
 {
     "parent": "item/handheld",
     "textures": {
-        "layer0": "yoyos:items/terrasteel_yoyo"
+        "layer0": "yoyos:item/terrasteel_yoyo"
     },
     "overrides": [
         {

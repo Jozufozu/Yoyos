@@ -1,0 +1,10 @@
+{
+    "type": "minecraft:crafting_shapeless",
+    "ingredients": [
+        { "item": "yoyos:diamond_yoyo" },
+        { "item": "minecraft:diamond_hoe" }
+    ],
+    "result": {
+        "item": "yoyos:hoe_yoyo"
+    }
+}

@@ -23,11 +23,12 @@
 package com.jozufozu.yoyos.common
 
 import com.jozufozu.yoyos.Yoyos
+import com.jozufozu.yoyos.common.init.ModEnchantments
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.inventory.EquipmentSlotType
 import net.minecraft.util.ResourceLocation
 
-class EnchantmentCollecting : Enchantment(Rarity.UNCOMMON, Yoyos.Enchantments.YOYO_ENCHANTMENT_TYPE, arrayOf(EquipmentSlotType.MAINHAND, EquipmentSlotType.OFFHAND)) {
+class EnchantmentCollecting : Enchantment(Rarity.UNCOMMON, ModEnchantments.YOYO_ENCHANTMENT_TYPE, arrayOf(EquipmentSlotType.MAINHAND, EquipmentSlotType.OFFHAND)) {
     init {
         registryName = ResourceLocation(Yoyos.MODID, "collecting")
     }

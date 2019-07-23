@@ -11,10 +11,7 @@ import net.minecraft.entity.item.ItemEntity
 import net.minecraft.entity.passive.SheepEntity
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.entity.player.ServerPlayerEntity
-import net.minecraft.item.HoeItem
-import net.minecraft.item.ItemStack
-import net.minecraft.item.ItemUseContext
-import net.minecraft.item.Items
+import net.minecraft.item.*
 import net.minecraft.network.play.server.SEntityVelocityPacket
 import net.minecraft.particles.ParticleTypes
 import net.minecraft.potion.Effects
@@ -29,7 +26,6 @@ import net.minecraft.world.World
 import net.minecraft.world.storage.loot.LootContext
 import net.minecraft.world.storage.loot.LootParameters
 import net.minecraftforge.common.ForgeHooks
-import net.minecraftforge.common.IPlantable
 import net.minecraftforge.common.IShearable
 import net.minecraftforge.event.ForgeEventFactory
 import kotlin.math.roundToInt
@@ -52,7 +48,7 @@ object Interactions {
             val pos = BlockPos(targetEntity.posX, targetEntity.posY, targetEntity.posZ)
 
             if (shearable.isShearable(yoyo, world, pos)) {
-                yoyoEntity.yoyo!!.damageItem(yoyo, hand, 1, player)
+                yoyoEntity.yoyo.damageItem(yoyo, hand, 1, player)
                 val stacks = shearable.onSheared(yoyo, world, pos, EnchantmentHelper.getEnchantmentLevel(Enchantments.FORTUNE, yoyo))
 
                 for (stack in stacks) {
@@ -84,7 +80,7 @@ object Interactions {
                     if (!world.isRemote) {
                         world.setBlockState(pos, tillState, 11)
 
-                        yoyoEntity.yoyo!!.damageItem(yoyo, yoyoEntity.hand, 1, player)
+                        yoyoEntity.yoyo.damageItem(yoyo, yoyoEntity.hand, 1, player)
                     }
 
                     return true
@@ -107,7 +103,7 @@ object Interactions {
                 if (yoyoEntity.world.removeBlock(pos, false)) {
                     block.onPlayerDestroy(world, pos, state)
 
-                    yoyoEntity.yoyo!!.damageItem(yoyo, yoyoEntity.hand, 1, player)
+                    yoyoEntity.yoyo.damageItem(yoyo, yoyoEntity.hand, 1, player)
                     yoyoEntity.decrementRemainingTime(10)
 
                     for (stack in stacks) {
@@ -121,7 +117,7 @@ object Interactions {
             }
         }
 
-        if (block is BushBlock || block is SugarCaneBlock || block is KelpBlock || block is KelpTopBlock) {
+        if (block is BushBlock || block is SugarCaneBlock || block is KelpBlock || block is KelpTopBlock || block is HugeMushroomBlock || block is BambooBlock) {
             doBlockBreaking(yoyo, player, world, pos, state, block, yoyoEntity)
             return true
         }
@@ -130,47 +126,51 @@ object Interactions {
     }
 
     fun farm(yoyo: ItemStack, player: PlayerEntity, pos: BlockPos, state: BlockState, block: Block, yoyoEntity: YoyoEntity): Boolean {
-        if (block is CropsBlock) {
-            if (block.isMaxAge(state)) {
-                val drops = doHarvesting(yoyo, player, yoyoEntity.world, pos, state, block, yoyoEntity)
-                        ?: return true
+        if (block is StemBlock) return false
+        val plantState =    if (block is CropsBlock && block.isMaxAge(state)) block.withAge(0)
+                            else if (block is NetherWartBlock && state.get(NetherWartBlock.AGE) == 3) state.with(NetherWartBlock.AGE, 0)
+                            else if (block is CocoaBlock && state.get(CocoaBlock.AGE) == 2) state.with(CocoaBlock.AGE, 0)
+                            else null
 
-                if (!yoyoEntity.world.gameRules.getBoolean(GameRules.DO_TILE_DROPS)) drops.clear()
+        if (plantState != null) {
+            val drops = doHarvesting(yoyo, player, yoyoEntity.world, pos, state, block, yoyoEntity)
+                    ?: return true
 
-                yoyoEntity.yoyo!!.damageItem(yoyo, yoyoEntity.hand, 1, player)
+            if (!yoyoEntity.world.gameRules.getBoolean(GameRules.DO_TILE_DROPS)) drops.clear()
 
-                var foundSeed = false
+            yoyoEntity.yoyo.damageItem(yoyo, yoyoEntity.hand, 1, player)
 
-                for (stack in drops) {
-                    if (stack.isEmpty) continue
+            var foundSeed = false
 
-                    if (ModConfig.replant && !foundSeed && stack.item is IPlantable) {
-                        stack.shrink(1)
-                        foundSeed = true
-                    }
+            for (stack in drops) {
+                if (stack.isEmpty) continue
 
-                    yoyoEntity.createItemDropOrCollect(stack, pos)
+                if (ModConfig.replant && !foundSeed && (stack.item as? BlockItem)?.block === block) {
+                    stack.shrink(1)
+                    foundSeed = true
                 }
 
-                if (ModConfig.replant) {
-                    if (!foundSeed && !yoyoEntity.collectedDrops.isEmpty()) {
-                        for (stack in yoyoEntity.collectedDrops) {
-                            if (stack.isEmpty) continue
+                yoyoEntity.createItemDropOrCollect(stack, pos)
+            }
 
-                            if (stack.item is IPlantable) {
-                                stack.shrink(1)
-                                yoyoEntity.needCollectedSync = true // refill/reshuffle the stacks
-                                foundSeed = true
-                                break
-                            }
+            if (ModConfig.replant) {
+                if (!foundSeed && yoyoEntity.collectedDrops.isNotEmpty()) {
+                    for (stack in yoyoEntity.collectedDrops) {
+                        if (stack.isEmpty) continue
+
+                        if ((stack.item as? BlockItem)?.block === block) {
+                            stack.shrink(1)
+                            yoyoEntity.needCollectedSync = true // refill/reshuffle the stacks
+                            foundSeed = true
+                            break
                         }
                     }
-
-                    if (foundSeed) yoyoEntity.world.setBlockState(pos, block.withAge(0))
                 }
 
-                return true
+                if (foundSeed) yoyoEntity.world.setBlockState(pos, plantState)
             }
+
+            return true
         }
 
         return false
@@ -179,7 +179,7 @@ object Interactions {
     fun doBlockBreaking(yoyo: ItemStack, player: PlayerEntity, world: World, pos: BlockPos, state: BlockState, block: Block, yoyoEntity: YoyoEntity) {
         val itemStacks = doHarvesting(yoyo, player, world, pos, state, block, yoyoEntity) ?: return
 
-        yoyoEntity.yoyo!!.damageItem(yoyo, yoyoEntity.hand, 1, player)
+        yoyoEntity.yoyo.damageItem(yoyo, yoyoEntity.hand, 1, player)
 
         if (!yoyoEntity.world.gameRules.getBoolean(GameRules.DO_TILE_DROPS)) return
 
@@ -226,7 +226,7 @@ object Interactions {
             if (!targetEntity.hitByEntity(player)) {
                 yoyoEntity.resetAttackCooldown()
                 yoyoEntity.decrementRemainingTime(10)
-                yoyoEntity.yoyo!!.damageItem(yoyo, hand, 1, player)
+                yoyoEntity.yoyo.damageItem(yoyo, hand, 1, player)
 
                 var damage = player.getAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).value.toFloat()
 

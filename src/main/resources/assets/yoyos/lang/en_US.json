@@ -1,22 +1,22 @@
 {
     "itemGroup.yoyos": "Yoyos",
 
-    "item.yoyos.yoyos.wooden_yoyo": "Wooden Yoyo",
-    "item.yoyos.yoyos.stone_yoyo": "Stone Yoyo",
-    "item.yoyos.yoyos.iron_yoyo": "Iron Yoyo",
-    "item.yoyos.yoyos.diamond_yoyo": "Diamond Yoyo",
-    "item.yoyos.yoyos.gold_yoyo": "Gold Yoyo",
-    "item.yoyos.yoyos.shear_yoyo": "Shear Yoyo",
-    "item.yoyos.yoyos.hoe_yoyo": "Yohoe",
-    "item.yoyos.yoyos.sticky_yoyo": "Sticky Yoyo",
-    "item.yoyos.yoyos.creative_yoyo": "Rainbowyo",
+    "item.yoyos.wooden_yoyo": "Wooden Yoyo",
+    "item.yoyos.stone_yoyo": "Stone Yoyo",
+    "item.yoyos.iron_yoyo": "Iron Yoyo",
+    "item.yoyos.diamond_yoyo": "Diamond Yoyo",
+    "item.yoyos.gold_yoyo": "Gold Yoyo",
+    "item.yoyos.shear_yoyo": "Shear Yoyo",
+    "item.yoyos.hoe_yoyo": "Yohoe",
+    "item.yoyos.sticky_yoyo": "Sticky Yoyo",
+    "item.yoyos.creative_yoyo": "Rainbowyo",
 
-    "item.yoyos.yoyos.mana_cord": "Mana Infused Cord",
-    "item.yoyos.yoyos.manasteel_yoyo": "Manasteel Yoyo",
-    "item.yoyos.yoyos.elementium_yoyo": "Elementium Yoyo",
-    "item.yoyos.yoyos.terrasteel_yoyo": "Terra Chaser",
+    "item.yoyos.mana_cord": "Mana Infused Cord",
+    "item.yoyos.manasteel_yoyo": "Manasteel Yoyo",
+    "item.yoyos.elementium_yoyo": "Elementium Yoyo",
+    "item.yoyos.terrasteel_yoyo": "Terra Chaser",
 
-    "item.yoyos.yoyos.cord": "Cord",
+    "item.yoyos.cord": "Cord",
 
     "entity.yoyo.throw.subtitle": "Yoyo thrown",
     "entity.yoyo.stick.subtitle": "Yoyo sticks",
@@ -54,13 +54,13 @@
     "yoyos.info.sticky.retraction.name": "Hold [%s] to reel in string.",
     "yoyos.info.sticky.release.name": "Hold [%s] to let out slack.",
 
-    "item.yoyos.yoyos.book": "Yoyos and You",
+    "item.yoyos.book": "Yoyos and You",
     "item.yoyos.book.tooltip": "How to become a master thrower\\nby Jozufozu",
 
-    "item.yoyos.yoyos.yoyo": "Yoyo",
-    "item.yoyos.yoyos.yoyo_axle": "Axle",
-    "item.yoyos.yoyos.yoyo_body": "Body",
-    "item.yoyos.yoyos.yoyo_cord": "Cord",
+    "item.yoyos.yoyo": "Yoyo",
+    "item.yoyos.yoyo_axle": "Axle",
+    "item.yoyos.yoyo_body": "Body",
+    "item.yoyos.yoyo_cord": "Cord",
 
     "item.yoyos.yoyo.desc": "The Yoyo is a ranged melee weapon allowing you to tear your opponents to shreds.\\nIt is also a children's toy. Go figure.",
 

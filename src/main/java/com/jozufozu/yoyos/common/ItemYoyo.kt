@@ -29,6 +29,9 @@ import com.jozufozu.yoyos.common.api.BlockInteraction
 import com.jozufozu.yoyos.common.api.EntityInteraction
 import com.jozufozu.yoyos.common.api.IYoyo
 import com.jozufozu.yoyos.common.api.YoyoFactory
+import com.jozufozu.yoyos.common.init.ModEnchantments
+import com.jozufozu.yoyos.common.init.ModItems
+import com.jozufozu.yoyos.common.init.ModSounds
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
 import net.minecraft.client.resources.I18n
@@ -57,7 +60,7 @@ import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import java.util.*
 
-open class ItemYoyo(name: String, material: IItemTier, properties: Properties, protected var yoyoFactory: YoyoFactory) : TieredItem(material, properties.maxStackSize(1).group(Yoyos.YOYOS_TAB)), IYoyo {
+open class ItemYoyo(name: String, material: IItemTier, properties: Properties, protected var yoyoFactory: YoyoFactory) : TieredItem(material, properties.maxStackSize(1).group(ModItems.YOYOS_TAB)), IYoyo {
     constructor(name: String, material: IItemTier, properties: Properties): this(name, material, properties, ::YoyoEntity)
     constructor(name: String, material: IItemTier): this(name, material, Properties(), ::YoyoEntity)
 
@@ -87,7 +90,7 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
 
     override fun canApplyAtEnchantingTable(stack: ItemStack, enchantment: Enchantment): Boolean {
         if (enchantment === Enchantments.SWEEPING) return false
-        return if (enchantment === Enchantments.FORTUNE && interactsWithBlocks(stack)) true else enchantment === Yoyos.Enchantments.COLLECTING || enchantment.type === EnchantmentType.ALL || enchantment.type === EnchantmentType.WEAPON
+        return if (enchantment === Enchantments.FORTUNE && interactsWithBlocks(stack)) true else enchantment === ModEnchantments.COLLECTING || enchantment.type === EnchantmentType.ALL || enchantment.type === EnchantmentType.WEAPON
 
     }
 
@@ -111,7 +114,7 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
                     val yoyo = yoyoFactory(worldIn, playerIn, hand)
 
                     worldIn.addEntity(yoyo)
-                    worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, Yoyos.Sounds.YOYO_THROW, SoundCategory.NEUTRAL, 0.5f, 0.4f / (Item.random.nextFloat() * 0.4f + 0.8f))
+                    worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, ModSounds.YOYO_THROW, SoundCategory.NEUTRAL, 0.5f, 0.4f / (Item.random.nextFloat() * 0.4f + 0.8f))
 
                     playerIn.addExhaustion(0.05f)
                 }
@@ -202,7 +205,7 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
     }
 
     override fun getMaxCollectedDrops(yoyo: ItemStack): Int {
-        return if (this === ModItems.CREATIVE_YOYO) Integer.MAX_VALUE else calculateMaxCollectedDrops(EnchantmentHelper.getEnchantmentLevel(Yoyos.Enchantments.COLLECTING, yoyo))
+        return if (this === ModItems.CREATIVE_YOYO) Integer.MAX_VALUE else calculateMaxCollectedDrops(EnchantmentHelper.getEnchantmentLevel(ModEnchantments.COLLECTING, yoyo))
     }
 
     override fun <T : LivingEntity> damageItem(stack: ItemStack, hand: Hand, amount: Int, entity: T) {

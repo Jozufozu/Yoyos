@@ -24,7 +24,6 @@ package com.jozufozu.yoyos.client;
 
 import com.jozufozu.yoyos.common.RenderOrientation;
 import com.jozufozu.yoyos.common.YoyoEntity;
-import com.jozufozu.yoyos.common.api.IYoyo;
 import com.mojang.blaze3d.platform.GlStateManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BufferBuilder;
@@ -87,7 +86,7 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
 
         GlStateManager.pushMatrix();
 
-        if (yoyoEntity.getYoyo() != null && yoyoEntity.getYoyo().getRenderOrientation(yoyoEntity.getYoyoStack()) == RenderOrientation.Horizontal)
+        if (yoyoEntity.getHasYoyo() && yoyoEntity.getYoyo().getRenderOrientation(yoyoEntity.getYoyoStack()) == RenderOrientation.Horizontal)
         {
             GlStateManager.rotated(-90, 1, 0, 0);         //be flat, like a lawnmower
         }
@@ -96,7 +95,7 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
             GlStateManager.rotated(270 - yaw, 0, 1, 0);   //face away from player
         }
 
-        GlStateManager.rotated(yoyoEntity.getRotation(yoyoEntity.getRemainingTime(), partialTicks), 0, 0, 1);    //spin around
+        GlStateManager.rotated(yoyoEntity.getRotation(yoyoEntity.ticksExisted, partialTicks), 0, 0, 1);    //spin around
 
         if (this.renderOutlines)
         {
@@ -269,10 +268,9 @@ public class YoyoRenderer extends EntityRenderer<YoyoEntity>
         GlStateManager.disableCull();
         
         int color = 0xDDDDDD;
-        IYoyo yoyo = entity.getYoyo();
-        if (yoyo != null)
+        if (entity.getHasYoyo())
         {
-            color = yoyo.getCordColor(entity.getYoyoStack(), entity.ticksExisted + partialTicks);
+            color = entity.getYoyo().getCordColor(entity.getYoyoStack(), entity.ticksExisted + partialTicks);
         }
     
         float stringR = ((color >> 16) & 255) / 255F;

@@ -20,9 +20,10 @@
  * SOFTWARE.
  */
 
-package com.jozufozu.yoyos.common
+package com.jozufozu.yoyos.compat
 
 import com.jozufozu.yoyos.Yoyos
+import com.jozufozu.yoyos.common.init.ModEnchantments
 import mezz.jei.api.IModPlugin
 import mezz.jei.api.JeiPlugin
 import mezz.jei.api.constants.VanillaTypes
@@ -39,7 +40,7 @@ class JEIYoyoInfo : IModPlugin {
     }
 
     override fun registerRecipes(registration: IRecipeRegistration) {
-        registration.addIngredientInfo(EnchantedBookItem.getEnchantedItemStack(EnchantmentData(Yoyos.Enchantments.COLLECTING, 1)), VanillaTypes.ITEM, "enchantment.yoyos.collecting.desc")
+        registration.addIngredientInfo(EnchantedBookItem.getEnchantedItemStack(EnchantmentData(ModEnchantments.COLLECTING, 1)), VanillaTypes.ITEM, "enchantment.yoyos.collecting.desc")
     }
 
     companion object {

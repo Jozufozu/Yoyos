@@ -22,8 +22,9 @@
 
 package com.jozufozu.yoyos.common
 
-import com.jozufozu.yoyos.Yoyos
 import com.jozufozu.yoyos.common.api.IYoyo
+import com.jozufozu.yoyos.common.init.ModEntityTypes
+import com.jozufozu.yoyos.common.init.ModItems
 import com.jozufozu.yoyos.network.CCollectedDropsPacket
 import com.jozufozu.yoyos.network.YoyoNetwork
 import net.minecraft.entity.Entity
@@ -59,12 +60,15 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
     var numCollectedDrops = 0
     var needCollectedSync: Boolean = false
 
-    protected lateinit var thrower: PlayerEntity
-
-    protected val hasThrower: Boolean get() = this::thrower.isInitialized
+    lateinit var thrower: PlayerEntity
+        protected set
+    val hasThrower: Boolean get() = this::thrower.isInitialized
 
     protected var yoyoStackLastTick: ItemStack = ItemStack.EMPTY
-    var yoyo: IYoyo? = null
+
+    lateinit var yoyo: IYoyo
+        protected set
+    val hasYoyo: Boolean get() = this::yoyo.isInitialized
 
     protected var attackCool: Int = 0
     protected var attackInterval: Int = 0
@@ -127,9 +131,9 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         setNoGravity(true)
     }
 
-    constructor(world: World) : this(Yoyos.EntityTypes.YOYO, world)
+    constructor(world: World) : this(ModEntityTypes.YOYO, world)
 
-    constructor(world: World, player: PlayerEntity, hand: Hand) : this(Yoyos.EntityTypes.YOYO, world, player, hand)
+    constructor(world: World, player: PlayerEntity, hand: Hand) : this(ModEntityTypes.YOYO, world, player, hand)
 
     constructor(type: EntityType<*>, world: World, player: PlayerEntity, hand: Hand) : this(type, world) {
         thrower = player
@@ -188,17 +192,6 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
     override fun createSpawnPacket(): IPacket<*> {
         return NetworkHooks.getEntitySpawningPacket(this)
-    }
-
-    fun getThrower(): Entity? {
-        return thrower
-    }
-
-    fun setThrower(entity: Entity) {
-        if (entity is PlayerEntity) {
-            thrower = entity
-            CASTERS[entity.uniqueID] = this
-        }
     }
 
     fun forceRetract() {
@@ -279,16 +272,14 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         super.tick()
 
         if (hasThrower && !thrower.removed) {
-            yoyo = checkAndGetYoyoObject()
-
-            if (yoyo == null) return
+            yoyo = checkAndGetYoyoObject() ?: return
 
             if (maxTime >= 0 && decrementRemainingTime() < 0) forceRetract()
 
             updateMotion()
             moveAndCollide()
 
-            yoyo!!.onUpdate(yoyoStack, this)
+            yoyo.onUpdate(yoyoStack, this)
 
             if (!world.isRemote && doesBlockInteraction()) worldInteraction()
 
@@ -355,12 +346,12 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
         //Slow down in water, unless it has the modifier "aquadynamic"
         if (inWater) {
-            motion = motion.scale(yoyo!!.getWaterMovementModifier(yoyoStack).toDouble())
+            motion = motion.scale(yoyo.getWaterMovementModifier(yoyoStack).toDouble())
         }
 
         this.motion = motion
 
-        onGround = true //TODO: This is the only way I've found to get the yoyo to throw out smoothly
+        onGround = true
     }
 
     fun moveAndCollide() {
@@ -498,7 +489,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
     }
 
     fun interactWithEntity(entity: Entity) {
-        yoyo!!.entityInteraction(yoyoStack, thrower, hand, this, entity)
+        yoyo.entityInteraction(yoyoStack, thrower, hand, this, entity)
     }
 
     protected fun worldInteraction() {
@@ -514,7 +505,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
                             .toBoundingBoxList()
                             .any { bb -> bb.offset(it.first).intersects(entityBox) }
                 }
-                .forEach { yoyo!!.blockInteraction(yoyoStack, thrower, world, it.first, it.second, it.second.block, this) }
+                .forEach { yoyo.blockInteraction(yoyoStack, thrower, world, it.first, it.second, it.second.block, this) }
     }
 
     protected fun updateCapturedDrops() {
@@ -786,7 +777,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         private val MAX_LENGTH = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.FLOAT)
         private val MAX_COLLECTED_DROPS = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.VARINT)
 
-        protected val MAX_RETRACT_TIME = 40
+        protected const val MAX_RETRACT_TIME = 40
 
         @JvmStatic fun onLivingDrops(event: LivingDropsEvent) {
             val source = event.source

@@ -22,7 +22,8 @@
 
 package com.jozufozu.yoyos.common
 
-import com.jozufozu.yoyos.Yoyos
+import com.jozufozu.yoyos.common.init.ModEntityTypes
+import com.jozufozu.yoyos.common.init.ModSounds
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.util.Hand
@@ -38,11 +39,11 @@ class StickyYoyoEntity : YoyoEntity {
 
     private var reelDirection: Int = 0
 
-    constructor(type: EntityType<*>, world: World) : super(type, world) {}
+    constructor(type: EntityType<*>, world: World) : super(type, world)
 
-    constructor(world: World) : super(Yoyos.EntityTypes.STICKY_YOYO, world) {}
+    constructor(world: World) : super(ModEntityTypes.STICKY_YOYO, world)
 
-    constructor(world: World, player: PlayerEntity, hand: Hand) : super(Yoyos.EntityTypes.STICKY_YOYO, world, player, hand) {}
+    constructor(world: World, player: PlayerEntity, hand: Hand) : super(ModEntityTypes.STICKY_YOYO, world, player, hand)
 
     fun setReelDirection(reelDirection: Int) {
         this.reelDirection = reelDirection
@@ -55,10 +56,8 @@ class StickyYoyoEntity : YoyoEntity {
 
         baseTick()
 
-        if (hasThrower && !thrower.isAlive) {
-            yoyo = checkAndGetYoyoObject()
-
-            if (yoyo == null) return
+        if (hasThrower && thrower.isAlive) {
+            yoyo = checkAndGetYoyoObject() ?: return
 
             val dx = thrower.posX - posX
             val dy = thrower.posY + thrower.getEyeHeight(thrower.pose) - (posY + height * 0.5)
@@ -81,8 +80,8 @@ class StickyYoyoEntity : YoyoEntity {
                 if (!stuck) {
                     stuckSince = ticksExisted
                     currentLength = MathHelper.sqrt(distanceSqr)
-                    world.playSound(null, posX, posY, posZ, Yoyos.Sounds.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f)
-                    yoyo!!.damageItem(yoyoStack, hand, 1, thrower)
+                    world.playSound(null, posX, posY, posZ, ModSounds.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f)
+                    yoyo.damageItem(yoyoStack, hand, 1, thrower)
                 }
                 stuck = true
 

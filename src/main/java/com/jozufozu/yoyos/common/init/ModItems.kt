@@ -1,9 +1,14 @@
-package com.jozufozu.yoyos.common
+package com.jozufozu.yoyos.common.init
 
 import com.jozufozu.yoyos.Yoyos
+import com.jozufozu.yoyos.common.Interactions
+import com.jozufozu.yoyos.common.ItemStickyYoyo
+import com.jozufozu.yoyos.common.ItemYoyo
+import com.jozufozu.yoyos.common.RenderOrientation
 import net.minecraft.item.Item
+import net.minecraft.item.ItemGroup
+import net.minecraft.item.ItemStack
 import net.minecraft.item.ItemTier
-import net.minecraft.util.ResourceLocation
 import net.minecraftforge.event.RegistryEvent
 import net.minecraftforge.registries.ForgeRegistries
 
@@ -19,11 +24,17 @@ object ModItems {
     val HOE_YOYO: Item by name("hoe_yoyo")
     val STICKY_YOYO: Item by name("sticky_yoyo")
 
-    private fun name(name: String) = lazy { ForgeRegistries.ITEMS.getValue(ResourceLocation(Yoyos.MODID, name))?: throw Exception("yoyos:$name could not be found in the Item registry") }
+    val YOYOS_TAB: ItemGroup = object : ItemGroup("yoyos") {
+        override fun createIcon(): ItemStack {
+            return ItemStack(CREATIVE_YOYO)
+        }
+    }
+
+    private fun name(name: String) = registryName(ForgeRegistries.ITEMS, name)
 
     @JvmStatic fun onItemsRegistry(event: RegistryEvent.Register<Item>) {
         event.registry.registerAll(
-                Item(Item.Properties().group(Yoyos.YOYOS_TAB)).setRegistryName(Yoyos.MODID, "cord"),
+                Item(Item.Properties().group(YOYOS_TAB)).setRegistryName(Yoyos.MODID, "cord"),
                 ItemYoyo("creative_yoyo", ItemTier.GOLD).addEntityInteraction(Interactions::collectItem, Interactions::attackEntity),
                 ItemYoyo("wooden_yoyo", ItemTier.WOOD).addEntityInteraction(Interactions::collectItem, Interactions::attackEntity),
                 ItemYoyo("stone_yoyo", ItemTier.STONE).addEntityInteraction(Interactions::collectItem, Interactions::attackEntity),

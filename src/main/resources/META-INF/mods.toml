@@ -22,7 +22,7 @@ displayName="Yoyos" #mandatory
 # A URL for the "homepage" for this mod, displayed in the mod UI
 displayURL="http://https://www.curseforge.com/minecraft/mc-mods/yoyos" #optional
 # A file name (in the root of the mod JAR) containing a logo for display
-logoFile="yoyos.png" #optional
+# logoFile="yoyos.png" #optional
 # A text field displayed in the mod UI
 credits="Terraria, for having sweet yoyos that I wanted to make in Minecraft" #optional
 # A text field displayed in the mod UI

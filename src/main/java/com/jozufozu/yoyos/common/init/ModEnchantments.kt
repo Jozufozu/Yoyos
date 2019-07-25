@@ -2,6 +2,7 @@ package com.jozufozu.yoyos.common.init
 
 import com.jozufozu.yoyos.common.EnchantmentCollecting
 import com.jozufozu.yoyos.common.ItemYoyo
+import com.jozufozu.yoyos.common.YoyosConfig
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentType
 import net.minecraftforge.event.RegistryEvent
@@ -14,8 +15,10 @@ object ModEnchantments {
     private fun name(name: String) = registryName(ForgeRegistries.ENCHANTMENTS, name)
 
     @JvmStatic fun registerEnchantment(event: RegistryEvent.Register<Enchantment>) {
-        ModItems.YOYOS_TAB.setRelevantEnchantmentTypes(YOYO_ENCHANTMENT_TYPE)
+        if (YoyosConfig.vanillaYoyos.collectingEnabled.get()) {
+            ModItems.YOYOS_TAB.setRelevantEnchantmentTypes(YOYO_ENCHANTMENT_TYPE)
 
-        event.registry.register(EnchantmentCollecting())
+            event.registry.register(EnchantmentCollecting())
+        }
     }
 }

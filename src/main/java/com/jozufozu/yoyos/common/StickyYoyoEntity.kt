@@ -26,6 +26,8 @@ import com.jozufozu.yoyos.common.init.ModEntityTypes
 import com.jozufozu.yoyos.common.init.ModSounds
 import net.minecraft.entity.EntityType
 import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.network.datasync.DataSerializers
+import net.minecraft.network.datasync.EntityDataManager
 import net.minecraft.util.Hand
 import net.minecraft.util.SoundCategory
 import net.minecraft.util.math.MathHelper
@@ -37,7 +39,9 @@ class StickyYoyoEntity : YoyoEntity {
     private var stuck = false
     private var stuckSince = 0
 
-    private var reelDirection: Int = 0
+    var reelDirection: Byte
+        get() = this.dataManager.get(REEL_DIRECTION)
+        set(dir) = this.dataManager.set(REEL_DIRECTION, dir)
 
     constructor(type: EntityType<*>, world: World) : super(type, world)
 
@@ -45,8 +49,9 @@ class StickyYoyoEntity : YoyoEntity {
 
     constructor(world: World, player: PlayerEntity, hand: Hand) : super(ModEntityTypes.STICKY_YOYO, world, player, hand)
 
-    fun setReelDirection(reelDirection: Int) {
-        this.reelDirection = reelDirection
+    override fun registerData() {
+        super.registerData()
+        this.dataManager.register(REEL_DIRECTION, 0)
     }
 
     override fun tick() {
@@ -74,7 +79,7 @@ class StickyYoyoEntity : YoyoEntity {
                     currentLength = MathHelper.sqrt(distanceSqr)
             }
 
-            if (!isRetracting && !world.checkBlockCollision(boundingBox.grow(0.1))) {
+            if (!isRetracting && world.checkBlockCollision(boundingBox.grow(0.1))) {
                 motion = Vec3d.ZERO
 
                 if (!stuck) {
@@ -111,5 +116,9 @@ class StickyYoyoEntity : YoyoEntity {
 
     override fun getRotation(age: Int, partialTicks: Float): Float {
         return if (stuck) super.getRotation(stuckSince, 0f) else super.getRotation(age - stuckSince, partialTicks)
+    }
+
+    companion object {
+        private val REEL_DIRECTION = EntityDataManager.createKey(StickyYoyoEntity::class.java, DataSerializers.BYTE)
     }
 }

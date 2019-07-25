@@ -40,11 +40,11 @@ class ItemStickyYoyo(name: String, material: IItemTier, properties: Properties) 
     }
 
     companion object {
-        @JvmStatic fun addStickyInfo(tooltip: MutableList<ITextComponent>) {
+        fun addStickyInfo(tooltip: MutableList<ITextComponent>) {
             tooltip.add(StringTextComponent(""))
-            tooltip.add(TranslationTextComponent("yoyos.info.sticky.name"))
-            tooltip.add(TranslationTextComponent("yoyos.info.sticky.retraction.name", KeybindTextComponent("key.sneak")))
-            tooltip.add(TranslationTextComponent("yoyos.info.sticky.release.name", KeybindTextComponent("key.jump")))
+            tooltip.add(TranslationTextComponent("tooltip.yoyos.sticky"))
+            tooltip.add(TranslationTextComponent("tooltip.yoyos.sticky.retraction", KeybindTextComponent("key.sneak")))
+            tooltip.add(TranslationTextComponent("tooltip.yoyos.sticky.release", KeybindTextComponent("key.jump")))
         }
     }
 }

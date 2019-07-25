@@ -1,9 +1,9 @@
 {
     "type": "minecraft:crafting_shaped",
     "pattern": [
-        " X ",
+        "XX ",
         "XSX",
-        "CX "
+        "CXX"
     ],
     "key": {
         "S": { "tag": "forge:rods/wooden" },
@@ -11,6 +11,6 @@
         "C": { "tag": "yoyos:cords/string" }
     },
     "result": {
-        "item": "yoyos:iron_yoyo"
+        "item": "yoyos:shear_yoyo"
     }
 }

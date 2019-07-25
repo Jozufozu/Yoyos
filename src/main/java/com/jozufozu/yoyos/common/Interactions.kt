@@ -76,7 +76,7 @@ object Interactions {
             if (world.isAirBlock(pos.up())) {
                 val tillState = HoeItem.HOE_LOOKUP[block]
                 if (tillState != null) {
-                    world.playSound(player, pos, SoundEvents.ITEM_HOE_TILL, SoundCategory.BLOCKS, 1.0f, 1.0f)
+                    world.playSound(null, pos, SoundEvents.ITEM_HOE_TILL, SoundCategory.BLOCKS, 1.0f, 1.0f)
                     if (!world.isRemote) {
                         world.setBlockState(pos, tillState, 11)
 
@@ -142,10 +142,12 @@ object Interactions {
 
             var foundSeed = false
 
+            val replant = YoyosConfig.general.farmingYoyoReplant.get()
+
             for (stack in drops) {
                 if (stack.isEmpty) continue
 
-                if (ModConfig.replant && !foundSeed && (stack.item as? BlockItem)?.block === block) {
+                if (replant && !foundSeed && (stack.item as? BlockItem)?.block === block) {
                     stack.shrink(1)
                     foundSeed = true
                 }
@@ -153,7 +155,7 @@ object Interactions {
                 yoyoEntity.createItemDropOrCollect(stack, pos)
             }
 
-            if (ModConfig.replant) {
+            if (replant) {
                 if (!foundSeed && yoyoEntity.collectedDrops.isNotEmpty()) {
                     for (stack in yoyoEntity.collectedDrops) {
                         if (stack.isEmpty) continue

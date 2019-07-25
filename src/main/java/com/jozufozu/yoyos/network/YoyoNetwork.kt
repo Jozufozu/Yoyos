@@ -20,18 +20,26 @@
  * SOFTWARE.
  */
 
-package com.jozufozu.yoyos.common
+package com.jozufozu.yoyos.network
 
 import com.jozufozu.yoyos.Yoyos
-import com.jozufozu.yoyos.common.init.ModEnchantments
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.inventory.EquipmentSlotType
 import net.minecraft.util.ResourceLocation
+import net.minecraftforge.fml.network.NetworkRegistry
+import net.minecraftforge.fml.network.simple.SimpleChannel
 
-class EnchantmentCollecting : Enchantment(Rarity.UNCOMMON, ModEnchantments.YOYO_ENCHANTMENT_TYPE, arrayOf(EquipmentSlotType.MAINHAND, EquipmentSlotType.OFFHAND)) {
-    init {
-        registryName = ResourceLocation(Yoyos.MODID, "collecting")
+object YoyoNetwork {
+    const val PROTOCOL = "1.0"
+    val CHANNEL: SimpleChannel = NetworkRegistry.ChannelBuilder.named(ResourceLocation(Yoyos.MODID, "yoyos"))
+            .networkProtocolVersion { PROTOCOL }
+            .clientAcceptedVersions { true }
+            .serverAcceptedVersions { true }
+            .simpleChannel()
+
+    private var ID = 0
+
+    fun initialize() {
+        CHANNEL.registerMessage(ID++, SYoyoRetractingPacket::class.java, SYoyoRetractingPacket::encode, ::SYoyoRetractingPacket, SYoyoRetractingPacket::onMessage)
+        CHANNEL.registerMessage(ID++, SReelDirectionPacket::class.java, SReelDirectionPacket::encode, ::SReelDirectionPacket, SReelDirectionPacket::onMessage)
+        CHANNEL.registerMessage(ID++, CCollectedDropsPacket::class.java, CCollectedDropsPacket::encode, ::CCollectedDropsPacket, CCollectedDropsPacket::onMessage)
     }
-
-    override fun getMaxLevel(): Int = YoyosConfig.vanillaYoyos.maxCollectingLevel.get()
 }

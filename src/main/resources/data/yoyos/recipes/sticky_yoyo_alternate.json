@@ -1,16 +1,17 @@
 {
     "type": "minecraft:crafting_shaped",
     "pattern": [
-        " X ",
+        "BX ",
         "XSX",
-        "CX "
+        "CXB"
     ],
     "key": {
         "S": { "tag": "forge:rods/wooden" },
         "X": { "tag": "forge:gems/diamond" },
-        "C": { "tag": "yoyos:cords/string" }
+        "C": { "tag": "yoyos:cords/string" },
+        "B": { "item": "minecraft:slime_ball" }
     },
     "result": {
-        "item": "yoyos:diamond_yoyo"
+        "item": "yoyos:sticky_yoyo"
     }
 }

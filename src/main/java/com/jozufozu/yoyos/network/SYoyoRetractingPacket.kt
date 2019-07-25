@@ -20,18 +20,37 @@
  * SOFTWARE.
  */
 
-package com.jozufozu.yoyos.common
+package com.jozufozu.yoyos.network
 
-import com.jozufozu.yoyos.Yoyos
-import com.jozufozu.yoyos.common.init.ModEnchantments
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.inventory.EquipmentSlotType
-import net.minecraft.util.ResourceLocation
+import com.jozufozu.yoyos.common.YoyoEntity
+import net.minecraft.network.PacketBuffer
+import net.minecraftforge.fml.network.NetworkEvent
+import java.util.function.Supplier
 
-class EnchantmentCollecting : Enchantment(Rarity.UNCOMMON, ModEnchantments.YOYO_ENCHANTMENT_TYPE, arrayOf(EquipmentSlotType.MAINHAND, EquipmentSlotType.OFFHAND)) {
-    init {
-        registryName = ResourceLocation(Yoyos.MODID, "collecting")
+class SYoyoRetractingPacket {
+    private var retracting: Boolean = false
+
+    constructor(retracting: Boolean) {
+        this.retracting = retracting
     }
 
-    override fun getMaxLevel(): Int = YoyosConfig.vanillaYoyos.maxCollectingLevel.get()
+    constructor(buf: PacketBuffer) {
+        retracting = buf.readBoolean()
+    }
+
+    fun encode(buf: PacketBuffer) {
+        buf.writeBoolean(retracting)
+    }
+
+    fun onMessage(ctx: Supplier<NetworkEvent.Context>) {
+        ctx.get().enqueueWork {
+            val player = ctx.get().sender ?: return@enqueueWork
+
+            val maybeYoyo = YoyoEntity.CASTERS[player.uniqueID]
+
+            if (maybeYoyo != null) maybeYoyo.isRetracting = retracting
+        }
+
+        ctx.get().packetHandled = true
+    }
 }

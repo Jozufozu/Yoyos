@@ -26,10 +26,20 @@
     "enchantment.yoyos.collecting.desc": "This enchantment allows yoyos to pick up items.",
 
     "yoyos.config.vanilla": "Vanilla Yoyos",
-    "yoyos.config.enable": "Enable",
     "yoyos.config.tinkers": "Tinkers' Yoyos",
+
     "yoyos.config.swing": "Yoyo Swinging",
-    "yoyos.config.replanting": "Farming Yoyos Replant Crops",
+    "yoyos.config.replant": "Farming Yoyos Replant Crops",
+    "yoyos.config.collecting_base": "Collecting Multiplier",
+
+    "yoyos.config.vanilla_yoyos.enabled": "Enable Vanilla Yoyos",
+    "yoyos.config.vanilla_yoyos.collecting_enabled": "Enable Collecting Enchantment",
+    "yoyos.config.vanilla_yoyos.yoyo.enabled": "Enable",
+
+    "yoyos.config.damage": "Damage",
+    "yoyos.config.weight": "Weight",
+    "yoyos.config.length": "Length",
+    "yoyos.config.duration": "Duration",
 
     "yoyos.config.materials": "Configurable Material Stats",
 
@@ -38,21 +48,16 @@
     "yoyos.config.botania": "Botanical Yoyos",
     "yoyos.config.botania.hackery": "Merge Lexicon Tool Pages",
 
-    "yoyos.config.damage": "Damage",
-    "yoyos.config.weight": "Weight",
-    "yoyos.config.length": "Length",
-    "yoyos.config.duration": "Duration",
-    "yoyos.config.collecting_base": "Collecting Multiplier",
-
     "yoyos.display.prefix": "Yo-",
 
-    "yoyos.info.weight.name": "Weight: %s",
-    "yoyos.info.duration.name": "Duration: %s seconds",
-    "yoyos.info.length.name": "Length: %s blocks",
+    "tooltip.yoyos.weight": "%s weight",
+    "tooltip.yoyos.duration": "%s second duration",
+    "tooltip.yoyos.duration.infinite": "Infinite duration",
+    "tooltip.yoyos.length": "%s block reach",
 
-    "yoyos.info.sticky.name": "Sticks to blocks and acts like a rope swing.",
-    "yoyos.info.sticky.retraction.name": "Hold [%s] to reel in string.",
-    "yoyos.info.sticky.release.name": "Hold [%s] to let out slack.",
+    "tooltip.yoyos.sticky": "Sticks to blocks and acts like a rope swing.",
+    "tooltip.yoyos.sticky.retraction": "Hold [%s] to reel in.",
+    "tooltip.yoyos.sticky.release": "Hold [%s] to let out slack.",
 
     "item.yoyos.book": "Yoyos and You",
     "item.yoyos.book.tooltip": "How to become a master thrower\\nby Jozufozu",
@@ -70,7 +75,6 @@
 
     "stat.yoyo.duration.name": "Duration",
     "stat.yoyo.duration.suffix": "Seconds",
-    "stat.yoyo.infinite.name": "Infinite",
 
     "stat.body.weight.name": "Weight",
     "stat.body.weight.desc": "Base value for movement speed calculation.\\nFinal value is the sum of all weights.",

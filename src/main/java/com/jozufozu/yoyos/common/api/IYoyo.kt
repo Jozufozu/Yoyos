@@ -20,64 +20,62 @@
  * SOFTWARE.
  */
 
-package com.jozufozu.yoyos.common.api;
+package com.jozufozu.yoyos.common.api
 
-import com.jozufozu.yoyos.common.RenderOrientation;
-import com.jozufozu.yoyos.common.YoyoEntity;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import com.jozufozu.yoyos.common.YoyoEntity
+import net.minecraft.block.Block
+import net.minecraft.block.BlockState
+import net.minecraft.entity.Entity
+import net.minecraft.entity.LivingEntity
+import net.minecraft.entity.player.PlayerEntity
+import net.minecraft.item.ItemStack
+import net.minecraft.util.Hand
+import net.minecraft.util.math.BlockPos
+import net.minecraft.world.World
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
-public interface IYoyo
-{
+interface IYoyo {
     /**
      * The weight of the yoyo. Used to calculate movement speed.
      * TODO(1.13+): Change this to return the actual movement speed given a distance to a target
-     * @param yoyo The {@link ItemStack} that was used to launch the yoyo
+     * @param yoyo The [ItemStack] that was used to launch the yoyo
      */
-    float getWeight(ItemStack yoyo);
+    fun getWeight(yoyo: ItemStack): Double
 
     /**
      * The maximum distance the yoyo can be from the player.
-     * @param yoyo The {@link ItemStack} that was used to launch the yoyo
+     * @param yoyo The [ItemStack] that was used to launch the yoyo
      */
-    float getLength(ItemStack yoyo);
+    fun getLength(yoyo: ItemStack): Double
 
     /**
      * The maximum number of ticks the yoyo can stay out.
-     * @param yoyo The {@link ItemStack} that was used to launch the yoyo
+     * @param yoyo The [ItemStack] that was used to launch the yoyo
      */
-    int getDuration(ItemStack yoyo);
+    fun getDuration(yoyo: ItemStack): Int
 
     /**
-     * The minimum time in between attacks made by the yoyo.
-     * @param yoyo The {@link ItemStack} that was used to launch the yoyo
+     * The minimum time inbetween attacks made by the yoyo.
+     * @param yoyo The [ItemStack] that was used to launch the yoyo
      */
-    int getAttackInterval(ItemStack yoyo);
+    fun getAttackInterval(yoyo: ItemStack): Int
 
     /**
-     * The maximum number of <em>ITEMS</em> that the yoyo can hold.
+     * The maximum number of *ITEMS* that the yoyo can hold.
      * @param yoyo Stack that was used to launch the yoyo
      */
-    int getMaxCollectedDrops(ItemStack yoyo);
+    fun getMaxCollectedDrops(yoyo: ItemStack): Int
 
     /**
      * Should damage the yoyo by amount, also taking into account whether the player is creative or not,
-     * and any {@link net.minecraft.enchantment.Enchantments} that might be applied.
+     * and any [net.minecraft.enchantment.Enchantments] that might be applied.
      * @param yoyo Stack that was used to launch the yoyo.
-     * @param hand
+     * @param hand The hand the yoyo is held in.
      * @param amount Amount of damage to be done to the yoyo.
      * @param entity Entity wielding the yoyo.
      */
-    <T extends LivingEntity> void damageItem(ItemStack yoyo, Hand hand, int amount, T entity);
+    fun <T : LivingEntity> damageItem(yoyo: ItemStack, hand: Hand, amount: Int, entity: T)
 
     /**
      * Do things that should happen when the yoyo entity touches another entity here.
@@ -87,14 +85,14 @@ public interface IYoyo
      * @param yoyoEntity Yoyo entity doing the touching.
      * @param targetEntity Entity the yoyo is touching.
      */
-    void entityInteraction(ItemStack yoyo, PlayerEntity player, Hand hand, YoyoEntity yoyoEntity, Entity targetEntity);
+    fun entityInteraction(yoyo: ItemStack, player: PlayerEntity, hand: Hand, yoyoEntity: YoyoEntity, targetEntity: Entity)
 
     /**
      * Does the yoyo entity interact with blocks at all?
-     * @param yoyo The {@link ItemStack} that was used to launch the yoyo.
+     * @param yoyo The [ItemStack] that was used to launch the yoyo.
      * @return Whether or not to calculate and handle block collision actions.
      */
-    boolean interactsWithBlocks(ItemStack yoyo);
+    fun interactsWithBlocks(yoyo: ItemStack): Boolean
 
     /**
      * Do things that should happen when the yoyo entity touches blocks here.
@@ -106,20 +104,22 @@ public interface IYoyo
      * @param block Block being touched.
      * @param yoyoEntity Yoyo entity doing the touching.
      */
-    void blockInteraction(ItemStack yoyo, PlayerEntity player, World world, BlockPos pos, BlockState state, Block block, YoyoEntity yoyoEntity);
+    fun blockInteraction(yoyo: ItemStack, player: PlayerEntity, world: World, pos: BlockPos, state: BlockState, block: Block, yoyoEntity: YoyoEntity)
 
     /**
      * Other things that should happen in the yoyo entity's ticking
      * @param yoyo Stack that was used to launch the yoyo.
      * @param yoyoEntity Yoyo entity being updated.
      */
-    default void onUpdate(ItemStack yoyo, YoyoEntity yoyoEntity) {}
+    fun onUpdate(yoyo: ItemStack, yoyoEntity: YoyoEntity) {}
 
     /**
      * A multiplier to the yoyo entity's movement speed when it is in water.
      * @param yoyo Stack that was used to launch the yoyo.
      */
-    default float getWaterMovementModifier(ItemStack yoyo) { return 0.3f; }
+    fun getWaterMovementModifier(yoyo: ItemStack): Float {
+        return 0.3f
+    }
 
     /**
      * The color the cord should be.
@@ -127,9 +127,8 @@ public interface IYoyo
      * @param ticks The exact amount of ticks (and partial ticks) that the yoyo has existed.
      */
     @OnlyIn(Dist.CLIENT)
-    default int getCordColor(ItemStack yoyo, float ticks)
-    {
-        return 0xDDDDDD;
+    fun getCordColor(yoyo: ItemStack, ticks: Float): Int {
+        return 0xDDDDDD
     }
 
     /**
@@ -137,8 +136,7 @@ public interface IYoyo
      * @param yoyo Stack that was used to launch the yoyo.
      */
     @OnlyIn(Dist.CLIENT)
-    default RenderOrientation getRenderOrientation(ItemStack yoyo)
-    {
-        return RenderOrientation.Vertical;
+    fun getRenderOrientation(yoyo: ItemStack): RenderOrientation {
+        return RenderOrientation.Vertical
     }
 }

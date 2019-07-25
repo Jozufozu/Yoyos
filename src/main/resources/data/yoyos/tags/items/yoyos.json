@@ -1,0 +1,13 @@
+{
+    "replace": false,
+    "values": [
+        "yoyos:wooden_yoyo",
+        "yoyos:stone_yoyo",
+        "yoyos:iron_yoyo",
+        "yoyos:gold_yoyo",
+        "yoyos:diamond_yoyo",
+        "yoyos:sticky_yoyo",
+        "yoyos:shear_yoyo",
+        "yoyos:hoe_yoyo"
+    ]
+}

@@ -1,16 +1,17 @@
 {
     "type": "minecraft:crafting_shaped",
     "pattern": [
-        " X ",
+        "HX ",
         "XSX",
         "CX "
     ],
     "key": {
         "S": { "tag": "forge:rods/wooden" },
         "X": { "tag": "forge:gems/diamond" },
-        "C": { "tag": "yoyos:cords/string" }
+        "C": { "tag": "yoyos:cords/string" },
+        "H": { "item": "minecraft:diamond_hoe" }
     },
     "result": {
-        "item": "yoyos:diamond_yoyo"
+        "item": "yoyos:hoe_yoyo"
     }
 }

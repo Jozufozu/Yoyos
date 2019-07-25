@@ -23,7 +23,7 @@ object ModEntityTypes {
                 .disableSummoning()
                 .size(0.25f, 0.25f)
                 .setTrackingRange(64)
-                .setUpdateInterval(2)
+                .setUpdateInterval(1)
                 .setShouldReceiveVelocityUpdates(true)
                 .setCustomClientFactory { _, world -> YOYO.create(world) }
                 .build("yoyo")
@@ -32,7 +32,7 @@ object ModEntityTypes {
                 .disableSummoning()
                 .size(0.25f, 0.25f)
                 .setTrackingRange(64)
-                .setUpdateInterval(2)
+                .setUpdateInterval(1)
                 .setShouldReceiveVelocityUpdates(true)
                 .setCustomClientFactory { _, world -> STICKY_YOYO.create(world) }
                 .build("sticky_yoyo")

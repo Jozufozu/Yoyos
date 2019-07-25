@@ -20,18 +20,46 @@
  * SOFTWARE.
  */
 
-package com.jozufozu.yoyos.common
+package com.jozufozu.yoyos.network
 
-import com.jozufozu.yoyos.Yoyos
-import com.jozufozu.yoyos.common.init.ModEnchantments
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.inventory.EquipmentSlotType
-import net.minecraft.util.ResourceLocation
+import com.jozufozu.yoyos.common.StickyYoyoEntity
+import com.jozufozu.yoyos.common.YoyoEntity
+import net.minecraft.network.PacketBuffer
+import net.minecraftforge.fml.network.NetworkEvent
+import java.util.function.Supplier
 
-class EnchantmentCollecting : Enchantment(Rarity.UNCOMMON, ModEnchantments.YOYO_ENCHANTMENT_TYPE, arrayOf(EquipmentSlotType.MAINHAND, EquipmentSlotType.OFFHAND)) {
-    init {
-        registryName = ResourceLocation(Yoyos.MODID, "collecting")
+class SReelDirectionPacket {
+    /**
+     * 0 - no movement
+     * -1 - reel in
+     * 1 - reel out
+     */
+    private var direction: Byte = 0
+
+    constructor(dir: Byte) {
+        direction = dir
     }
 
-    override fun getMaxLevel(): Int = YoyosConfig.vanillaYoyos.maxCollectingLevel.get()
+    constructor(buf: PacketBuffer) {
+        direction = buf.readByte()
+    }
+
+    fun encode(buf: PacketBuffer) {
+        buf.writeByte(direction.toInt())
+    }
+
+    fun onMessage(ctx: Supplier<NetworkEvent.Context>) {
+        val context = ctx.get()
+
+        context.enqueueWork {
+            val player = context.sender ?: return@enqueueWork
+
+            val maybeYoyo = YoyoEntity.CASTERS[player.uniqueID]
+
+            if (maybeYoyo is StickyYoyoEntity) maybeYoyo.reelDirection = direction
+        }
+
+        context.packetHandled = true
+    }
 }
+

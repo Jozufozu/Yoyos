@@ -1,14 +1,14 @@
 {
-    "item.yoyos.yoyos.wooden_yoyo": "木质悠悠球",
-    "item.yoyos.yoyos.stone_yoyo": "石质悠悠球",
-    "item.yoyos.yoyos.iron_yoyo": "铁质悠悠球",
-    "item.yoyos.yoyos.diamond_yoyo": "钻石质悠悠球",
-    "item.yoyos.yoyos.gold_yoyo": "金质悠悠球",
-    "item.yoyos.yoyos.shear_yoyo": "裁剪悠悠球",
-    "item.yoyos.yoyos.sticky_yoyo": "粘性悠悠球",
-    "item.yoyos.yoyos.creative_yoyo": "彩虹悠悠球",
+    "item.yoyos.wooden_yoyo": "木质悠悠球",
+    "item.yoyos.stone_yoyo": "石质悠悠球",
+    "item.yoyos.iron_yoyo": "铁质悠悠球",
+    "item.yoyos.diamond_yoyo": "钻石质悠悠球",
+    "item.yoyos.gold_yoyo": "金质悠悠球",
+    "item.yoyos.shear_yoyo": "裁剪悠悠球",
+    "item.yoyos.sticky_yoyo": "粘性悠悠球",
+    "item.yoyos.creative_yoyo": "彩虹悠悠球",
 
-    "item.yoyos.yoyos.cord": "捆绳",
+    "item.yoyos.cord": "捆绳",
 
     "entity.yoyo.throw.subtitle": "悠悠球：抛出",
     "entity.yoyo.stick.subtitle": "悠悠球：粘黏",
@@ -30,20 +30,20 @@
     "yoyos.config.length": "长度",
     "yoyos.config.duration": "持续时间",
 
-    "yoyos.info.weight.name": "重量：%s",
-    "yoyos.info.duration.name": "持续时间：%s秒",
-    "yoyos.info.length.name": "长度：%s个方块",
+    "tooltip.yoyos.weight": "重量：%s",
+    "tooltip.yoyos.duration": "持续时间：%s秒",
+    "tooltip.yoyos.length": "长度：%s个方块",
 
-    "yoyos.info.sticky.name": "具有粘性的悠悠球会黏着在方块上持续旋转。",
-    "yoyos.info.sticky.retraction.name": "按住%s以收回悠悠球。",
+    "tooltip.yoyos.sticky": "具有粘性的悠悠球会黏着在方块上持续旋转。",
+    "tooltip.yoyos.sticky.retraction": "按住%s以收回悠悠球。",
 
-    "item.yoyos.yoyos.book": "悠悠球手册",
+    "item.yoyos.book": "悠悠球手册",
     "item.yoyos.book.tooltip": "从入门到精通\\nby Jozufozu",
 
-    "item.yoyos.yoyos.yoyo": "悠悠球",
-    "item.yoyos.yoyos.yoyo_axle": "轮轴",
-    "item.yoyos.yoyos.yoyo_body": "外壳",
-    "item.yoyos.yoyos.yoyo_cord": "捆绳",
+    "item.yoyos.yoyo": "悠悠球",
+    "item.yoyos.yoyo_axle": "轮轴",
+    "item.yoyos.yoyo_body": "外壳",
+    "item.yoyos.yoyo_cord": "捆绳",
 
     "item.yoyos.yoyo.desc": "悠悠球是一种远程武器，你可以利用它来撕裂你的对手。\\n当然，它也是一种儿童玩具。你可以去了解与它相关的知识。",
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Jozsef Augusztiny
+ * Copyright (c) 2019 Jozsef Augusztiny
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,18 +20,9 @@
  * SOFTWARE.
  */
 
-package com.jozufozu.yoyos.common
+package com.jozufozu.yoyos.common.api
 
-import com.jozufozu.yoyos.Yoyos
-import com.jozufozu.yoyos.common.init.ModEnchantments
-import net.minecraft.enchantment.Enchantment
-import net.minecraft.inventory.EquipmentSlotType
-import net.minecraft.util.ResourceLocation
-
-class EnchantmentCollecting : Enchantment(Rarity.UNCOMMON, ModEnchantments.YOYO_ENCHANTMENT_TYPE, arrayOf(EquipmentSlotType.MAINHAND, EquipmentSlotType.OFFHAND)) {
-    init {
-        registryName = ResourceLocation(Yoyos.MODID, "collecting")
-    }
-
-    override fun getMaxLevel(): Int = YoyosConfig.vanillaYoyos.maxCollectingLevel.get()
+enum class RenderOrientation {
+    Horizontal,
+    Vertical
 }

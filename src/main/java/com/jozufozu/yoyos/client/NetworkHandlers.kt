@@ -25,7 +25,6 @@ package com.jozufozu.yoyos.client
 import com.jozufozu.yoyos.common.StickyYoyoEntity
 import com.jozufozu.yoyos.common.YoyoEntity
 import com.jozufozu.yoyos.network.SReelDirectionPacket
-import com.jozufozu.yoyos.network.SYoyoRetractingPacket
 import com.jozufozu.yoyos.network.YoyoNetwork
 import net.minecraft.client.Minecraft
 import net.minecraftforge.api.distmarker.Dist
@@ -55,20 +54,12 @@ object NetworkHandlers {
                 reel /= abs
 
             if (reel != lastReel) {
-                YoyoNetwork.INSTANCE.sendToServer(SReelDirectionPacket(reel.toByte()))
+                YoyoNetwork.CHANNEL.sendToServer(SReelDirectionPacket(reel.toByte()))
             }
         }
 
         lastReel = reel
     }
 
-    @JvmStatic fun onPlayerInteractRightClickItem(event: PlayerInteractEvent.RightClickItem) {
-        val player = event.entityPlayer
-
-        val yoyo = YoyoEntity.CASTERS[player.uniqueID]
-        if (yoyo != null && player === Minecraft.getInstance().player) {
-            YoyoNetwork.INSTANCE.sendToServer(SYoyoRetractingPacket(!yoyo.isRetracting))
-            event.isCanceled = true
-        }
-    }
+    @JvmStatic fun onPlayerInteractRightClickItem(event: PlayerInteractEvent.RightClickItem) {}
 }

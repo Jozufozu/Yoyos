@@ -49,10 +49,7 @@ import net.minecraftforge.fml.network.NetworkHooks
 import net.minecraftforge.fml.network.PacketDistributor
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.math.cos
-import kotlin.math.min
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.*
 import kotlin.streams.toList
 
 open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), IEntityAdditionalSpawnData {
@@ -285,7 +282,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
             if (isCollecting) updateCapturedDrops()
 
-            if (ModConfig.yoyoSwing) handlePlayerPulling()
+            if (YoyosConfig.general.yoyoSwing.get()) handlePlayerPulling()
 
             resetOrIncrementAttackCooldown()
         } else
@@ -326,10 +323,10 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
             maxTime = duration
             remainingTime = duration
 
-            val maxLength = yoyo.getLength(yoyoStack)
+            val maxLength = yoyo.getLength(yoyoStack).toFloat()
             currentLength = maxLength
             this.maxLength = maxLength
-            weight = yoyo.getWeight(yoyoStack)
+            weight = yoyo.getWeight(yoyoStack).toFloat()
 
             setInteractsWithBlocks(yoyo.interactsWithBlocks(yoyoStack))
 
@@ -342,16 +339,15 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
     }
 
     protected fun updateMotion() {
-        var motion = getTarget().subtract(posX, posY + height / 2, posZ).scale(min((1 / weight).toDouble(), 1.0))
+        var motion = getTarget().subtract(posX, posY + height / 2, posZ).scale(0.15 + 0.85 * 1.1.pow(-(weight * weight).toDouble()))
 
-        //Slow down in water, unless it has the modifier "aquadynamic"
         if (inWater) {
             motion = motion.scale(yoyo.getWaterMovementModifier(yoyoStack).toDouble())
         }
 
         this.motion = motion
 
-        onGround = true
+        //onGround = true
     }
 
     fun moveAndCollide() {
@@ -535,7 +531,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
                 }
             }
 
-            YoyoNetwork.INSTANCE.send(PacketDistributor.TRACKING_CHUNK.with { world.getChunkAt(position) }, CCollectedDropsPacket(this))
+            YoyoNetwork.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with { world.getChunkAt(position) }, CCollectedDropsPacket(this))
 
             needCollectedSync = false
         }
@@ -550,14 +546,9 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
             if (remaining == ItemStack.EMPTY) return
         }
 
-        val f = 0.7
-        val entityitem = ItemEntity(world, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, remaining)
-//        entityitem.setVelocity(
-//                (world.random.nextFloat() * f) + (1.0f - f) * 0.5,
-//                (world.random.nextFloat() * f) + (1.0f - f) * 0.5,
-//                (world.random.nextFloat() * f) + (1.0f - f) * 0.5)
-        entityitem.setDefaultPickupDelay()
-        world.addEntity(entityitem)
+        val itemEntity = ItemEntity(world, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, remaining)
+        itemEntity.setDefaultPickupDelay()
+        world.addEntity(itemEntity)
     }
 
     /**

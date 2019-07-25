@@ -25,16 +25,12 @@ package com.jozufozu.yoyos.common
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import com.jozufozu.yoyos.Yoyos
-import com.jozufozu.yoyos.common.api.BlockInteraction
-import com.jozufozu.yoyos.common.api.EntityInteraction
-import com.jozufozu.yoyos.common.api.IYoyo
-import com.jozufozu.yoyos.common.api.YoyoFactory
+import com.jozufozu.yoyos.common.api.*
 import com.jozufozu.yoyos.common.init.ModEnchantments
 import com.jozufozu.yoyos.common.init.ModItems
 import com.jozufozu.yoyos.common.init.ModSounds
 import net.minecraft.block.Block
 import net.minecraft.block.BlockState
-import net.minecraft.client.resources.I18n
 import net.minecraft.client.util.ITooltipFlag
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.enchantment.EnchantmentHelper
@@ -110,13 +106,17 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
         val itemStack = playerIn.getHeldItem(hand)
         if (!worldIn.isRemote) {
             if (itemStack.damage <= itemStack.maxDamage || this === ModItems.CREATIVE_YOYO) {
-                if (playerIn.uniqueID !in YoyoEntity.CASTERS) {
-                    val yoyo = yoyoFactory(worldIn, playerIn, hand)
+                val yoyoEntity = YoyoEntity.CASTERS[playerIn.uniqueID]
 
-                    worldIn.addEntity(yoyo)
-                    worldIn.playSound(null, yoyo.posX, yoyo.posY, yoyo.posZ, ModSounds.YOYO_THROW, SoundCategory.NEUTRAL, 0.5f, 0.4f / (Item.random.nextFloat() * 0.4f + 0.8f))
+                if (yoyoEntity == null) {
+                    yoyoFactory(worldIn, playerIn, hand).let {
+                        worldIn.addEntity(it)
+                        worldIn.playSound(null, it.posX, it.posY, it.posZ, ModSounds.YOYO_THROW, SoundCategory.NEUTRAL, 0.5f, 0.4f / (Item.random.nextFloat() * 0.4f + 0.8f))
+                    }
 
                     playerIn.addExhaustion(0.05f)
+                } else {
+                    yoyoEntity.isRetracting = !yoyoEntity.isRetracting
                 }
             }
         }
@@ -126,12 +126,12 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
 
     override fun addInformation(stack: ItemStack, worldIn: World?, tooltip: MutableList<ITextComponent>, flagIn: ITooltipFlag) {
         super.addInformation(stack, worldIn, tooltip, flagIn)
-        tooltip.add(TranslationTextComponent("yoyos.info.weight.name", getWeight(stack)))
-        tooltip.add(TranslationTextComponent("yoyos.info.length.name", getLength(stack)))
+        tooltip.add(TranslationTextComponent("tooltip.yoyos.weight", getWeight(stack)))
+        tooltip.add(TranslationTextComponent("tooltip.yoyos.length", getLength(stack)))
 
         val duration = getDuration(stack)
-        val arg = if (duration < 0) I18n.format("stat.yoyo.infinite.name") else duration.toFloat() / 20f
-        tooltip.add(TranslationTextComponent("yoyos.info.duration.name", arg))
+        if (duration < 0) tooltip.add(TranslationTextComponent("tooltip.yoyos.duration.infinite"))
+        else tooltip.add(TranslationTextComponent("tooltip.yoyos.duration", duration.toFloat() / 20f))
 
         if (stack.isEnchanted)
             tooltip.add(StringTextComponent(""))
@@ -149,54 +149,54 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
     }
 
     fun getAttackDamage(yoyo: ItemStack): Double {
-        if (this === ModItems.SHEAR_YOYO) return ModConfig.vanillaYoyos.shearYoyo.damage
-        if (this === ModItems.STICKY_YOYO) return ModConfig.vanillaYoyos.stickyYoyo.damage
-        if (this === ModItems.HOE_YOYO) return ModConfig.vanillaYoyos.hoeYoyo.damage
-        if (this === ModItems.DIAMOND_YOYO) return ModConfig.vanillaYoyos.diamondYoyo.damage
-        if (this === ModItems.GOLD_YOYO) return ModConfig.vanillaYoyos.goldYoyo.damage
-        if (this === ModItems.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.damage
-        if (this === ModItems.STONE_YOYO) return ModConfig.vanillaYoyos.stoneYoyo.damage
-        if (this === ModItems.WOODEN_YOYO) return ModConfig.vanillaYoyos.woodenYoyo.damage
-        return if (this === ModItems.CREATIVE_YOYO) ModConfig.vanillaYoyos.creativeYoyo.damage else attackDamage.toDouble()
+        if (this === ModItems.SHEAR_YOYO) return YoyosConfig.vanillaYoyos.shearYoyo.damage.get()
+        if (this === ModItems.STICKY_YOYO) return YoyosConfig.vanillaYoyos.stickyYoyo.damage.get()
+        if (this === ModItems.HOE_YOYO) return YoyosConfig.vanillaYoyos.hoeYoyo.damage.get()
+        if (this === ModItems.DIAMOND_YOYO) return YoyosConfig.vanillaYoyos.diamondYoyo.damage.get()
+        if (this === ModItems.GOLD_YOYO) return YoyosConfig.vanillaYoyos.goldYoyo.damage.get()
+        if (this === ModItems.IRON_YOYO) return YoyosConfig.vanillaYoyos.ironYoyo.damage.get()
+        if (this === ModItems.STONE_YOYO) return YoyosConfig.vanillaYoyos.stoneYoyo.damage.get()
+        if (this === ModItems.WOODEN_YOYO) return YoyosConfig.vanillaYoyos.woodenYoyo.damage.get()
+        return if (this === ModItems.CREATIVE_YOYO) YoyosConfig.vanillaYoyos.creativeYoyo.damage.get() else attackDamage.toDouble()
 
     }
 
-    override fun getWeight(yoyo: ItemStack): Float {
-        if (this === ModItems.SHEAR_YOYO) return ModConfig.vanillaYoyos.shearYoyo.weight
-        if (this === ModItems.STICKY_YOYO) return ModConfig.vanillaYoyos.stickyYoyo.weight
-        if (this === ModItems.HOE_YOYO) return ModConfig.vanillaYoyos.hoeYoyo.weight
-        if (this === ModItems.DIAMOND_YOYO) return ModConfig.vanillaYoyos.diamondYoyo.weight
-        if (this === ModItems.GOLD_YOYO) return ModConfig.vanillaYoyos.goldYoyo.weight
-        if (this === ModItems.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.weight
-        if (this === ModItems.STONE_YOYO) return ModConfig.vanillaYoyos.stoneYoyo.weight
-        if (this === ModItems.WOODEN_YOYO) return ModConfig.vanillaYoyos.woodenYoyo.weight
-        return if (this === ModItems.CREATIVE_YOYO) ModConfig.vanillaYoyos.creativeYoyo.weight else 1.0f
+    override fun getWeight(yoyo: ItemStack): Double {
+        if (this === ModItems.SHEAR_YOYO) return YoyosConfig.vanillaYoyos.shearYoyo.weight.get()
+        if (this === ModItems.STICKY_YOYO) return YoyosConfig.vanillaYoyos.stickyYoyo.weight.get()
+        if (this === ModItems.HOE_YOYO) return YoyosConfig.vanillaYoyos.hoeYoyo.weight.get()
+        if (this === ModItems.DIAMOND_YOYO) return YoyosConfig.vanillaYoyos.diamondYoyo.weight.get()
+        if (this === ModItems.GOLD_YOYO) return YoyosConfig.vanillaYoyos.goldYoyo.weight.get()
+        if (this === ModItems.IRON_YOYO) return YoyosConfig.vanillaYoyos.ironYoyo.weight.get()
+        if (this === ModItems.STONE_YOYO) return YoyosConfig.vanillaYoyos.stoneYoyo.weight.get()
+        if (this === ModItems.WOODEN_YOYO) return YoyosConfig.vanillaYoyos.woodenYoyo.weight.get()
+        return if (this === ModItems.CREATIVE_YOYO) YoyosConfig.vanillaYoyos.creativeYoyo.weight.get() else 1.0
 
     }
 
-    override fun getLength(yoyo: ItemStack): Float {
-        if (this === ModItems.SHEAR_YOYO) return ModConfig.vanillaYoyos.shearYoyo.length
-        if (this === ModItems.STICKY_YOYO) return ModConfig.vanillaYoyos.stickyYoyo.length
-        if (this === ModItems.HOE_YOYO) return ModConfig.vanillaYoyos.hoeYoyo.length
-        if (this === ModItems.DIAMOND_YOYO) return ModConfig.vanillaYoyos.diamondYoyo.length
-        if (this === ModItems.GOLD_YOYO) return ModConfig.vanillaYoyos.goldYoyo.length
-        if (this === ModItems.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.length
-        if (this === ModItems.STONE_YOYO) return ModConfig.vanillaYoyos.stoneYoyo.length
-        if (this === ModItems.WOODEN_YOYO) return ModConfig.vanillaYoyos.woodenYoyo.length
-        return if (this === ModItems.CREATIVE_YOYO) ModConfig.vanillaYoyos.creativeYoyo.length else 1.0f
+    override fun getLength(yoyo: ItemStack): Double {
+        if (this === ModItems.SHEAR_YOYO) return YoyosConfig.vanillaYoyos.shearYoyo.length.get()
+        if (this === ModItems.STICKY_YOYO) return YoyosConfig.vanillaYoyos.stickyYoyo.length.get()
+        if (this === ModItems.HOE_YOYO) return YoyosConfig.vanillaYoyos.hoeYoyo.length.get()
+        if (this === ModItems.DIAMOND_YOYO) return YoyosConfig.vanillaYoyos.diamondYoyo.length.get()
+        if (this === ModItems.GOLD_YOYO) return YoyosConfig.vanillaYoyos.goldYoyo.length.get()
+        if (this === ModItems.IRON_YOYO) return YoyosConfig.vanillaYoyos.ironYoyo.length.get()
+        if (this === ModItems.STONE_YOYO) return YoyosConfig.vanillaYoyos.stoneYoyo.length.get()
+        if (this === ModItems.WOODEN_YOYO) return YoyosConfig.vanillaYoyos.woodenYoyo.length.get()
+        return if (this === ModItems.CREATIVE_YOYO) YoyosConfig.vanillaYoyos.creativeYoyo.length.get() else 1.0
 
     }
 
     override fun getDuration(yoyo: ItemStack): Int {
-        if (this === ModItems.SHEAR_YOYO) return ModConfig.vanillaYoyos.shearYoyo.duration
-        if (this === ModItems.STICKY_YOYO) return ModConfig.vanillaYoyos.stickyYoyo.duration
-        if (this === ModItems.HOE_YOYO) return ModConfig.vanillaYoyos.hoeYoyo.duration
-        if (this === ModItems.DIAMOND_YOYO) return ModConfig.vanillaYoyos.diamondYoyo.duration
-        if (this === ModItems.GOLD_YOYO) return ModConfig.vanillaYoyos.goldYoyo.duration
-        if (this === ModItems.IRON_YOYO) return ModConfig.vanillaYoyos.ironYoyo.duration
-        if (this === ModItems.STONE_YOYO) return ModConfig.vanillaYoyos.stoneYoyo.duration
-        if (this === ModItems.WOODEN_YOYO) return ModConfig.vanillaYoyos.woodenYoyo.duration
-        return if (this === ModItems.CREATIVE_YOYO) ModConfig.vanillaYoyos.creativeYoyo.duration else 10
+        if (this === ModItems.SHEAR_YOYO) return YoyosConfig.vanillaYoyos.shearYoyo.duration.get()
+        if (this === ModItems.STICKY_YOYO) return YoyosConfig.vanillaYoyos.stickyYoyo.duration.get()
+        if (this === ModItems.HOE_YOYO) return YoyosConfig.vanillaYoyos.hoeYoyo.duration.get()
+        if (this === ModItems.DIAMOND_YOYO) return YoyosConfig.vanillaYoyos.diamondYoyo.duration.get()
+        if (this === ModItems.GOLD_YOYO) return YoyosConfig.vanillaYoyos.goldYoyo.duration.get()
+        if (this === ModItems.IRON_YOYO) return YoyosConfig.vanillaYoyos.ironYoyo.duration.get()
+        if (this === ModItems.STONE_YOYO) return YoyosConfig.vanillaYoyos.stoneYoyo.duration.get()
+        if (this === ModItems.WOODEN_YOYO) return YoyosConfig.vanillaYoyos.woodenYoyo.duration.get()
+        return if (this === ModItems.CREATIVE_YOYO) YoyosConfig.vanillaYoyos.creativeYoyo.duration.get() else 10
 
     }
 
@@ -241,7 +241,7 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
 
             for (i in 0 until level - 1) mult *= 2
 
-            return ModConfig.collectingBase * mult
+            return YoyosConfig.general.collectingBase.get() * mult
         }
     }
 }

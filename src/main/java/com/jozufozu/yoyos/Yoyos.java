@@ -69,7 +69,6 @@ public class Yoyos
         RenderingRegistry.registerEntityRenderingHandler(YoyoEntity.class, YoyoRenderer::new);
 
         MinecraftForge.EVENT_BUS.addListener(NetworkHandlers::onTickWorldTick);
-        MinecraftForge.EVENT_BUS.addListener(NetworkHandlers::onPlayerInteractRightClickItem);
         MinecraftForge.EVENT_BUS.addListener(YoyosClient::onRenderHand);
     }
 }

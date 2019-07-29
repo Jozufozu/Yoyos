@@ -36,10 +36,11 @@ object YoyoNetwork {
             .simpleChannel()
 
     private var ID = 0
+    private val nextID: Int get() = ID++
 
     fun initialize() {
-        CHANNEL.registerMessage(ID++, SYoyoRetractingPacket::class.java, SYoyoRetractingPacket::encode, ::SYoyoRetractingPacket, SYoyoRetractingPacket::onMessage)
-        CHANNEL.registerMessage(ID++, SReelDirectionPacket::class.java, SReelDirectionPacket::encode, ::SReelDirectionPacket, SReelDirectionPacket::onMessage)
-        CHANNEL.registerMessage(ID++, CCollectedDropsPacket::class.java, CCollectedDropsPacket::encode, ::CCollectedDropsPacket, CCollectedDropsPacket::onMessage)
+        CHANNEL.registerMessage(nextID, SYoyoRetractingPacket::class.java, SYoyoRetractingPacket::encode, ::SYoyoRetractingPacket, SYoyoRetractingPacket::onMessage)
+        CHANNEL.registerMessage(nextID, SReelDirectionPacket::class.java, SReelDirectionPacket::encode, ::SReelDirectionPacket, SReelDirectionPacket::onMessage)
+        CHANNEL.registerMessage(nextID, CCollectedDropsPacket::class.java, CCollectedDropsPacket::encode, ::CCollectedDropsPacket, CCollectedDropsPacket::onMessage)
     }
 }

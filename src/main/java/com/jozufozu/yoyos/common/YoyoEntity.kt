@@ -48,9 +48,9 @@ import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData
 import net.minecraftforge.fml.network.NetworkHooks
 import net.minecraftforge.fml.network.PacketDistributor
 import java.util.*
+import java.util.stream.Collectors
 import kotlin.collections.HashMap
 import kotlin.math.*
-import kotlin.streams.toList
 
 open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), IEntityAdditionalSpawnData {
     var collectedDrops = ArrayList<ItemStack>()
@@ -267,6 +267,9 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
     override fun tick() {
         super.tick()
+        this.lastTickPosX = this.posX
+        this.lastTickPosY = this.posY
+        this.lastTickPosZ = this.posZ
 
         if (hasThrower && !thrower.removed) {
             yoyo = checkAndGetYoyoObject() ?: return
@@ -361,7 +364,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
         val union = targetBoundingBox.union(yoyoBoundingBox)
 
-        val colliderBoxes = world.getCollisionShapes(null, union).flatMap { it.toBoundingBoxList().stream() }.toList()
+        val colliderBoxes = world.getCollisionShapes(null, union).flatMap { it.toBoundingBoxList().stream() }.collect(Collectors.toList())
 
         val entities = world.getEntitiesWithinAABBExcludingEntity(this, union)
 

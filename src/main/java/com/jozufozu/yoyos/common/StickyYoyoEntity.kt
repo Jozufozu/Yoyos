@@ -60,6 +60,9 @@ class StickyYoyoEntity : YoyoEntity {
         }
 
         baseTick()
+        this.lastTickPosX = this.posX
+        this.lastTickPosY = this.posY
+        this.lastTickPosZ = this.posZ
 
         if (hasThrower && thrower.isAlive) {
             yoyo = checkAndGetYoyoObject() ?: return

@@ -29,7 +29,6 @@ import com.jozufozu.yoyos.network.YoyoNetwork
 import net.minecraft.client.Minecraft
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
-import net.minecraftforge.event.entity.player.PlayerInteractEvent
 import net.minecraftforge.fml.common.gameevent.TickEvent
 import kotlin.math.abs
 
@@ -60,6 +59,4 @@ object NetworkHandlers {
 
         lastReel = reel
     }
-
-    @JvmStatic fun onPlayerInteractRightClickItem(event: PlayerInteractEvent.RightClickItem) {}
 }

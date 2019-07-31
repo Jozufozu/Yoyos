@@ -1,12 +1,13 @@
 {
     "type": "minecraft:crafting_shaped",
+    "conditions": [{ "type": "yoyos:vanilla_enabled" }],
     "pattern": [
         "CCC",
         "C C",
         "CCC"
     ],
     "key": {
-        "C": { "tag": "string" }
+        "C": { "item": "minecraft:string" }
     },
     "result": {
         "item": "yoyos:cord"

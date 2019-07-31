@@ -7,10 +7,7 @@ import com.jozufozu.yoyos.client.YoyoRenderer;
 import com.jozufozu.yoyos.client.YoyosClient;
 import com.jozufozu.yoyos.common.YoyoEntity;
 import com.jozufozu.yoyos.common.YoyosConfig;
-import com.jozufozu.yoyos.common.init.ModEnchantments;
-import com.jozufozu.yoyos.common.init.ModEntityTypes;
-import com.jozufozu.yoyos.common.init.ModItems;
-import com.jozufozu.yoyos.common.init.ModSounds;
+import com.jozufozu.yoyos.common.init.*;
 import com.jozufozu.yoyos.network.YoyoNetwork;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.EntityType;
@@ -25,16 +22,11 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 @Mod(Yoyos.MODID)
 public class Yoyos
 {
     public static final String MODID = "yoyos";
-    public static final String NAME = "Yoyos";
-    public static final String VERSION = "@VERSION@";
-    public static final Logger LOG = LogManager.getLogger(MODID);
 
     public Yoyos() {
         FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
@@ -59,13 +51,15 @@ public class Yoyos
         configData.load();
 
         YoyosConfig.getSpec().setConfig(configData);
+
+        ModConditions.INSTANCE.init(); // Make sure the thing is actually initialized
     }
 
-    public void setup(FMLCommonSetupEvent event) {
+    private void setup(FMLCommonSetupEvent event) {
         YoyoNetwork.INSTANCE.initialize();
     }
 
-    public void doClientStuff(FMLClientSetupEvent event) {
+    private void doClientStuff(FMLClientSetupEvent event) {
         RenderingRegistry.registerEntityRenderingHandler(YoyoEntity.class, YoyoRenderer::new);
 
         MinecraftForge.EVENT_BUS.addListener(NetworkHandlers::onTickWorldTick);

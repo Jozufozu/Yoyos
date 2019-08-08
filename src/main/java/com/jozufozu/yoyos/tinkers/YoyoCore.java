@@ -220,7 +220,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
         return out;
     }
 
-    public boolean isSticky(ItemStack yoyo)
+    private boolean isSticky(ItemStack yoyo)
     {
         NBTTagCompound root = TagUtil.getTagSafe(yoyo);
         return TinkerUtil.hasTrait(root, "sticky") || TinkerUtil.hasModifier(root, "gluey");
@@ -285,7 +285,7 @@ public class YoyoCore extends TinkerToolCore implements IYoyo
     public int getCordColor(ItemStack yoyo, float ticks)
     {
         List<Material> materials = TinkerUtil.getMaterialsFromTagList(TagUtil.getBaseMaterialsTagList(yoyo));
-        return materials.get(0).materialTextColor;
+        return materials.size() > 0 ? materials.get(0).materialTextColor : 0xFFFFFF;
     }
     
     @Override

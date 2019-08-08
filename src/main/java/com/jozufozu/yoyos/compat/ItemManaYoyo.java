@@ -27,9 +27,13 @@ import com.jozufozu.yoyos.common.ItemYoyo;
 import com.jozufozu.yoyos.common.ModConfig;
 import com.jozufozu.yoyos.common.api.IYoyo;
 import com.jozufozu.yoyos.common.api.YoyoFactory;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 import vazkii.botania.api.mana.IManaUsingItem;
+import vazkii.botania.api.mana.ManaItemHandler;
 import vazkii.botania.common.item.equipment.tool.ToolCommons;
 
 public class ItemManaYoyo extends ItemYoyo implements IYoyo, IManaUsingItem
@@ -45,6 +49,14 @@ public class ItemManaYoyo extends ItemYoyo implements IYoyo, IManaUsingItem
     {
         super(name, material, yoyoFactory);
         this.manaPerDamage = manaPerDamage;
+    }
+
+    @Override
+    public void onUpdate(ItemStack stack, World world, Entity player, int par4, boolean par5) {
+        if (!world.isRemote && player instanceof EntityPlayer && stack.getItemDamage() > 0 && ManaItemHandler.requestManaExactForTool(stack, (EntityPlayer)player, this.manaPerDamage * 2, true)) {
+            stack.setItemDamage(stack.getItemDamage() - 1);
+        }
+
     }
 
     @Override

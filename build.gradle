@@ -18,8 +18,7 @@ version = '2.0.0.1'
 group = 'com.jozufozu.yoyos' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'yoyos'
 
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
-compileKotlin.kotlinOptions.jvmTarget = compileTestKotlin.kotlinOptions.jvmTarget = '1.8'
+sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = compileKotlin.kotlinOptions.jvmTarget = compileTestKotlin.kotlinOptions.jvmTarget = '1.8' // Need this here so eclipse task generates correctly.
 
 minecraft {
     mappings channel: 'snapshot', version: '20190720-1.14.3'
@@ -88,7 +87,8 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:$mc_version-$forge_version"
 
-    compileOnly fg.deobf("mezz.jei:jei-1.14.3:$jei_version:api")
+    compileOnly fg.deobf("mezz.jei:jei-$mc_version:$jei_version:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-$mc_version:$jei_version")
 
     compile "kottle:Kottle:$kottle_version"
 }
@@ -106,6 +106,10 @@ jar {
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
+
+    exclude "**/*.bat"
+    exclude "**/*.psd"
+    exclude "**/*.exe"
 }
 
 // Example configuration to allow publishing using the maven-publish task

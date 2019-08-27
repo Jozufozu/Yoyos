@@ -4,7 +4,7 @@ issueTrackerURL="https://github.com/Jozufozu/Yoyos/issues"
 [[mods]]
 modId="yoyos"
 version="${file.jarVersion}"
-logoFile="icon.png"
+logoFile="yoyos_icon.png"
 displayName="Yoyos"
 displayURL="https://www.curseforge.com/minecraft/mc-mods/yoyos"
 credits="Terraria, for having sweet yoyos that I wanted to make in Minecraft"

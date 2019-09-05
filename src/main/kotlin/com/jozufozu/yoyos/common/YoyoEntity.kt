@@ -245,7 +245,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
         val side = if (thrower.primaryHand == HandSide.RIGHT == (hand == Hand.MAIN_HAND)) 1f else -1f
 
-        return Vec3d(posX - throwerLookOffsetX * side.toDouble() * 0.4 - throwerLookOffsetZ * 0.5 * throwerLookWidth, posY + thrower.getEyeHeight(thrower.pose) - throwerLookOffsetY * 0.5 - 0.25, posZ - throwerLookOffsetZ * side.toDouble() * 0.4 + throwerLookOffsetX * 0.5 * throwerLookWidth)
+        return Vec3d(posX - throwerLookOffsetX * side.toDouble() * 0.4 - throwerLookOffsetZ * 0.5 * throwerLookWidth, posY + thrower.getStandingEyeHeight(thrower.pose, thrower.getSize(thrower.pose)) - throwerLookOffsetY * 0.5 - 0.25, posZ - throwerLookOffsetZ * side.toDouble() * 0.4 + throwerLookOffsetX * 0.5 * throwerLookWidth)
     }
 
     open fun getRotation(age: Int, partialTicks: Float): Float {

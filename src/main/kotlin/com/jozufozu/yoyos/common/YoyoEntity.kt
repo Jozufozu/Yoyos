@@ -272,7 +272,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         this.lastTickPosY = this.posY
         this.lastTickPosZ = this.posZ
 
-        if (hasThrower && !thrower.removed) {
+        if (hasThrower && !thrower.isAlive) {
             yoyo = checkAndGetYoyoObject() ?: return
 
             if (maxTime >= 0 && decrementRemainingTime() < 0) forceRetract()
@@ -736,13 +736,15 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
             }
         }
 
-        if (pointedEntity != null && flag) {
-            pointedEntity = null
-            objectMouseOver = BlockRayTraceResult.createMiss(vec3d3, Direction.UP, BlockPos(vec3d3!!))
-        }
+        if (vec3d3 != null) {
+            if (pointedEntity != null && flag) {
+                pointedEntity = null
+                objectMouseOver = BlockRayTraceResult.createMiss(vec3d3, Direction.UP, BlockPos(vec3d3))
+            }
 
-        if (pointedEntity != null && objectMouseOver == null) {
-            objectMouseOver = EntityRayTraceResult(pointedEntity, vec3d3)
+            if (pointedEntity != null && objectMouseOver == null) {
+                objectMouseOver = EntityRayTraceResult(pointedEntity, vec3d3)
+            }
         }
 
         return objectMouseOver

@@ -95,6 +95,8 @@ dependencies {
 
 // Example for how to get properties into the manifest for reading by the runtime..
 jar {
+    archiveName = baseName + "_" + project.mc_version + "-" + project.version  + "." + extension
+
     manifest {
         attributes([
             "Specification-Title": "yoyos",

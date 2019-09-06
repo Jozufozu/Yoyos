@@ -68,7 +68,7 @@ class StickyYoyoEntity : YoyoEntity {
             yoyo = checkAndGetYoyoObject() ?: return
 
             val dx = thrower.posX - posX
-            val dy = thrower.posY + thrower.getEyeHeight(thrower.pose) - (posY + height * 0.5)
+            val dy = thrower.posY + throwerEyeHeight - (posY + height * 0.5)
             val dz = thrower.posZ - posZ
             val distanceSqr = dx * dx + dy * dy + dz * dz
 

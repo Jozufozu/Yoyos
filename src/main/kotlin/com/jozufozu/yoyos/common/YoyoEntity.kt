@@ -41,7 +41,6 @@ import net.minecraft.network.datasync.DataSerializers
 import net.minecraft.network.datasync.EntityDataManager
 import net.minecraft.util.*
 import net.minecraft.util.math.*
-import net.minecraft.util.registry.Registry
 import net.minecraft.world.World
 import net.minecraftforge.event.entity.living.LivingDropsEvent
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData
@@ -123,6 +122,8 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
     val isCollecting: Boolean
         get() = maxCollectedDrops > 0
 
+    val throwerEyeHeight: Float get() = thrower.getStandingEyeHeight(thrower.pose, thrower.getSize(thrower.pose))
+
     init {
         ignoreFrustumCheck = true
         setNoGravity(true)
@@ -142,7 +143,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         val handPos = getPlayerHandPos(1f)
         setPosition(handPos.x, handPos.y, handPos.z)
 
-        if (!world.areCollisionShapesEmpty(this)) setPosition(player.posX, player.posY + player.getEyeHeight(player.pose), player.posZ)
+        if (!world.areCollisionShapesEmpty(this)) setPosition(player.posX, player.posY + throwerEyeHeight, player.posZ)
     }
 
     override fun registerData() {
@@ -175,11 +176,11 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
         for (itemStack in collectedDrops) {
             val stackTag = CompoundNBT()
-            val itemId = Registry.ITEM.getId(itemStack.item)
+            val itemId = itemStack.item.registryName
             stackTag.putString("id", itemId.toString())
             stackTag.putInt("count", itemStack.count)
-            if (itemStack.hasTag()) {
-                stackTag.put("tag", itemStack.tag)
+            if (itemStack.hasTag()) itemStack.tag?.let {
+                stackTag.put("tag", it)
             }
             collected.add(stackTag)
         }
@@ -245,7 +246,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
         val side = if (thrower.primaryHand == HandSide.RIGHT == (hand == Hand.MAIN_HAND)) 1f else -1f
 
-        return Vec3d(posX - throwerLookOffsetX * side.toDouble() * 0.4 - throwerLookOffsetZ * 0.5 * throwerLookWidth, posY + thrower.getStandingEyeHeight(thrower.pose, thrower.getSize(thrower.pose)) - throwerLookOffsetY * 0.5 - 0.25, posZ - throwerLookOffsetZ * side.toDouble() * 0.4 + throwerLookOffsetX * 0.5 * throwerLookWidth)
+        return Vec3d(posX - throwerLookOffsetX * side.toDouble() * 0.4 - throwerLookOffsetZ * 0.5 * throwerLookWidth, posY + throwerEyeHeight - throwerLookOffsetY * 0.5 - 0.25, posZ - throwerLookOffsetZ * side.toDouble() * 0.4 + throwerLookOffsetX * 0.5 * throwerLookWidth)
     }
 
     open fun getRotation(age: Int, partialTicks: Float): Float {
@@ -591,7 +592,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
     protected fun handlePlayerPulling() {
         val dx = posX - thrower.posX
 
-        val eyeHeight = thrower.getEyeHeight(thrower.pose).toDouble()
+        val eyeHeight = throwerEyeHeight.toDouble()
 
         var dy = posY + height * 0.5 - (thrower.posY + eyeHeight)
 
@@ -667,7 +668,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
             return handPos
         } else {
-            val eyePos = thrower.let { Vec3d(it.posX, it.posY + it.getEyeHeight(it.pose), it.posZ) }
+            val eyePos = thrower.let { Vec3d(it.posX, it.posY + it.getStandingEyeHeight(it.pose, it.getSize(it.pose)), it.posZ) }
             val lookVec = thrower.getLook(1.0f)
 
             val cordLength = currentLength.toDouble()

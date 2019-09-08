@@ -2,7 +2,7 @@
     "type": "minecraft:crafting_shaped",
     "conditions": [
         { "type": "yoyos:vanilla_enabled" },
-        { "type":  "yoyos:yoyo_enabled", "yoyo": "stone_yoyo" }
+        { "type": "yoyos:yoyo_enabled", "yoyo": "stone_yoyo" }
     ],
     "pattern": [
         " X ",

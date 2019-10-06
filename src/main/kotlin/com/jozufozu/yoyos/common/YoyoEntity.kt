@@ -272,7 +272,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         this.lastTickPosY = this.posY
         this.lastTickPosZ = this.posZ
 
-        if (hasThrower && !thrower.isAlive) {
+        if (hasThrower && thrower.isAlive) {
             yoyo = checkAndGetYoyoObject() ?: return
 
             if (maxTime >= 0 && decrementRemainingTime() < 0) forceRetract()
@@ -351,7 +351,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
         this.motion = motion
 
-        //onGround = true
+        onGround = true
     }
 
     fun moveAndCollide() {

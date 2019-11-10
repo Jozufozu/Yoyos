@@ -14,7 +14,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'kotlin'
 apply plugin: 'maven-publish'
 
-version = '2.0.0.4'
+version = '2.0.1.5'
 group = 'com.jozufozu.yoyos' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'yoyos'
 
@@ -84,6 +84,10 @@ repositories {
     }
 }
 
+configurations {
+    mod
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:$mc_version-$forge_version"
 
@@ -91,6 +95,21 @@ dependencies {
     runtimeOnly fg.deobf("mezz.jei:jei-$mc_version:$jei_version")
 
     compile "kottle:Kottle:$kottle_version"
+    mod "kottle:Kottle:$kottle_version"
+}
+
+task installMods(type: Copy, dependsOn: "deinstallMods") {
+    from { configurations.mod }
+    include "**/*.jar"
+    into file("run/mods")
+}
+
+task deinstallMods(type: Delete) {
+    delete fileTree(dir: "run/mods", include: "*.jar")
+}
+
+project.afterEvaluate {
+    project.tasks['prepareRuns'].dependsOn(project.tasks['installMods'])
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..

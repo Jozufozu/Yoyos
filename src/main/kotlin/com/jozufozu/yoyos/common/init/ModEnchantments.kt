@@ -14,7 +14,7 @@ object ModEnchantments {
 
     private fun name(name: String) = registryName(ForgeRegistries.ENCHANTMENTS, name)
 
-    @JvmStatic fun registerEnchantment(event: RegistryEvent.Register<Enchantment>) {
+    fun registerEnchantment(event: RegistryEvent.Register<Enchantment>) {
         if (YoyosConfig.vanillaYoyos.collectingEnabled.get()) {
             ModItems.YOYOS_TAB.setRelevantEnchantmentTypes(YOYO_ENCHANTMENT_TYPE)
 

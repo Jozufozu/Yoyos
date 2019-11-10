@@ -33,7 +33,7 @@ object ModItems {
 
     private fun name(name: String) = registryName(ForgeRegistries.ITEMS, name)
 
-    @JvmStatic fun onItemsRegistry(event: RegistryEvent.Register<Item>) {
+    fun onItemsRegistry(event: RegistryEvent.Register<Item>) {
 
         if (!YoyosConfig.vanillaYoyos.enabled.get()) return
 

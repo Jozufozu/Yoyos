@@ -13,7 +13,7 @@ object ModSounds {
 
     private fun name(name: String) = registryName(ForgeRegistries.SOUND_EVENTS, name)
 
-    @JvmStatic fun registerSounds(event: RegistryEvent.Register<SoundEvent>) {
+    fun registerSounds(event: RegistryEvent.Register<SoundEvent>) {
         event.registry.register(SoundEvent(ResourceLocation(Yoyos.MODID, "entity.yoyo.throw")).setRegistryName(Yoyos.MODID, "entity.yoyo.throw"))
         event.registry.register(SoundEvent(ResourceLocation(Yoyos.MODID, "entity.yoyo.stick")).setRegistryName(Yoyos.MODID, "entity.yoyo.stick"))
         //event.registry.register(SoundEvent(ResourceLocation(Yoyos.MODID, "entity.yoyo.chase")).setRegistryName(Yoyos.MODID, "entity.yoyo.chase"))

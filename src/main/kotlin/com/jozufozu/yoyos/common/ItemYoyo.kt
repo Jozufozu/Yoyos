@@ -124,6 +124,11 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
         return ActionResult(ActionResultType.SUCCESS, itemStack)
     }
 
+    override fun hitEntity(stack: ItemStack, target: LivingEntity, attacker: LivingEntity): Boolean {
+        stack.damageItem(1, attacker) { entity -> entity.sendBreakAnimation(EquipmentSlotType.MAINHAND) }
+        return true
+    }
+
     override fun addInformation(stack: ItemStack, worldIn: World?, tooltip: MutableList<ITextComponent>, flagIn: ITooltipFlag) {
         super.addInformation(stack, worldIn, tooltip, flagIn)
         tooltip.add(TranslationTextComponent("tooltip.yoyos.weight", getWeight(stack)))

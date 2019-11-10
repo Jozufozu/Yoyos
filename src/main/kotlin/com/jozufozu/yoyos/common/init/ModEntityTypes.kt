@@ -18,7 +18,7 @@ object ModEntityTypes {
         (ForgeRegistries.ENTITIES.getValue(ResourceLocation(Yoyos.MODID, name)) as? EntityType<T>)?: throw Exception("$name could not be found in ${ForgeRegistries.ENTITIES.registryName}")
     }
 
-    @JvmStatic fun registerEntityTypes(event: RegistryEvent.Register<EntityType<*>>) {
+    fun registerEntityTypes(event: RegistryEvent.Register<EntityType<*>>) {
         event.registry.register(EntityType.Builder.create(::YoyoEntity, EntityClassification.MISC)
                 .disableSummoning()
                 .size(0.25f, 0.25f)

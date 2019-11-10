@@ -133,6 +133,21 @@ jar {
     exclude "**/*.exe"
 }
 
+task srcJar(type: Jar) {
+    from sourceSets.main.allSource
+    archiveName = baseName + "_" + project.mc_version + "-" + project.version  + "-sources." + extension
+}
+
+task deobfJar(type: Jar) {
+    from sourceSets.main.output
+    archiveName = baseName + "_" + project.mc_version + "-" + project.version  + "-deobf." + extension
+}
+
+// Tell the artifact system about our extra jars
+artifacts {
+    archives srcJar, deobfJar
+}
+
 // Example configuration to allow publishing using the maven-publish task
 // we define a custom artifact that is sourced from the reobfJar output task
 // and then declare that to be published

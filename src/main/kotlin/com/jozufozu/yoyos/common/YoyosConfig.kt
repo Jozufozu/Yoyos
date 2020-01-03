@@ -29,11 +29,13 @@ object YoyosConfig {
     @JvmStatic val spec: ForgeConfigSpec
     val general: General
     val vanillaYoyos: VanillaYoyos
+    val botaniaYoyos: BotaniaYoyos
 
     init {
         val builder = ForgeConfigSpec.Builder()
         general = General(builder)
         vanillaYoyos = VanillaYoyos(builder)
+        botaniaYoyos = BotaniaYoyos(builder)
         spec = builder.build()
     }
 
@@ -109,6 +111,28 @@ object YoyosConfig {
             hoeYoyo = YoyoSettings("Yohoe", builder, 2.2, 9.0, 400, 6.5)
             stickyYoyo = YoyoSettings("Sticky", builder, 1.8, 9.0, 400, 0.0)
             creativeYoyo = YoyoSettings("Creative", builder, 0.9, 24.0, -1, 9001.0)
+            builder.pop()
+        }
+    }
+
+    class BotaniaYoyos(builder: ForgeConfigSpec.Builder) {
+        val enabled: ForgeConfigSpec.BooleanValue
+
+        val manasteelYoyo: YoyoSettings
+        val elementiumYoyo: YoyoSettings
+        val terrasteelYoyo: YoyoSettings
+
+        init {
+            builder.push("Vanilla")
+
+            enabled = builder
+                    .comment("If set to false, all botanical yoyos will be disabled, disregarding their individual settings.")
+                    .translation("yoyos.config.vanilla_yoyos.enabled")
+                    .define("enabled", true)
+
+            manasteelYoyo = YoyoSettings("Iron", builder, 5.0, 8.0, 300, 5.0)
+            elementiumYoyo = YoyoSettings("Diamond", builder, 1.7, 9.0, 400, 6.0)
+            terrasteelYoyo = YoyoSettings("Diamond", builder, 1.7, 9.0, 400, 6.0)
             builder.pop()
         }
     }

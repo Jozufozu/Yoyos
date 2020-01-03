@@ -88,7 +88,7 @@ class StickyYoyoEntity : YoyoEntity {
                 if (!stuck) {
                     stuckSince = ticksExisted
                     currentLength = MathHelper.sqrt(distanceSqr)
-                    world.playSound(null, posX, posY, posZ, ModSounds.YOYO_STICK, SoundCategory.PLAYERS, 0.7f, 3.0f)
+                    world.playSound(null, posX, posY, posZ, ModSounds.yoyoStick, SoundCategory.PLAYERS, 0.7f, 3.0f)
                     yoyo.damageItem(yoyoStack, hand, 1, thrower)
                 }
                 stuck = true

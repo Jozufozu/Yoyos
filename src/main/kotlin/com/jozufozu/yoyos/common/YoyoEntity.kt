@@ -488,7 +488,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         }
     }
 
-    fun interactWithEntity(entity: Entity) {
+    open fun interactWithEntity(entity: Entity) {
         yoyo.entityInteraction(yoyoStack, thrower, hand, this, entity)
     }
 
@@ -589,7 +589,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         world.playSound(null, drop.posX, drop.posY, drop.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2f, ((rand.nextFloat() - rand.nextFloat()) * 0.7f + 1.0f) * 2.0f)
     }
 
-    protected fun handlePlayerPulling() {
+    protected open fun handlePlayerPulling() {
         val dx = posX - thrower.posX
 
         val eyeHeight = throwerEyeHeight.toDouble()
@@ -657,7 +657,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
     override fun getTeam() = thrower.team
 
-    private fun getTarget(): Vec3d {
+    protected open fun getTarget(): Vec3d {
         if (isRetracting) {
             val handPos = getPlayerHandPos(1f)
             val dX = this.posX - handPos.x

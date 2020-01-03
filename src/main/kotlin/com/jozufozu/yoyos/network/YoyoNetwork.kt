@@ -42,5 +42,6 @@ object YoyoNetwork {
         CHANNEL.registerMessage(nextID, SYoyoRetractingPacket::class.java, SYoyoRetractingPacket::encode, ::SYoyoRetractingPacket, SYoyoRetractingPacket::onMessage)
         CHANNEL.registerMessage(nextID, SReelDirectionPacket::class.java, SReelDirectionPacket::encode, ::SReelDirectionPacket, SReelDirectionPacket::onMessage)
         CHANNEL.registerMessage(nextID, CCollectedDropsPacket::class.java, CCollectedDropsPacket::encode, ::CCollectedDropsPacket, CCollectedDropsPacket::onMessage)
+        CHANNEL.registerMessage(nextID, SAcquireTargetPacket::class.java, SAcquireTargetPacket::encode, ::SAcquireTargetPacket, SAcquireTargetPacket::onMessage)
     }
 }

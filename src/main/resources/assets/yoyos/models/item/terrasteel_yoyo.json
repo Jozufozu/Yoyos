@@ -1,0 +1,12 @@
+{
+    "parent": "item/handheld",
+    "textures": {
+        "layer0": "yoyos:items/terrasteel_yoyo"
+    },
+    "overrides": [
+        {
+            "predicate": { "yoyos:lined": 1 },
+            "model": "yoyos:item/terrasteel_yoyo_lined"
+        }
+    ]
+}

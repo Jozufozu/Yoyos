@@ -111,7 +111,7 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
                 if (yoyoEntity == null) {
                     yoyoFactory(worldIn, playerIn, hand).let {
                         worldIn.addEntity(it)
-                        worldIn.playSound(null, it.posX, it.posY, it.posZ, ModSounds.YOYO_THROW, SoundCategory.NEUTRAL, 0.5f, 0.4f / (Item.random.nextFloat() * 0.4f + 0.8f))
+                        worldIn.playSound(null, it.posX, it.posY, it.posZ, ModSounds.yoyoThrow, SoundCategory.NEUTRAL, 0.5f, 0.4f / (Item.random.nextFloat() * 0.4f + 0.8f))
                     }
 
                     playerIn.addExhaustion(0.05f)
@@ -153,7 +153,7 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
         return multimap
     }
 
-    fun getAttackDamage(yoyo: ItemStack): Double {
+    open fun getAttackDamage(yoyo: ItemStack): Double {
         return when {
             this === ModItems.SHEAR_YOYO -> YoyosConfig.vanillaYoyos.shearYoyo.damage.get()
             this === ModItems.STICKY_YOYO -> YoyosConfig.vanillaYoyos.stickyYoyo.damage.get()

@@ -21,7 +21,7 @@ archivesBaseName = 'yoyos'
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = compileKotlin.kotlinOptions.jvmTarget = compileTestKotlin.kotlinOptions.jvmTarget = '1.8' // Need this here so eclipse task generates correctly.
 
 minecraft {
-    mappings channel: 'snapshot', version: '20190720-1.14.3'
+    mappings channel: 'snapshot', version: '20191122-1.14.3'
 
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
@@ -66,6 +66,7 @@ minecraft {
     }
 }
 
+
 repositories {
     mavenCentral()
     maven {
@@ -82,6 +83,14 @@ repositories {
     maven {
         url = 'https://minecraft.curseforge.com/api/maven/'
     }
+
+    maven {
+        url = "https://maven.theillusivec4.top/"
+    }
+
+    maven {
+        url = "https://maven.blamejared.com"
+    }
 }
 
 configurations {
@@ -96,6 +105,13 @@ dependencies {
 
     compile "kottle:Kottle:$kottle_version"
     mod "kottle:Kottle:$kottle_version"
+
+    runtimeOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-1.14.4-1.0.2")
+    compileOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-1.14.4-1.0.2:api")
+
+    compile fg.deobf("vazkii.patchouli:Patchouli:1.1-23.115")
+    compileOnly fg.deobf("vazkii.botania:Botania:r1.11-373.177")
+    runtimeOnly fg.deobf("vazkii.botania:Botania:r1.11-373.177")
 }
 
 task installMods(type: Copy, dependsOn: "deinstallMods") {

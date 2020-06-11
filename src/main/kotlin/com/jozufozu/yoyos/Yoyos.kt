@@ -13,12 +13,11 @@ import com.jozufozu.yoyos.common.init.ModItems
 import com.jozufozu.yoyos.common.init.ModSounds
 import com.jozufozu.yoyos.common.init.conditions.ModConditions
 import com.jozufozu.yoyos.network.YoyoNetwork
-import net.alexwells.kottle.FMLKotlinModLoadingContext
 import net.minecraft.enchantment.Enchantment
 import net.minecraft.entity.EntityType
 import net.minecraft.item.Item
 import net.minecraft.util.SoundEvent
-import net.minecraftforge.client.event.RenderSpecificHandEvent
+import net.minecraftforge.client.event.RenderHandEvent
 import net.minecraftforge.common.MinecraftForge
 import net.minecraftforge.event.RegistryEvent
 import net.minecraftforge.event.TickEvent
@@ -67,9 +66,10 @@ object Yoyos {
     }
 
     private fun doClientStuff(event: FMLClientSetupEvent) {
-        RenderingRegistry.registerEntityRenderingHandler(YoyoEntity::class.java) { YoyoRenderer(it) }
+        RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.YOYO) { YoyoRenderer(it) }
+        RenderingRegistry.registerEntityRenderingHandler(ModEntityTypes.STICKY_YOYO) { YoyoRenderer(it) }
 
         MinecraftForge.EVENT_BUS.addListener<TickEvent.WorldTickEvent> { NetworkHandlers.onTickWorldTick(it) }
-        MinecraftForge.EVENT_BUS.addListener<RenderSpecificHandEvent> { YoyosClient.onRenderHand(it) }
+        MinecraftForge.EVENT_BUS.addListener<RenderHandEvent> { YoyosClient.onRenderHand(it) }
     }
 }

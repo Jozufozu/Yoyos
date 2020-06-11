@@ -13,7 +13,7 @@ import net.minecraftforge.registries.ForgeRegistries
 object ModEntityTypes {
     val YOYO: EntityType<YoyoEntity> by name("yoyo")
     val STICKY_YOYO: EntityType<StickyYoyoEntity> by name("sticky_yoyo")
-
+    
     private fun <T: Entity> name(name: String) = lazy {
         (ForgeRegistries.ENTITIES.getValue(ResourceLocation(Yoyos.MODID, name)) as? EntityType<T>)?: throw Exception("$name could not be found in ${ForgeRegistries.ENTITIES.registryName}")
     }

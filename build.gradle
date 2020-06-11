@@ -1,11 +1,14 @@
 buildscript {
+    ext.kotlin_version = "$kotlin_version"
     repositories {
         maven { url = 'https://files.minecraftforge.net/maven' }
         jcenter()
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true
+        classpath(group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '3.+', changing: true) {
+            exclude group: 'trove', module: 'trove'
+        }
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
@@ -20,8 +23,12 @@ archivesBaseName = 'yoyos'
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = compileKotlin.kotlinOptions.jvmTarget = compileTestKotlin.kotlinOptions.jvmTarget = '1.8' // Need this here so eclipse task generates correctly.
 
+configurations {
+    kottleConfig
+}
+
 minecraft {
-    mappings channel: 'snapshot', version: '20191122-1.14.3'
+    mappings channel: 'snapshot', version: '20200510-1.15.1'
 
     accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
@@ -70,12 +77,10 @@ minecraft {
 repositories {
     mavenCentral()
     maven {
-        // location of the maven that hosts JEI files
         name = "Progwml6 maven"
         url = "https://dvs1.progwml6.com/files/maven/"
     }
     maven {
-        // location of a maven mirror for JEI files, as a fallback
         name = "ModMaven"
         url = "https://modmaven.k-4u.nl"
     }
@@ -93,10 +98,6 @@ repositories {
     }
 }
 
-configurations {
-    mod
-}
-
 dependencies {
     minecraft "net.minecraftforge:forge:$mc_version-$forge_version"
 
@@ -104,31 +105,19 @@ dependencies {
     runtimeOnly fg.deobf("mezz.jei:jei-$mc_version:$jei_version")
 
     compile "kottle:Kottle:$kottle_version"
-    mod "kottle:Kottle:$kottle_version"
+    implementation "kottle:Kottle:$kottle_version"
 
-    runtimeOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-1.14.4-1.0.2")
-    compileOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-1.14.4-1.0.2:api")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
-    compile fg.deobf("vazkii.patchouli:Patchouli:1.1-23.115")
-    compileOnly fg.deobf("vazkii.botania:Botania:r1.11-373.177")
-    runtimeOnly fg.deobf("vazkii.botania:Botania:r1.11-373.177")
+    runtimeOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-$mc_version-$curios_version")
+    compileOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-$mc_version-$curios_version:api")
+
+    compileOnly fg.deobf("vazkii.patchouli:Patchouli:$mc_version-$patchouli_version:api")
+    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:$mc_version-$patchouli_version")
+    compileOnly fg.deobf("vazkii.botania:Botania:$botania_version")
+    runtimeOnly fg.deobf("vazkii.botania:Botania:$botania_version")
 }
 
-task installMods(type: Copy, dependsOn: "deinstallMods") {
-    from { configurations.mod }
-    include "**/*.jar"
-    into file("run/mods")
-}
-
-task deinstallMods(type: Delete) {
-    delete fileTree(dir: "run/mods", include: "*.jar")
-}
-
-project.afterEvaluate {
-    project.tasks['prepareRuns'].dependsOn(project.tasks['installMods'])
-}
-
-// Example for how to get properties into the manifest for reading by the runtime..
 jar {
     archiveName = baseName + "_" + project.mc_version + "-" + project.version  + "." + extension
 
@@ -159,15 +148,10 @@ task deobfJar(type: Jar) {
     archiveName = baseName + "_" + project.mc_version + "-" + project.version  + "-deobf." + extension
 }
 
-// Tell the artifact system about our extra jars
 artifacts {
     archives srcJar, deobfJar
 }
 
-// Example configuration to allow publishing using the maven-publish task
-// we define a custom artifact that is sourced from the reobfJar output task
-// and then declare that to be published
-// Note you'll need to add a repository here
 def reobfFile = file("$buildDir/reobfJar/output.jar")
 def reobfArtifact = artifacts.add('default', reobfFile) {
     type 'jar'

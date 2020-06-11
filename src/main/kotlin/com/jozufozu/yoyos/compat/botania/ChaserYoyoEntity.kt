@@ -37,7 +37,7 @@ class ChaserYoyoEntity(entityType: EntityType<*>, world: World) : YoyoEntity(ent
         val handPos = getPlayerHandPos(1f)
         setPosition(handPos.x, handPos.y, handPos.z)
 
-        if (!world.areCollisionShapesEmpty(this)) setPosition(player.posX, player.posY + throwerEyeHeight, player.posZ)
+        if (!world.hasNoCollisions(this)) setPosition(player.posX, player.posY + throwerEyeHeight, player.posZ)
     }
 
     var target: Entity? = null
@@ -80,7 +80,7 @@ class ChaserYoyoEntity(entityType: EntityType<*>, world: World) : YoyoEntity(ent
     }
 
     fun acquireTargetEntity() {
-        if (isRetracting || !ManaItemHandler.requestManaExact(yoyoStack, thrower, 200, false)) return
+        if (isRetracting || !ManaItemHandler.INSTANCE.value.requestManaExact(yoyoStack, thrower, 200, false)) return
 
         val searchBox = AxisAlignedBB(thrower.posX - maxLength, thrower.posY - maxLength, thrower.posZ - maxLength, thrower.posX + maxLength, thrower.posY + maxLength, thrower.posZ + maxLength)
         val chaseable = world.getEntitiesInAABBexcluding(this, searchBox)
@@ -112,7 +112,7 @@ class ChaserYoyoEntity(entityType: EntityType<*>, world: World) : YoyoEntity(ent
 
         if (bestTarget !== target) {
             target = bestTarget
-            ManaItemHandler.requestManaExact(yoyoStack, thrower, 200, true)
+            ManaItemHandler.INSTANCE.value.requestManaExact(yoyoStack, thrower, 200, true)
             world.playSound(null, thrower.posX, thrower.posY + thrower.eyeHeight, thrower.posZ, BotaniaSounds.chase, SoundCategory.PLAYERS, 0.4f, 1.2f + world.rand.nextFloat() * 0.6f)
         }
     }

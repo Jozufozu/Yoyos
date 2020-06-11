@@ -55,7 +55,7 @@ class CUpdateTargetPacket {
     fun onMessage(ctx: Supplier<NetworkEvent.Context>) {
         ctx.get().enqueueWork {
             val world = Minecraft.getInstance().world
-            val maybeYoyo = world.getEntityByID(yoyoID)
+            val maybeYoyo = world?.getEntityByID(yoyoID)
 
             if (maybeYoyo is ChaserYoyoEntity) {
                 maybeYoyo.target = if (targetID == -1) null else world.getEntityByID(targetID)

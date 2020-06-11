@@ -60,7 +60,7 @@ class CCollectedDropsPacket {
 
     fun onMessage(ctx: Supplier<NetworkEvent.Context>) {
         ctx.get().enqueueWork {
-            val maybeYoyo = Minecraft.getInstance().world.getEntityByID(yoyoID)
+            val maybeYoyo = Minecraft.getInstance().world?.getEntityByID(yoyoID)
 
             if (maybeYoyo is YoyoEntity) {
                 maybeYoyo.collectedDrops.clear()

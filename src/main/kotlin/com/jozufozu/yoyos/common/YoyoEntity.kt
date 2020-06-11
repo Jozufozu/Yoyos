@@ -143,7 +143,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         val handPos = getPlayerHandPos(1f)
         setPosition(handPos.x, handPos.y, handPos.z)
 
-        if (!world.areCollisionShapesEmpty(this)) setPosition(player.posX, player.posY + throwerEyeHeight, player.posZ)
+        if (!world.hasNoCollisions(this)) setPosition(player.posX, player.posY + throwerEyeHeight, player.posZ)
     }
 
     override fun registerData() {

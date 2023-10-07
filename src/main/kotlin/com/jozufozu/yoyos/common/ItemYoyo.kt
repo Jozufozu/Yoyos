@@ -38,8 +38,9 @@ import net.minecraft.enchantment.EnchantmentType
 import net.minecraft.enchantment.Enchantments
 import net.minecraft.entity.Entity
 import net.minecraft.entity.LivingEntity
-import net.minecraft.entity.SharedMonsterAttributes
+import net.minecraft.entity.ai.attributes.Attribute
 import net.minecraft.entity.ai.attributes.AttributeModifier
+import net.minecraft.entity.ai.attributes.Attributes
 import net.minecraft.entity.player.PlayerEntity
 import net.minecraft.inventory.EquipmentSlotType
 import net.minecraft.item.IItemTier
@@ -55,6 +56,7 @@ import net.minecraft.world.World
 import net.minecraftforge.api.distmarker.Dist
 import net.minecraftforge.api.distmarker.OnlyIn
 import java.util.*
+import java.util.function.Function
 
 open class ItemYoyo(name: String, material: IItemTier, properties: Properties, protected var yoyoFactory: YoyoFactory) : TieredItem(material, properties.maxStackSize(1).group(ModItems.YOYOS_TAB)), IYoyo {
     constructor(name: String, material: IItemTier, properties: Properties): this(name, material, properties, ::YoyoEntity)
@@ -85,9 +87,9 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
     }
 
     override fun canApplyAtEnchantingTable(stack: ItemStack, enchantment: Enchantment): Boolean {
-        if (enchantment === Enchantments.SWEEPING) return false
-        return if (enchantment === Enchantments.FORTUNE && interactsWithBlocks(stack)) true else enchantment === ModEnchantments.COLLECTING || enchantment.type === EnchantmentType.ALL || enchantment.type === EnchantmentType.WEAPON
-
+        return if (enchantment === Enchantments.SWEEPING) false
+        else if (enchantment === Enchantments.FORTUNE && interactsWithBlocks(stack)) true
+        else enchantment === ModEnchantments.COLLECTING || enchantment.type === EnchantmentType.BREAKABLE || enchantment.type === EnchantmentType.WEAPON
     }
 
     override fun hasEffect(stack: ItemStack): Boolean {
@@ -142,78 +144,38 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
             tooltip.add(StringTextComponent(""))
     }
 
-    override fun getAttributeModifiers(equipmentSlot: EquipmentSlotType, stack: ItemStack): Multimap<String, AttributeModifier> {
-        val multimap = HashMultimap.create<String, AttributeModifier>()
+    override fun getAttributeModifiers(equipmentSlot: EquipmentSlotType, stack: ItemStack): Multimap<Attribute, AttributeModifier> {
+        val multimap = HashMultimap.create<Attribute, AttributeModifier>()
 
         if (equipmentSlot === EquipmentSlotType.MAINHAND || equipmentSlot === EquipmentSlotType.OFFHAND) {
-            multimap.put(SharedMonsterAttributes.ATTACK_DAMAGE.name, AttributeModifier(Item.ATTACK_DAMAGE_MODIFIER, { "Weapon modifier" }, getAttackDamage(stack), AttributeModifier.Operation.ADDITION))
-            multimap.put(SharedMonsterAttributes.ATTACK_SPEED.name, AttributeModifier(Item.ATTACK_SPEED_MODIFIER, { "Weapon modifier" }, -2.4000000953674316, AttributeModifier.Operation.ADDITION))
+            multimap.put(Attributes.ATTACK_DAMAGE, AttributeModifier(Item.ATTACK_DAMAGE_MODIFIER, { "Weapon modifier" }, getAttackDamage(stack), AttributeModifier.Operation.ADDITION))
+            multimap.put(Attributes.ATTACK_SPEED, AttributeModifier(Item.ATTACK_SPEED_MODIFIER, { "Weapon modifier" }, -2.4000000953674316, AttributeModifier.Operation.ADDITION))
         }
 
         return multimap
     }
 
-    open fun getAttackDamage(yoyo: ItemStack): Double {
+    open fun getAttackDamage(yoyo: ItemStack): Double = getConfiguredOrDefault(yoyo, attackDamage.toDouble()) { it.damage.get() }
+
+    override fun getWeight(yoyo: ItemStack): Double = getConfiguredOrDefault(yoyo, 1.0) { it.weight.get() }
+
+    override fun getLength(yoyo: ItemStack): Double = getConfiguredOrDefault(yoyo, 1.0) { it.length.get() }
+
+    override fun getDuration(yoyo: ItemStack): Int = getConfiguredOrDefault(yoyo, 10) { it.duration.get() }
+
+    private fun <V> getConfiguredOrDefault(yoyo: ItemStack, default: V, getter: Function<YoyosConfig.YoyoSettings, V>): V {
         return when {
-            this === ModItems.SHEAR_YOYO -> YoyosConfig.vanillaYoyos.shearYoyo.damage.get()
-            this === ModItems.STICKY_YOYO -> YoyosConfig.vanillaYoyos.stickyYoyo.damage.get()
-            this === ModItems.HOE_YOYO -> YoyosConfig.vanillaYoyos.hoeYoyo.damage.get()
-            this === ModItems.DIAMOND_YOYO -> YoyosConfig.vanillaYoyos.diamondYoyo.damage.get()
-            this === ModItems.GOLD_YOYO -> YoyosConfig.vanillaYoyos.goldYoyo.damage.get()
-            this === ModItems.IRON_YOYO -> YoyosConfig.vanillaYoyos.ironYoyo.damage.get()
-            this === ModItems.STONE_YOYO -> YoyosConfig.vanillaYoyos.stoneYoyo.damage.get()
-            this === ModItems.WOODEN_YOYO -> YoyosConfig.vanillaYoyos.woodenYoyo.damage.get()
-            this === ModItems.CREATIVE_YOYO -> YoyosConfig.vanillaYoyos.creativeYoyo.damage.get()
-            else -> attackDamage.toDouble()
+            this === ModItems.SHEAR_YOYO -> getter.apply(YoyosConfig.vanillaYoyos.shearYoyo)
+            this === ModItems.STICKY_YOYO -> getter.apply(YoyosConfig.vanillaYoyos.stickyYoyo)
+            this === ModItems.HOE_YOYO -> getter.apply(YoyosConfig.vanillaYoyos.hoeYoyo)
+            this === ModItems.DIAMOND_YOYO -> getter.apply(YoyosConfig.vanillaYoyos.diamondYoyo)
+            this === ModItems.GOLD_YOYO -> getter.apply(YoyosConfig.vanillaYoyos.goldYoyo)
+            this === ModItems.IRON_YOYO -> getter.apply(YoyosConfig.vanillaYoyos.ironYoyo)
+            this === ModItems.STONE_YOYO -> getter.apply(YoyosConfig.vanillaYoyos.stoneYoyo)
+            this === ModItems.WOODEN_YOYO -> getter.apply(YoyosConfig.vanillaYoyos.woodenYoyo)
+            this === ModItems.CREATIVE_YOYO -> getter.apply(YoyosConfig.vanillaYoyos.creativeYoyo)
+            else -> default
         }
-    }
-
-    override fun getWeight(yoyo: ItemStack): Double {
-        return when {
-            this === ModItems.SHEAR_YOYO -> YoyosConfig.vanillaYoyos.shearYoyo.weight.get()
-            this === ModItems.STICKY_YOYO -> YoyosConfig.vanillaYoyos.stickyYoyo.weight.get()
-            this === ModItems.HOE_YOYO -> YoyosConfig.vanillaYoyos.hoeYoyo.weight.get()
-            this === ModItems.DIAMOND_YOYO -> YoyosConfig.vanillaYoyos.diamondYoyo.weight.get()
-            this === ModItems.GOLD_YOYO -> YoyosConfig.vanillaYoyos.goldYoyo.weight.get()
-            this === ModItems.IRON_YOYO -> YoyosConfig.vanillaYoyos.ironYoyo.weight.get()
-            this === ModItems.STONE_YOYO -> YoyosConfig.vanillaYoyos.stoneYoyo.weight.get()
-            this === ModItems.WOODEN_YOYO -> YoyosConfig.vanillaYoyos.woodenYoyo.weight.get()
-            this === ModItems.CREATIVE_YOYO -> YoyosConfig.vanillaYoyos.creativeYoyo.weight.get()
-            else -> 1.0
-        }
-
-    }
-
-    override fun getLength(yoyo: ItemStack): Double {
-        return when {
-            this === ModItems.SHEAR_YOYO -> YoyosConfig.vanillaYoyos.shearYoyo.length.get()
-            this === ModItems.STICKY_YOYO -> YoyosConfig.vanillaYoyos.stickyYoyo.length.get()
-            this === ModItems.HOE_YOYO -> YoyosConfig.vanillaYoyos.hoeYoyo.length.get()
-            this === ModItems.DIAMOND_YOYO -> YoyosConfig.vanillaYoyos.diamondYoyo.length.get()
-            this === ModItems.GOLD_YOYO -> YoyosConfig.vanillaYoyos.goldYoyo.length.get()
-            this === ModItems.IRON_YOYO -> YoyosConfig.vanillaYoyos.ironYoyo.length.get()
-            this === ModItems.STONE_YOYO -> YoyosConfig.vanillaYoyos.stoneYoyo.length.get()
-            this === ModItems.WOODEN_YOYO -> YoyosConfig.vanillaYoyos.woodenYoyo.length.get()
-            this === ModItems.CREATIVE_YOYO -> YoyosConfig.vanillaYoyos.creativeYoyo.length.get()
-            else -> 1.0
-        }
-
-    }
-
-    override fun getDuration(yoyo: ItemStack): Int {
-        return when {
-            this === ModItems.SHEAR_YOYO -> YoyosConfig.vanillaYoyos.shearYoyo.duration.get()
-            this === ModItems.STICKY_YOYO -> YoyosConfig.vanillaYoyos.stickyYoyo.duration.get()
-            this === ModItems.HOE_YOYO -> YoyosConfig.vanillaYoyos.hoeYoyo.duration.get()
-            this === ModItems.DIAMOND_YOYO -> YoyosConfig.vanillaYoyos.diamondYoyo.duration.get()
-            this === ModItems.GOLD_YOYO -> YoyosConfig.vanillaYoyos.goldYoyo.duration.get()
-            this === ModItems.IRON_YOYO -> YoyosConfig.vanillaYoyos.ironYoyo.duration.get()
-            this === ModItems.STONE_YOYO -> YoyosConfig.vanillaYoyos.stoneYoyo.duration.get()
-            this === ModItems.WOODEN_YOYO -> YoyosConfig.vanillaYoyos.woodenYoyo.duration.get()
-            this === ModItems.CREATIVE_YOYO -> YoyosConfig.vanillaYoyos.creativeYoyo.duration.get()
-            else -> 10
-        }
-
     }
 
     override fun getAttackInterval(yoyo: ItemStack): Int {
@@ -224,8 +186,8 @@ open class ItemYoyo(name: String, material: IItemTier, properties: Properties, p
         return if (this === ModItems.CREATIVE_YOYO) Integer.MAX_VALUE else calculateMaxCollectedDrops(EnchantmentHelper.getEnchantmentLevel(ModEnchantments.COLLECTING, yoyo))
     }
 
-    override fun <T : LivingEntity> damageItem(stack: ItemStack, hand: Hand, amount: Int, entity: T) {
-        stack.damageItem(amount, entity, { item -> item.sendBreakAnimation(hand) })
+    override fun <T : LivingEntity> damageItem(yoyo: ItemStack, hand: Hand, amount: Int, entity: T) {
+        yoyo.damageItem(amount, entity, { item -> item.sendBreakAnimation(hand) })
     }
 
     override fun entityInteraction(yoyo: ItemStack, player: PlayerEntity, hand: Hand, yoyoEntity: YoyoEntity, targetEntity: Entity) {

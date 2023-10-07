@@ -24,8 +24,8 @@ package com.jozufozu.yoyos.network
 
 import com.jozufozu.yoyos.common.StickyYoyoEntity
 import com.jozufozu.yoyos.common.YoyoEntity
-import net.minecraft.network.PacketBuffer
-import net.minecraftforge.fml.network.NetworkEvent
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraftforge.network.NetworkEvent
 import java.util.function.Supplier
 
 class SReelDirectionPacket {
@@ -40,11 +40,11 @@ class SReelDirectionPacket {
         direction = dir
     }
 
-    constructor(buf: PacketBuffer) {
+    constructor(buf: FriendlyByteBuf) {
         direction = buf.readByte()
     }
 
-    fun encode(buf: PacketBuffer) {
+    fun encode(buf: FriendlyByteBuf) {
         buf.writeByte(direction.toInt())
     }
 
@@ -54,7 +54,7 @@ class SReelDirectionPacket {
         context.enqueueWork {
             val player = context.sender ?: return@enqueueWork
 
-            val maybeYoyo = YoyoEntity.CASTERS[player.uniqueID]
+            val maybeYoyo = YoyoEntity.CASTERS[player.uuid]
 
             if (maybeYoyo is StickyYoyoEntity) maybeYoyo.reelDirection = direction
         }

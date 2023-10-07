@@ -31,8 +31,11 @@ import net.minecraft.network.datasync.EntityDataManager
 import net.minecraft.util.Hand
 import net.minecraft.util.SoundCategory
 import net.minecraft.util.math.MathHelper
-import net.minecraft.util.math.Vec3d
+import net.minecraft.util.math.vector.Vector3d
 import net.minecraft.world.World
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.player.Player
+import org.slf4j.event.Level
 
 class StickyYoyoEntity : YoyoEntity {
 
@@ -40,22 +43,21 @@ class StickyYoyoEntity : YoyoEntity {
     private var stuckSince = 0
 
     var reelDirection: Byte
-        get() = this.dataManager.get(REEL_DIRECTION)
-        set(dir) = this.dataManager.set(REEL_DIRECTION, dir)
+        get() = this.entityData.get(REEL_DIRECTION)
+        set(dir) = this.entityData.set(REEL_DIRECTION, dir)
 
-    constructor(type: EntityType<*>, world: World) : super(type, world)
-
-    constructor(world: World) : super(ModEntityTypes.STICKY_YOYO, world)
-
-    constructor(world: World, player: PlayerEntity, hand: Hand) : super(ModEntityTypes.STICKY_YOYO, world, player, hand)
-
-    override fun registerData() {
-        super.registerData()
-        this.dataManager.register(REEL_DIRECTION, 0)
+    init {
+        this.entityData.define(REEL_DIRECTION, 0)
     }
 
+    constructor(type: EntityType<*>, world: Level) : super(type, world)
+
+    constructor(world: Level) : super(ModEntityTypes.STICKY_YOYO, world)
+
+    constructor(world: Level, player: Player, hand: Hand) : super(ModEntityTypes.STICKY_YOYO, world, player, hand)
+
     override fun tick() {
-        if (!world.isRemote) {
+        if (!level.isRemote) {
             setFlag(6, isGlowing)
         }
 
@@ -82,8 +84,8 @@ class StickyYoyoEntity : YoyoEntity {
                     currentLength = MathHelper.sqrt(distanceSqr)
             }
 
-            if (!isRetracting && world.checkBlockCollision(boundingBox.grow(0.1))) {
-                motion = Vec3d.ZERO
+            if (!isRetracting && !world.hasNoCollisions(boundingBox.grow(0.1))) {
+                motion = Vector3d.ZERO
 
                 if (!stuck) {
                     stuckSince = ticksExisted

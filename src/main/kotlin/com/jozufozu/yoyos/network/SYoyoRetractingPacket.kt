@@ -23,8 +23,8 @@
 package com.jozufozu.yoyos.network
 
 import com.jozufozu.yoyos.common.YoyoEntity
-import net.minecraft.network.PacketBuffer
-import net.minecraftforge.fml.network.NetworkEvent
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraftforge.network.NetworkEvent
 import java.util.function.Supplier
 
 class SYoyoRetractingPacket {
@@ -34,11 +34,11 @@ class SYoyoRetractingPacket {
         this.retracting = retracting
     }
 
-    constructor(buf: PacketBuffer) {
+    constructor(buf: FriendlyByteBuf) {
         retracting = buf.readBoolean()
     }
 
-    fun encode(buf: PacketBuffer) {
+    fun encode(buf: FriendlyByteBuf) {
         buf.writeBoolean(retracting)
     }
 
@@ -46,7 +46,7 @@ class SYoyoRetractingPacket {
         ctx.get().enqueueWork {
             val player = ctx.get().sender ?: return@enqueueWork
 
-            val maybeYoyo = YoyoEntity.CASTERS[player.uniqueID]
+            val maybeYoyo = YoyoEntity.CASTERS[player.uuid]
 
             if (maybeYoyo != null) maybeYoyo.isRetracting = retracting
         }

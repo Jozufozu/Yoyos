@@ -27,36 +27,37 @@ import com.jozufozu.yoyos.common.init.ModEntityTypes
 import com.jozufozu.yoyos.common.init.ModItems
 import com.jozufozu.yoyos.network.CCollectedDropsPacket
 import com.jozufozu.yoyos.network.YoyoNetwork
-import net.minecraft.entity.Entity
-import net.minecraft.entity.EntityType
-import net.minecraft.entity.item.ItemEntity
-import net.minecraft.entity.player.PlayerEntity
-import net.minecraft.item.Item
-import net.minecraft.item.ItemStack
-import net.minecraft.nbt.CompoundNBT
-import net.minecraft.nbt.ListNBT
-import net.minecraft.network.IPacket
-import net.minecraft.network.PacketBuffer
-import net.minecraft.network.datasync.DataSerializers
-import net.minecraft.network.datasync.EntityDataManager
-import net.minecraft.util.*
-import net.minecraft.util.math.*
-import net.minecraft.world.World
+import com.mojang.math.Vector3d
+import com.mojang.math.Vector3f
+import net.minecraft.core.BlockPos
+import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.protocol.Packet
+import net.minecraft.network.syncher.EntityDataSerializers
+import net.minecraft.network.syncher.SynchedEntityData
+import net.minecraft.sounds.SoundEvents
+import net.minecraft.world.InteractionHand
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntityType
+import net.minecraft.world.entity.item.ItemEntity
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.Level
+import net.minecraftforge.entity.IEntityAdditionalSpawnData
 import net.minecraftforge.event.entity.living.LivingDropsEvent
-import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData
-import net.minecraftforge.fml.network.NetworkHooks
-import net.minecraftforge.fml.network.PacketDistributor
+import net.minecraftforge.network.NetworkHooks
+import net.minecraftforge.registries.DataSerializerEntry
 import java.util.*
 import java.util.stream.Collectors
 import kotlin.collections.HashMap
 import kotlin.math.*
 
-open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), IEntityAdditionalSpawnData {
+open class YoyoEntity(type: EntityType<*>, level: Level) : Entity(type, level), IEntityAdditionalSpawnData {
     var collectedDrops = ArrayList<ItemStack>()
     var numCollectedDrops = 0
     var needCollectedSync: Boolean = false
 
-    lateinit var thrower: PlayerEntity
+    lateinit var thrower: Player
         protected set
     val hasThrower: Boolean get() = this::thrower.isInitialized
 
@@ -80,92 +81,90 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
     protected var doesBlockInteraction = true
 
     var yoyoStack: ItemStack
-        get() = this.dataManager.get(YOYO_STACK)
-        set(stack) = this.dataManager.set(YOYO_STACK, stack)
+        get() = this.entityData.get(YOYO_STACK)
+        set(stack) = this.entityData.set(YOYO_STACK, stack)
 
-    var hand: Hand
-        get() = Hand.values()[this.dataManager.get(HAND).toInt()]
-        set(hand) = this.dataManager.set(HAND, hand.ordinal.toByte())
+    var hand: InteractionHand
+        get() = InteractionHand.values()[this.entityData.get(HAND).toInt()]
+        set(hand) = this.entityData.set(HAND, hand.ordinal.toByte())
 
     var isRetracting: Boolean
-        get() = this.dataManager.get(RETRACTING)
+        get() = this.entityData.get(RETRACTING)
         set(retracting) {
             if (canCancelRetract || !isRetracting) {
-                this.dataManager.set(RETRACTING, retracting)
+                this.entityData.set(RETRACTING, retracting)
             }
         }
 
     var maxTime: Int
-        get() = this.dataManager.get(MAX_TIME)
-        set(duration) = this.dataManager.set(MAX_TIME, duration)
+        get() = this.entityData.get(MAX_TIME)
+        set(duration) = this.entityData.set(MAX_TIME, duration)
 
     var remainingTime: Int
-        get() = this.dataManager.get(REMAINING_TIME)
-        set(duration) = this.dataManager.set(REMAINING_TIME, duration)
+        get() = this.entityData.get(REMAINING_TIME)
+        set(duration) = this.entityData.set(REMAINING_TIME, duration)
 
     var weight: Float
-        get() = this.dataManager.get(WEIGHT)
-        set(weight) = this.dataManager.set(WEIGHT, weight)
+        get() = this.entityData.get(WEIGHT)
+        set(weight) = this.entityData.set(WEIGHT, weight)
 
     var currentLength: Float
-        get() = this.dataManager.get(CURRENT_LENGTH)
-        set(length) = this.dataManager.set(CURRENT_LENGTH, length)
+        get() = this.entityData.get(CURRENT_LENGTH)
+        set(length) = this.entityData.set(CURRENT_LENGTH, length)
 
     var maxLength: Float
-        get() = this.dataManager.get(MAX_LENGTH)
-        set(length) = this.dataManager.set(MAX_LENGTH, length)
+        get() = this.entityData.get(MAX_LENGTH)
+        set(length) = this.entityData.set(MAX_LENGTH, length)
 
     var maxCollectedDrops: Int
-        get() = this.dataManager.get(MAX_COLLECTED_DROPS)
-        set(numCollectedDrops) = this.dataManager.set(MAX_COLLECTED_DROPS, numCollectedDrops)
+        get() = this.entityData.get(MAX_COLLECTED_DROPS)
+        set(numCollectedDrops) = this.entityData.set(MAX_COLLECTED_DROPS, numCollectedDrops)
 
     val isCollecting: Boolean
         get() = maxCollectedDrops > 0
 
-    val throwerEyeHeight: Float get() = thrower.getStandingEyeHeight(thrower.pose, thrower.getSize(thrower.pose))
+    val throwerEyeHeight: Float get() = thrower.getStandingEyeHeight(thrower.pose, thrower.getDimensions(thrower.pose))
 
     init {
-        ignoreFrustumCheck = true
-        setNoGravity(true)
+        noCulling = true
+        isNoGravity = true
+
+        this.entityData.define(YOYO_STACK, ItemStack.EMPTY)
+        this.entityData.define(HAND, InteractionHand.MAIN_HAND.ordinal.toByte())
+        this.entityData.define(RETRACTING, false)
+        this.entityData.define(MAX_TIME, -1)
+        this.entityData.define(REMAINING_TIME, -1)
+        this.entityData.define(WEIGHT, 1.0f)
+        this.entityData.define(CURRENT_LENGTH, 1.0f)
+        this.entityData.define(MAX_LENGTH, 1.0f)
+        this.entityData.define(MAX_COLLECTED_DROPS, 0)
     }
 
-    constructor(world: World) : this(ModEntityTypes.YOYO, world)
+    constructor(level: Level) : this(ModEntityTypes.YOYO, level)
 
-    constructor(world: World, player: PlayerEntity, hand: Hand) : this(ModEntityTypes.YOYO, world, player, hand)
+    constructor(level: Level, player: Player, hand: InteractionHand) : this(ModEntityTypes.YOYO, level, player, hand)
 
-    constructor(type: EntityType<*>, world: World, player: PlayerEntity, hand: Hand) : this(type, world) {
+    constructor(type: EntityType<*>, level: Level, player: Player, hand: InteractionHand) : this(type, level) {
         thrower = player
 
-        CASTERS[player.uniqueID] = this
+        CASTERS[player.uuid] = this
 
         this.hand = hand
 
         val handPos = getPlayerHandPos(1f)
-        setPosition(handPos.x, handPos.y, handPos.z)
+        setPos(handPos.x, handPos.y, handPos.z)
 
-        if (!world.hasNoCollisions(this)) setPosition(player.posX, player.posY + throwerEyeHeight, player.posZ)
+        if (!level.noCollision(this)) setPos(player.x, player.y + throwerEyeHeight, player.z)
     }
 
-    override fun registerData() {
-        this.dataManager.register(YOYO_STACK, ItemStack.EMPTY)
-        this.dataManager.register(HAND, Hand.MAIN_HAND.ordinal.toByte())
-        this.dataManager.register(RETRACTING, false)
-        this.dataManager.register(MAX_TIME, -1)
-        this.dataManager.register(REMAINING_TIME, -1)
-        this.dataManager.register(WEIGHT, 1.0f)
-        this.dataManager.register(CURRENT_LENGTH, 1.0f)
-        this.dataManager.register(MAX_LENGTH, 1.0f)
-        this.dataManager.register(MAX_COLLECTED_DROPS, 0)
-    }
-
-    override fun readAdditional(compound: CompoundNBT) {
+    override fun readAdditional(compound: CompoundTag) {
         collectedDrops.clear()
         val list = compound.getList("collectedDrops", 10)
 
         for (i in 0..list.size) {
             val nbt = list.getCompound(i)
             nbt.putByte("Count", 1.toByte())
-            val stack = ItemStack.read(nbt)
+            val stack = ItemStack.of(nbt)
             stack.count = nbt.getInt("count")
             collectedDrops.add(stack)
         }
@@ -188,8 +187,8 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         compound.put("collectedDrops", collected)
     }
 
-    override fun createSpawnPacket(): IPacket<*> {
-        return NetworkHooks.getEntitySpawningPacket(this)
+    override fun getAddEntityPacket(): Packet<*> {
+        NetworkHooks.getEntitySpawningPacket(this)
     }
 
     fun forceRetract() {
@@ -220,8 +219,8 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         shouldResetCool = true
     }
 
-    fun getPlayerHandPos(partialTicks: Float): Vec3d {
-        if (!hasThrower) return Vec3d(posX, posY, posZ)
+    fun getPlayerHandPos(partialTicks: Float): Vector3f {
+        if (!hasThrower) return position()
 
         var yaw = thrower.rotationYaw
         var pitch = thrower.rotationPitch
@@ -246,7 +245,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
         val side = if (thrower.primaryHand == HandSide.RIGHT == (hand == Hand.MAIN_HAND)) 1f else -1f
 
-        return Vec3d(posX - throwerLookOffsetX * side.toDouble() * 0.4 - throwerLookOffsetZ * 0.5 * throwerLookWidth, posY + throwerEyeHeight - throwerLookOffsetY * 0.5 - 0.25, posZ - throwerLookOffsetZ * side.toDouble() * 0.4 + throwerLookOffsetX * 0.5 * throwerLookWidth)
+        return Vector3d(posX - throwerLookOffsetX * side.toDouble() * 0.4 - throwerLookOffsetZ * 0.5 * throwerLookWidth, posY + throwerEyeHeight - throwerLookOffsetY * 0.5 - 0.25, posZ - throwerLookOffsetZ * side.toDouble() * 0.4 + throwerLookOffsetX * 0.5 * throwerLookWidth)
     }
 
     open fun getRotation(age: Int, partialTicks: Float): Float {
@@ -267,10 +266,10 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
 
     override fun tick() {
-        super.tick()
         this.lastTickPosX = this.posX
         this.lastTickPosY = this.posY
         this.lastTickPosZ = this.posZ
+        super.tick()
 
         if (hasThrower && thrower.isAlive) {
             yoyo = checkAndGetYoyoObject() ?: return
@@ -282,7 +281,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
             yoyo.onUpdate(yoyoStack, this)
 
-            if (!world.isRemote && doesBlockInteraction()) worldInteraction()
+            if (!level.isRemote && doesBlockInteraction()) levelInteraction()
 
             if (isCollecting) updateCapturedDrops()
 
@@ -314,13 +313,13 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
             return null
         }
 
-        if (!world.isRemote && CASTERS[thrower.uniqueID] !== this) {
+        if (!level.isRemote && CASTERS[thrower.uniqueID] !== this) {
             CASTERS[thrower.uniqueID] = this
         }
 
         val yoyo = yoyoStack.item as IYoyo
 
-        if (!world.isRemote && shouldGetStats) {
+        if (!level.isRemote && shouldGetStats) {
             maxCollectedDrops = yoyo.getMaxCollectedDrops(yoyoStack)
             attackInterval = yoyo.getAttackInterval(yoyoStack)
             val duration = yoyo.getDuration(yoyoStack)
@@ -365,17 +364,21 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
         val union = targetBoundingBox.union(yoyoBoundingBox)
 
-        val colliderBoxes = world.getCollisionShapes(null, union).flatMap { it.toBoundingBoxList().stream() }.collect(Collectors.toList())
+        val colliderBoxes = level.getCollisionShapes(null, union).flatMap { it.toBoundingBoxList().stream() }.collect(Collectors.toList())
 
-        val entities = world.getEntitiesWithinAABBExcludingEntity(this, union)
+        val entities = level.getEntitiesWithinAABBExcludingEntity(this, union)
 
-        val steps = 50
+        val steps = 25
+
+        val dx = motion.x / steps
+        val dy = motion.y / steps
+        val dz = motion.z / steps
 
         for (step in 0 until steps) {
-            val motion = motion
-            var dx = motion.x / steps
-            var dy = motion.y / steps
-            var dz = motion.z / steps
+
+            var dx = dx
+            var dy = dy
+            var dz = dz
 
             for (box in colliderBoxes) {
                 dx = calculateXOffset(box, yoyoBoundingBox, dx)
@@ -395,7 +398,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
                 }
             }
 
-            if (!world.isRemote) {
+            if (!level.isRemote) {
                 val iterator = entities.listIterator()
 
                 while (iterator.hasNext()) {
@@ -492,25 +495,25 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         yoyo.entityInteraction(yoyoStack, thrower, hand, this, entity)
     }
 
-    protected fun worldInteraction() {
+    protected fun levelInteraction() {
         val pos = position
 
         val entityBox = boundingBox.grow(0.1)
 
         BlockPos.getAllInBoxMutable(pos.add(-1, -1, -1), pos.add(1, 1, 1))
-                .map { Pair(it.toImmutable(), world.getBlockState(it)) }
-                .filter { !it.second.isAir(world, it.first) }
+                .map { Pair(it.toImmutable(), level.getBlockState(it)) }
+                .filter { !it.second.isAir(level, it.first) }
                 .filter { it.second
-                            .getShape(world, it.first)
+                            .getShape(level, it.first)
                             .toBoundingBoxList()
                             .any { bb -> bb.offset(it.first).intersects(entityBox) }
                 }
-                .forEach { yoyo.blockInteraction(yoyoStack, thrower, world, it.first, it.second, it.second.block, this) }
+                .forEach { yoyo.blockInteraction(yoyoStack, thrower, level, it.first, it.second, it.second.block, this) }
     }
 
     protected fun updateCapturedDrops() {
         // If we're on the client, we trust the server
-        if (!world.isRemote && collectedDrops.isNotEmpty() && needCollectedSync) {
+        if (!level.isRemote && collectedDrops.isNotEmpty() && needCollectedSync) {
             val iterator = collectedDrops.iterator()
 
             val existing = HashMap<Item, ItemStack>()
@@ -535,7 +538,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
                 }
             }
 
-            YoyoNetwork.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with { world.getChunkAt(position) }, CCollectedDropsPacket(this))
+            YoyoNetwork.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with { level.getChunkAt(position) }, CCollectedDropsPacket(this))
 
             needCollectedSync = false
         }
@@ -550,9 +553,9 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
             if (remaining == ItemStack.EMPTY) return
         }
 
-        val itemEntity = ItemEntity(world, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, remaining)
+        val itemEntity = ItemEntity(level, pos.x + 0.5, pos.y + 0.5, pos.z + 0.5, remaining)
         itemEntity.setDefaultPickupDelay()
-        world.addEntity(itemEntity)
+        level.addEntity(itemEntity)
     }
 
     /**
@@ -586,7 +589,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
             drop.setInfinitePickupDelay()
             drop.remove()
         }
-        world.playSound(null, drop.posX, drop.posY, drop.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2f, ((rand.nextFloat() - rand.nextFloat()) * 0.7f + 1.0f) * 2.0f)
+        level.playSound(null, drop.posX, drop.posY, drop.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 1.0f, ((rand.nextFloat() - rand.nextFloat()) * 0.7f + 1.0f) * 2.0f)
     }
 
     protected open fun handlePlayerPulling() {
@@ -629,23 +632,26 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
         if (collectedDrops.isEmpty()) return
 
-        if (!world.isRemote) {
+        if (!level.isRemote) {
             if (hasThrower) {
                 val inventory = thrower.inventory
                 collectedDrops
                         .filterNot(ItemStack::isEmpty)
-                        .forEach { inventory.placeItemBackInInventory(world, it) }
-            } else { // the yoyo was loaded into the world with items still attached
+                        .forEach {
+                            inventory.placeItemBackInInventory(level, it)
+                            level.playSound(null, thrower.posX, thrower.posY, thrower.posZ, SoundEvents.ENTITY_ITEM_PICKUP, SoundCategory.NEUTRAL, 0.2f, ((rand.nextFloat() - rand.nextFloat()) * 0.7f + 1.0f) * 2.0f)
+                        }
+            } else { // the yoyo was loaded into the level with items still attached
                 for (drop in collectedDrops) {
                     if (drop != null && !drop.isEmpty) {
                         while (drop.count > 0) {
                             val itemStack = drop.split(drop.maxStackSize)
 
-                            val entityitem = ItemEntity(world, posX, posY + height, posZ, itemStack)
+                            val entityitem = ItemEntity(level, posX, posY + height, posZ, itemStack)
                             entityitem.setDefaultPickupDelay()
                             entityitem.setVelocity(0.0, 0.0, 0.0)
 
-                            world.addEntity(entityitem)
+                            level.addEntity(entityitem)
                         }
                     }
                 }
@@ -657,7 +663,7 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
     override fun getTeam() = thrower.team
 
-    protected open fun getTarget(): Vec3d {
+    protected open fun getTarget(): Vector3d {
         if (isRetracting) {
             val handPos = getPlayerHandPos(1f)
             val dX = this.posX - handPos.x
@@ -668,12 +674,12 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
             return handPos
         } else {
-            val eyePos = thrower.let { Vec3d(it.posX, it.posY + it.getStandingEyeHeight(it.pose, it.getSize(it.pose)), it.posZ) }
+            val eyePos = thrower.let { Vector3d(it.posX, it.posY + it.getStandingEyeHeight(it.pose, it.getSize(it.pose)), it.posZ) }
             val lookVec = thrower.getLook(1.0f)
 
             val cordLength = currentLength.toDouble()
 
-            var target = Vec3d(eyePos.x + lookVec.x * cordLength, eyePos.y + lookVec.y * cordLength, eyePos.z + lookVec.z * cordLength)
+            var target = Vector3d(eyePos.x + lookVec.x * cordLength, eyePos.y + lookVec.y * cordLength, eyePos.z + lookVec.z * cordLength)
             retractionTimeout = 0
             val rayTraceResult = getTargetLook(eyePos, target)
 
@@ -683,9 +689,9 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         }
     }
 
-    private fun getTargetLook(from: Vec3d, to: Vec3d): RayTraceResult? {
+    private fun getTargetLook(from: Vector3d, to: Vector3d): RayTraceResult? {
         val distance = from.distanceTo(to)
-        var objectMouseOver: RayTraceResult? = world.rayTraceBlocks(RayTraceContext(from, to, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, thrower))
+        var objectMouseOver: RayTraceResult? = level.rayTraceBlocks(RayTraceContext(from, to, RayTraceContext.BlockMode.COLLIDER, RayTraceContext.FluidMode.NONE, thrower))
         var flag = false
         var d1 = distance
 
@@ -699,10 +705,10 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
 
         val vec3d1 = thrower.getLook(1f)
         var pointedEntity: Entity? = null
-        var vec3d3: Vec3d? = null
+        var vec3d3: Vector3d? = null
         val expanded = thrower.boundingBox.expand(vec3d1.x * distance, vec3d1.y * distance, vec3d1.z * distance).expand(1.0, 1.0, 1.0)
 
-        val list = world.getEntitiesInAABBexcluding(null, expanded) { entity -> entity !is PlayerEntity || !entity.isSpectator() && entity.canBeCollidedWith() }
+        val list = level.getEntitiesInAABBexcluding(null, expanded) { entity -> entity !is PlayerEntity || !entity.isSpectator() && entity.canBeCollidedWith() }
 
         var d2 = d1
 
@@ -750,39 +756,39 @@ open class YoyoEntity(type: EntityType<*>, world: World) : Entity(type, world), 
         return objectMouseOver
     }
 
-    override fun readSpawnData(additionalData: PacketBuffer) {
-        (world.getEntityByID(additionalData.readInt()) as? PlayerEntity)?.let {
+    override fun readSpawnData(additionalData: FriendlyByteBuf) {
+        (level.getEntity(additionalData.readInt()) as? Player)?.let {
             thrower = it
-            CASTERS[it.uniqueID] = this
+            CASTERS[it.uuid] = this
         }
     }
 
-    override fun writeSpawnData(buffer: PacketBuffer) {
-        buffer.writeInt(thrower.entityId)
+    override fun writeSpawnData(buffer: FriendlyByteBuf) {
+        buffer.writeInt(thrower.id)
     }
 
     companion object {
         @JvmField val CASTERS: HashMap<UUID, YoyoEntity> = HashMap()
 
-        private val YOYO_STACK = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.ITEMSTACK)
-        private val HAND = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.BYTE)
-        private val RETRACTING = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.BOOLEAN)
-        private val MAX_TIME = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.VARINT)
-        private val REMAINING_TIME = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.VARINT)
-        private val WEIGHT = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.FLOAT)
-        private val CURRENT_LENGTH = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.FLOAT)
-        private val MAX_LENGTH = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.FLOAT)
-        private val MAX_COLLECTED_DROPS = EntityDataManager.createKey(YoyoEntity::class.java, DataSerializers.VARINT)
+        private val YOYO_STACK = SynchedEntityData.defineId(YoyoEntity::class.java, EntityDataSerializers.ITEM_STACK)
+        private val HAND = SynchedEntityData.defineId(YoyoEntity::class.java, EntityDataSerializers.BYTE)
+        private val RETRACTING = SynchedEntityData.defineId(YoyoEntity::class.java, EntityDataSerializers.BOOLEAN)
+        private val MAX_TIME = SynchedEntityData.defineId(YoyoEntity::class.java, EntityDataSerializers.INT)
+        private val REMAINING_TIME = SynchedEntityData.defineId(YoyoEntity::class.java, EntityDataSerializers.INT)
+        private val WEIGHT = SynchedEntityData.defineId(YoyoEntity::class.java, EntityDataSerializers.FLOAT)
+        private val CURRENT_LENGTH = SynchedEntityData.defineId(YoyoEntity::class.java, EntityDataSerializers.FLOAT)
+        private val MAX_LENGTH = SynchedEntityData.defineId(YoyoEntity::class.java, EntityDataSerializers.FLOAT)
+        private val MAX_COLLECTED_DROPS = SynchedEntityData.defineId(YoyoEntity::class.java, EntityDataSerializers.INT)
 
         protected const val MAX_RETRACT_TIME = 40
 
         @JvmStatic fun onLivingDrops(event: LivingDropsEvent) {
             val source = event.source
-            val killer = source.trueSource
+            val killer = source.entity
 
-            if (killer !is PlayerEntity || killer.world.isRemote) return
+            if (killer !is Player || killer.level.isClientSide) return
 
-            val yoyo = CASTERS[killer.uniqueID]
+            val yoyo = CASTERS[killer.uuid]
 
             if (yoyo == null || !yoyo.isCollecting) return
 

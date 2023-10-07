@@ -23,9 +23,9 @@
 package com.jozufozu.yoyos.network
 
 import com.jozufozu.yoyos.Yoyos
-import net.minecraft.util.ResourceLocation
-import net.minecraftforge.fml.network.NetworkRegistry
-import net.minecraftforge.fml.network.simple.SimpleChannel
+import net.minecraft.resources.ResourceLocation
+import net.minecraftforge.network.NetworkRegistry
+import net.minecraftforge.network.simple.SimpleChannel
 
 object YoyoNetwork {
     const val PROTOCOL = "1.0"
@@ -42,6 +42,6 @@ object YoyoNetwork {
         CHANNEL.registerMessage(nextID, SYoyoRetractingPacket::class.java, SYoyoRetractingPacket::encode, ::SYoyoRetractingPacket, SYoyoRetractingPacket::onMessage)
         CHANNEL.registerMessage(nextID, SReelDirectionPacket::class.java, SReelDirectionPacket::encode, ::SReelDirectionPacket, SReelDirectionPacket::onMessage)
         CHANNEL.registerMessage(nextID, CCollectedDropsPacket::class.java, CCollectedDropsPacket::encode, ::CCollectedDropsPacket, CCollectedDropsPacket::onMessage)
-        CHANNEL.registerMessage(nextID, SAcquireTargetPacket::class.java, SAcquireTargetPacket::encode, ::SAcquireTargetPacket, SAcquireTargetPacket::onMessage)
+        //CHANNEL.registerMessage(nextID, SAcquireTargetPacket::class.java, SAcquireTargetPacket::encode, ::SAcquireTargetPacket, SAcquireTargetPacket::onMessage)
     }
 }

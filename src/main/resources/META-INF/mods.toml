@@ -1,6 +1,7 @@
-modLoader="kotlinfml"
+modLoader="kotlinforforge"
 loaderVersion="[1,)"
 issueTrackerURL="https://github.com/Jozufozu/Yoyos/issues"
+
 [[mods]]
 modId="yoyos"
 version="${file.jarVersion}"
@@ -11,9 +12,10 @@ credits="Terraria, for having sweet yoyos that I wanted to make in Minecraft"
 authors="Jozufozu"
 description='''
 Childerens' toy based weaponry! Adds yoyos that can attack, garden, farm, and act as grappling hooks.'''
+
 [[dependencies.yoyos]]
     modId="jei"
     mandatory=false
-    versionRange="[2.0.0,)"
+    versionRange="[9.0.0,)"
     ordering="NONE"
     side="BOTH"

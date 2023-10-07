@@ -1,4 +1,4 @@
-package com.example.examplemod;
+package com.jozufozu.yoyos;
 
 import net.minecraftforge.fml.common.Mod;
 

@@ -1,7 +1,7 @@
-package com.example.examplemod.platform;
+package com.jozufozu.yoyos.platform;
 
-import com.example.examplemod.Constants;
-import com.example.examplemod.platform.services.IPlatformHelper;
+import com.jozufozu.yoyos.Constants;
+import com.jozufozu.yoyos.platform.services.IPlatformHelper;
 
 import java.util.ServiceLoader;
 

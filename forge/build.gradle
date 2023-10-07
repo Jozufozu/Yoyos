@@ -2,6 +2,7 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.minecraftforge.gradle'
+    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
     id 'org.spongepowered.mixin'
 }
 base {
@@ -73,6 +74,21 @@ minecraft {
 }
 
 sourceSets.main.resources.srcDir 'src/generated/resources'
+
+repositories {
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = "Modrinth"
+                url = "https://api.modrinth.com/maven"
+            }
+        }
+        forRepositories(fg.repository) // Only add this if you're using ForgeGradle, otherwise remove this line
+        filter {
+            includeGroup "maven.modrinth"
+        }
+    }
+}
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"

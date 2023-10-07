@@ -1,221 +1,90 @@
-
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        mavenCentral()
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public' }
-        maven { url = 'https://maven.parchmentmc.org' }
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: "${forgegradle_version}", changing: true
-        classpath "org.spongepowered:mixingradle:${mixingradle_version}"
-        classpath "org.parchmentmc:librarian:${librarian_version}"
-        // Make sure this version matches the one included in Kotlin for Forge
-        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.10'
-        // OPTIONAL Gradle plugin for Kotlin Serialization
-        classpath 'org.jetbrains.kotlin:kotlin-serialization:1.6.10'
-    }
-}
 plugins {
-    id 'com.github.johnrengelman.shadow' version "${shadow_version}"
-    id 'com.matthewprenger.cursegradle' version "${cursegradle_version}"
+    id 'fabric-loom' version '1.2-SNAPSHOT' apply(false)
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)' apply(false)
+    id 'org.spongepowered.gradle.vanilla' version '0.2.1-SNAPSHOT' apply(false)
+    id("org.spongepowered.mixin") version "0.7-SNAPSHOT" apply(false)
 }
 
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'kotlin'
-apply plugin: 'kotlinx-serialization'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
-apply from: "https://raw.githubusercontent.com/thedarkcolour/KotlinForForge/site/thedarkcolour/kotlinforforge/gradle/kff-3.1.0.gradle"
+subprojects {
+    apply plugin: 'java'
 
-boolean dev = System.getenv('RELEASE') == null || System.getenv('RELEASE').equalsIgnoreCase('false');
-
-ext.buildNumber = System.getenv('BUILD_NUMBER')
-if (buildNumber == null) buildNumber = 'custom'
-
-version = "${minecraft_version}-${mod_version}" + (dev ? ".${buildNumber}" : '')
-group = 'com.jozufozu.yoyos'
-archivesBaseName = 'yoyos'
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
-minecraft {
-    mappings channel: 'parchment', version: "${parchment_version}-${minecraft_version}"
-
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-
-    runs {
-        client {
-            workingDirectory project.file('run')
-//            arg '-mixin.config=yoyos.mixins.json'
-            property 'forge.logging.console.level', 'info'
-            mods {
-                yoyos {
-                    source sourceSets.main
-                }
-            }
+    java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+    java.withSourcesJar()
+    java.withJavadocJar()
+        
+    jar {
+        from(rootProject.file("LICENSE")) {
+            rename { "${it}_${mod_name}" }
         }
-
-        server {
-            workingDirectory project.file('run/server')
-//            arg '-mixin.config=yoyos.mixins.json'
-            property 'forge.logging.console.level', 'info'
-            mods {
-                yoyos {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            args '--mod', 'yoyos', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources')
-            mods {
-                yoyos {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
-}
-
-compileJava {
-    options.compilerArgs = ['-Xdiags:verbose']
-}
-
-repositories {
-    mavenCentral()
-    maven {
-        name = "Progwml6 maven"
-        url = "https://dvs1.progwml6.com/files/maven/"
-    }
-    maven {
-        name = "ModMaven"
-        url = "https://modmaven.k-4u.nl"
-    }
-
-    maven {
-        url = 'https://minecraft.curseforge.com/api/maven/'
-    }
-
-    maven {
-        url = "https://maven.theillusivec4.top/"
-    }
-
-    maven {
-        url = "https://maven.blamejared.com"
-    }
-
-    maven {
-        url = "https://maven.tterrag.com"
-    }
-
-    maven {
-        name = 'kotlinforforge'
-        url = 'https://thedarkcolour.github.io/KotlinForForge/'
-    }
-}
-
-sourceSets.main.resources { srcDirs 'src/generated/resources/' }
-
-configurations {
-    shade
-}
-
-dependencies {
-    minecraft "net.minecraftforge:forge:$minecraft_version-$forge_version"
-
-    def registrate = "com.tterrag.registrate:Registrate:${registrate_version}"
-    implementation fg.deobf(registrate)
-    shade registrate
-
-    compileOnly fg.deobf("mezz.jei:jei-$minecraft_version:$jei_version:api")
-    runtimeOnly fg.deobf("mezz.jei:jei-$minecraft_version:$jei_version")
-
-    implementation "thedarkcolour:kotlinforforge:$kotlinforforge_version"
-
-//    runtimeOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-$mc_version-$curios_version")
-//    compileOnly fg.deobf("top.theillusivec4.curios:curios:FORGE-$mc_version-$curios_version:api")
-
-//    compileOnly fg.deobf("vazkii.patchouli:Patchouli:$mc_version-$patchouli_version:api")
-//    runtimeOnly fg.deobf("vazkii.patchouli:Patchouli:$mc_version-$patchouli_version")
-//    compileOnly fg.deobf("vazkii.botania:Botania:$botania_version")
-//    runtimeOnly fg.deobf("vazkii.botania:Botania:$botania_version")
-
-    // https://discord.com/channels/313125603924639766/725850371834118214/910619168821354497
-    // Prevent Mixin annotation processor from getting into IntelliJ's annotation processor settings
-    // This allows 'Settings > Build, Execution, and Deployment > Build Tools > Gradle > Build and run using' set to IntelliJ to work correctly
-    if (System.getProperty('idea.sync.active') != 'true') {
-        annotationProcessor "org.spongepowered:mixin:${mixin_version}:processor"
-    }
-}
-
-mixin {
-    add sourceSets.main, 'yoyos.refmap.json'
-}
-
-jar {
-    classifier = 'slim'
-    manifest {
-        attributes([
-                'Specification-Title': 'yoyos',
-                'Specification-Vendor': 'jozufozu',
-                'Specification-Version': '1',
-                'Implementation-Title': project.name,
-                'Implementation-Version': "${version}",
-                'Implementation-Vendor': 'simibubi',
+        manifest {
+            attributes([
+                'Specification-Title'     : mod_name,
+                'Specification-Vendor'    : mod_author,
+                'Specification-Version'   : project.jar.archiveVersion,
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.jar.archiveVersion,
+                'Implementation-Vendor'   : mod_author,
                 'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                'MixinConfigs': 'create.mixins.json'
-        ])
-    }
-}
-
-shadowJar {
-    classifier = ''
-    configurations = [project.configurations.shade]
-    relocate 'com.tterrag.registrate', 'com.jozufozu.yoyos.repack.registrate'
-}
-
-reobf {
-    shadowJar {}
-}
-
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allSource
-    archiveBaseName.set(project.archivesBaseName)
-    archiveVersion.set("${project.version}")
-    archiveClassifier.set('sources')
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    from javadoc.destinationDir
-    archiveClassifier.set('javadoc')
-}
-
-artifacts {
-    archives jar, shadowJar, sourcesJar, javadocJar
-}
-
-def reobfFile = file("$buildDir/reobfJar/output.jar")
-def reobfArtifact = artifacts.add('default', reobfFile) {
-    type 'jar'
-    builtBy 'reobfJar'
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact reobfArtifact
+                'Timestamp'               : System.currentTimeMillis(),
+                'Built-On-Java'           : "${System.getProperty('java.vm.version')} (${System.getProperty('java.vm.vendor')})",
+                'Built-On-Minecraft'      : minecraft_version
+            ])
         }
     }
+
+    sourcesJar {
+        from(rootProject.file("LICENSE")) {
+            rename { "${it}_${mod_name}" }
+        }
+    }
+
     repositories {
+        mavenCentral()
         maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
+            name = 'Sponge / Mixin'
+            url = 'https://repo.spongepowered.org/repository/maven-public/'
         }
+        maven {
+            name = 'BlameJared Maven (JEI / CraftTweaker / Bookshelf)'
+            url = 'https://maven.blamejared.com'
+        }
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+    
+        it.options.encoding = 'UTF-8'
+        it.options.getRelease().set(17)
+    }
+
+    processResources {
+        def expandProps = [
+                "version": version,
+                "group": project.group, //Else we target the task's group.
+                "minecraft_version": minecraft_version,
+                "forge_version": forge_version,
+                "forge_loader_version_range": forge_loader_version_range,
+                "forge_version_range": forge_version_range,
+                "minecraft_version_range": minecraft_version_range,
+                "fabric_version": fabric_version,
+                "fabric_loader_version": fabric_loader_version,
+                "mod_name": mod_name,
+                "mod_author": mod_author,
+                "mod_id": mod_id,
+                "license": license,
+                "description": project.description
+        ]
+
+        filesMatching(['pack.mcmeta', 'fabric.mod.json', 'META-INF/mods.toml', '*.mixins.json']) {
+            expand expandProps
+        }
+        inputs.properties(expandProps)
+    }
+
+    // Disables Gradle's custom module metadata from being published to maven. The
+    // metadata includes mapped dependencies which are not reasonably consumable by
+    // other mod developers.
+    tasks.withType(GenerateModuleMetadata).configureEach {
+
+        enabled = false
     }
 }

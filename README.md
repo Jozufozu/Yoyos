@@ -1,55 +1,25 @@
-# Yoyos
+# MultiLoader Template
 
-Children's toy based weaponry!
+This project provides a Gradle project template that can compile mods for both Forge and Fabric using a common sourceset. This project does not require any third party libraries or dependencies. If you have any questions or want to discuss the project join our [Discord](https://discord.myceliummod.network).
 
-Also Tinkers' Yoyos!
+## Getting Started
 
-## Crafting
+## IntelliJ IDEA
+This guide will show how to import the MultiLoader Template into IntelliJ IDEA. The setup process is roughly equivalent to setting up Forge and Fabric independently and should be very familiar to anyone who has worked with their MDKs.
 
-Yoyos need 4 of the desired material, a stick, and a chord to craft.
+1. Clone or download this repository to your computer.
+2. Configure the project by editing the `group`, `mod_name`, `mod_author`, and `mod_id` properties in the `gradle.properties` file. You will also need to change the `rootProject.name`  property in `settings.gradle`, this should match the folder name of your project, or else IDEA may complain.
+3. Open the template's root folder as a new project in IDEA. This is the folder that contains this README file and the gradlew executable.
+4. If your default JVM/JDK is not Java 17 you will encounter an error when opening the project. This error is fixed by going to `File > Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JVM`and changing the value to a valid Java 17 JVM. You will also need to set the Project SDK to Java 17. This can be done by going to `File > Project Structure > Project SDK`. Once both have been set open the Gradle tab in IDEA and click the refresh button to reload the project.
+5. Open the Gradle tab in IDEA if it has not already been opened. Navigate to `Your Project > Common > Tasks > vanilla gradle > decompile`. Run this task to decompile Minecraft.
+6. Open the Gradle tab in IDEA if it has not already been opened. Navigate to `Your Project > Forge > Tasks > forgegradle runs > genIntellijRuns`. Run this task to set up run configurations for Forge.
+7. Open your Run/Debug Configurations. Under the Application category there should now be options to run Forge and Fabric projects. Select one of the client options and try to run it.
+8. Assuming you were able to run the game in step 7 your workspace should now be set up.
 
-![alt text](http://i.imgur.com/2wCRd5m.png "Diamond can be any normal tool material")
+### Eclipse
+While it is possible to use this template in Eclipse it is not recommended. During the development of this template multiple critical bugs and quirks related to Eclipse were found at nearly every level of the required build tools. While we continue to work with these tools to report and resolve issues support for projects like these are not there yet. For now Eclipse is considered unsupported by this project. The development cycle for build tools is notoriously slow so there are no ETAs available.
 
-The cords are crafted with 8 string in a circle.
+## Development Guide
+When using this template the majority of your mod is developed in the Common project. The Common project is compiled against the vanilla game and is used to hold code that is shared between the different loader-specific versions of your mod. The Common project has no knowledge or access to ModLoader specific code, apis, or concepts. Code that requires something from a specific loader must be done through the project that is specific to that loader, such as the Forge or Fabric project.
 
-![alt text](http://i.imgur.com/VdVWe54.png "Not for your shoes")
-
-## The Shear Yoyo
-
-By combining an iron yoyo with shears, you can give the functionality of shears to your toy-weapon. It allows for the yoyo to cut grass and flowers and plants and stuff and to shear sheep and mooshroom without damaging them
-
-![alt text](http://i.imgur.com/ROVDNB7.png "Peta-approved!")
-
-## Tinkers'
-
-### Building the yoyo
-
-The yoyo is made in the tool forge using an axle, two bodies, and a cord.
-
-### Parts
-
-The cord determines how far away from you the yoyo gets.
-
-The bodies determine the damage and movement speed.
-
-The axle has a durability multiplier.
-
-Both the cord and axle have friction, which determines how long the yoyo can stay out.
-
-### Modifiers
-* Shear
-
-   Gives the behavior of the shear yoyo to any tinkers' yoyo.
-   Applied with shears.
-* Extension
-
-   Each level lengthens the yoyo's cord by 2 blocks.
-   Applied with string.
-* Floating
-
-   Makes the yoyo lighter, allowing it to move faster.
-   Applied with a pufferfish.
-* Lubricated
-
-   Allows the yoyo to spin for longer, increasing it's duration.
-   Applied with an inksack.
+Loader specific projects such as the Forge and Fabric project are used to load the Common project into the game. These projects also define code that is specific to that loader. Loader specific projects can access all of the code in the Common project. It is important to remember that the Common project can not access code from loader specific projects.

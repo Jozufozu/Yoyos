@@ -16,7 +16,7 @@
     "environment": "*",
     "entrypoints": {
         "main": [
-          "com.jozufozu.yoyos.ExampleMod"
+            "com.jozufozu.yoyos.YoyosFabric"
         ]
     },
     "mixins": [

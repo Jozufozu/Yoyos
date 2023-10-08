@@ -22,5 +22,9 @@ public class YoyosFabric implements ModInitializer {
         AllThings.REGISTER._registerItems((rl, item) -> {
             Registry.register(BuiltInRegistries.ITEM, rl, item);
         });
+
+        AllThings.REGISTER._registerEntityTypes((rl, entityType) -> {
+            Registry.register(BuiltInRegistries.ENTITY_TYPE, rl, entityType);
+        });
     }
 }

@@ -24,7 +24,7 @@ public class Yoyo extends Entity implements TraceableEntity {
     }
 
     public Yoyo(Level level, Player player) {
-        super(AllThings.YOYO_ENTITY_TYPE, level);
+        super(AllThings.YOYO_ENTITY_TYPE.get(), level);
         setOwner(player);
     }
 

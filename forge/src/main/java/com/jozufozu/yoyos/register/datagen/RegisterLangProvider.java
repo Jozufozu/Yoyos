@@ -1,13 +1,11 @@
 package com.jozufozu.yoyos.register.datagen;
 
 import com.jozufozu.yoyos.infrastructure.register.Register;
-import com.jozufozu.yoyos.infrastructure.types.Pair;
 
 import net.minecraft.data.PackOutput;
 import net.minecraftforge.common.data.LanguageProvider;
 
 public class RegisterLangProvider extends LanguageProvider {
-
     private final Register register;
 
     public RegisterLangProvider(Register register, PackOutput output, String modid, String locale) {
@@ -17,8 +15,6 @@ public class RegisterLangProvider extends LanguageProvider {
 
     @Override
     protected void addTranslations() {
-        for (Pair<String, String> langEntry : register.getLangEntries()) {
-            add(langEntry.first(), langEntry.second());
-        }
+        register.collectLang(langEntry -> add(langEntry.first(), langEntry.second()));
     }
 }

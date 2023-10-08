@@ -34,8 +34,8 @@ public class YoyosForge {
             AllThings.REGISTER._registerItems(helper::register);
         });
 
-//        event.register(ForgeRegistries.Keys.ENTITY_TYPES, helper -> {
-//            AllThings.YOYO_ENTITY_TYPE.doRegister(helper::register);
-//        });
+        event.register(ForgeRegistries.Keys.ENTITY_TYPES, helper -> {
+            AllThings.REGISTER._registerEntityTypes(helper::register);
+        });
     }
 }

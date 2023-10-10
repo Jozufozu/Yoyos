@@ -1,55 +1,64 @@
 package com.jozufozu.yoyos.infrastructure.register;
 
-import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.Objects;
 
+import com.jozufozu.yoyos.infrastructure.notnull.NotNullFunction;
+import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
 import com.jozufozu.yoyos.infrastructure.register.data.DataGen;
 import com.jozufozu.yoyos.infrastructure.register.data.ModelBuilder;
 
 import net.minecraft.Util;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
-public class ItemBuilder<T extends Item> {
-    private final Callback<Item, T> callback;
-    private final ResourceLocation rl;
-    private final Function<Item.Properties, T> factory;
+public class ItemBuilder<T extends Item> extends AbstractBuilder<Item, T, ItemBuilder<T>> {
+    private final NotNullFunction<Item.Properties, T> factory;
     private final DataGen<Item, T> dataGen = new DataGen<>();
 
-    private Supplier<Item.Properties> initialProperties = Item.Properties::new;
-    private Function<Item.Properties, Item.Properties> propertiesFunction = p -> p;
+    private NotNullSupplier<Item.Properties> initialProperties = Item.Properties::new;
+    private NotNullFunction<Item.Properties, Item.Properties> propertiesFunction = NotNullFunction.identity();
 
-    public ItemBuilder(Callback<Item, T> callback, ResourceLocation rl, Function<Item.Properties, T> factory) {
-        this.callback = callback;
-        this.rl = rl;
+    public ItemBuilder(RegistrationCallback<Item, T> registrationCallback, ResourceLocation rl, NotNullFunction<Item.Properties, T> factory) {
+        super(rl, registrationCallback, Registries.ITEM);
         this.factory = factory;
+
+        dataGen.setLang(Util.makeDescriptionId("item", name), RegUtil.toEnglishName(name));
     }
 
-    public ItemBuilder<T> initialProperties(Supplier<Item.Properties> supplier) {
+    public ItemBuilder<T> initialProperties(NotNullSupplier<Item.Properties> supplier) {
+        Objects.requireNonNull(supplier);
         initialProperties = supplier;
         return this;
     }
 
-    public ItemBuilder<T> properties(Function<Item.Properties, Item.Properties> mutator) {
+    public ItemBuilder<T> properties(NotNullFunction<Item.Properties, Item.Properties> mutator) {
+        Objects.requireNonNull(mutator);
         this.propertiesFunction = this.propertiesFunction.andThen(mutator);
         return this;
     }
 
     public ItemBuilder<T> lang(String localized) {
-        dataGen.setLang(Util.makeDescriptionId("item", rl), localized);
+        dataGen.setLang(Util.makeDescriptionId("item", name), localized);
         return this;
     }
 
+    @Override
     public ItemEntry<T> register() {
-        var supplier = callback.markForRegistration(rl, creator(), dataGen);
-        return new ItemEntry<>(rl, supplier);
+        return (ItemEntry<T>) super.register();
     }
 
-    public Supplier<T> creator() {
-        return () -> factory.apply(createAndMutateProperties());
+    @Override
+    protected ItemEntry<T> wrap(Register.Promise<T> promise) {
+        return new ItemEntry<>(promise);
     }
 
-    public ItemBuilder<T> model(Function<ModelBuilder, ModelBuilder> mutator) {
+    @Override
+    protected T create() {
+        return factory.apply(createAndMutateProperties());
+    }
+
+    public ItemBuilder<T> model(NotNullFunction<ModelBuilder, ModelBuilder> mutator) {
         dataGen.model(mutator);
         return this;
     }

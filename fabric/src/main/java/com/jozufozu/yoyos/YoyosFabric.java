@@ -5,6 +5,7 @@ import com.jozufozu.yoyos.core.AllThings;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 
 public class YoyosFabric implements ModInitializer {
     
@@ -19,12 +20,12 @@ public class YoyosFabric implements ModInitializer {
         Constants.LOG.info("Hello Fabric world!");
         Yoyos.init();
 
-        AllThings.REGISTER._registerItems((rl, item) -> {
+        AllThings.REGISTER._register(Registries.ITEM, (rl, item) -> {
             Registry.register(BuiltInRegistries.ITEM, rl, item);
         });
 
-        AllThings.REGISTER._registerEntityTypes((rl, entityType) -> {
-            Registry.register(BuiltInRegistries.ENTITY_TYPE, rl, entityType);
+        AllThings.REGISTER._register(Registries.ENTITY_TYPE, (rl, item) -> {
+            Registry.register(BuiltInRegistries.ENTITY_TYPE, rl, item);
         });
     }
 }

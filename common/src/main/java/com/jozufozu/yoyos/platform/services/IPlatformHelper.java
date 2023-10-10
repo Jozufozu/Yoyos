@@ -1,5 +1,7 @@
 package com.jozufozu.yoyos.platform.services;
 
+import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
+
 public interface IPlatformHelper {
 
     /**
@@ -8,6 +10,8 @@ public interface IPlatformHelper {
      * @return The name of the current platform.
      */
     String getPlatformName();
+
+    void runOnClient(NotNullSupplier<Runnable> run);
 
     /**
      * Checks if a mod with the given id is loaded.

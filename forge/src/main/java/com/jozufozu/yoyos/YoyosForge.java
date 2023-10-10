@@ -31,11 +31,11 @@ public class YoyosForge {
 
     public void register(RegisterEvent event) {
         event.register(ForgeRegistries.Keys.ITEMS, helper -> {
-            AllThings.REGISTER._registerItems(helper::register);
+            AllThings.REGISTER._register(ForgeRegistries.Keys.ITEMS, helper::register);
         });
 
         event.register(ForgeRegistries.Keys.ENTITY_TYPES, helper -> {
-            AllThings.REGISTER._registerEntityTypes(helper::register);
+            AllThings.REGISTER._register(ForgeRegistries.Keys.ENTITY_TYPES, helper::register);
         });
     }
 }

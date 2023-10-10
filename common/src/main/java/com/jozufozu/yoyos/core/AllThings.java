@@ -1,7 +1,7 @@
 package com.jozufozu.yoyos.core;
 
 import com.jozufozu.yoyos.Constants;
-import com.jozufozu.yoyos.infrastructure.register.EntityTypeEntry;
+import com.jozufozu.yoyos.infrastructure.register.EntityEntry;
 import com.jozufozu.yoyos.infrastructure.register.ItemEntry;
 import com.jozufozu.yoyos.infrastructure.register.Register;
 
@@ -17,9 +17,10 @@ public class AllThings {
         .model(p -> p.parentModel(p.mcLoc("item/handheld")))
         .register();
 
-    public static EntityTypeEntry<Yoyo> YOYO_ENTITY_TYPE = REGISTER.<Yoyo>entityType("yoyo", Yoyo::new, MobCategory.MISC)
-        .and(b -> b.sized(0.25F, 0.25F)
+    public static EntityEntry<Yoyo> YOYO_ENTITY_TYPE = REGISTER.<Yoyo>entity("yoyo", Yoyo::new, MobCategory.MISC)
+        .properties(b -> b.sized(0.25F, 0.25F)
             .clientTrackingRange(4)
             .updateInterval(10))
+        .renderer(() -> YoyoRenderer::new)
         .register();
 }

@@ -1,20 +1,19 @@
 package com.jozufozu.yoyos.infrastructure.register;
 
-import java.util.function.Supplier;
+import org.jetbrains.annotations.NotNull;
 
-import net.minecraft.resources.ResourceLocation;
+import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
 
-public class Entry<T> implements Supplier<T> {
-    private final ResourceLocation loc;
-    private final Supplier<T> supplier;
+public class Entry<T> implements NotNullSupplier<T> {
+    private final Register.Promise<T> promise;
 
-    protected Entry(ResourceLocation loc, Supplier<T> supplier) {
-        this.loc = loc;
-        this.supplier = supplier;
+    protected Entry(Register.Promise<T> promise) {
+        this.promise = promise;
     }
 
     @Override
+    @NotNull
     public T get() {
-        return supplier.get();
+        return promise.get();
     }
 }

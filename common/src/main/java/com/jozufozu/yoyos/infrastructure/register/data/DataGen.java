@@ -1,16 +1,16 @@
 package com.jozufozu.yoyos.infrastructure.register.data;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
+import com.jozufozu.yoyos.infrastructure.notnull.NotNullFunction;
 import com.jozufozu.yoyos.infrastructure.register.Register;
 import com.jozufozu.yoyos.infrastructure.types.Pair;
 
 public class DataGen<R, T extends R> {
     private Pair<String, String> primaryLang;
-    private Register.Future<T> registerFuture;
+    private Register.Promise<T> registerPromise;
 
-    private Function<ModelBuilder, ModelBuilder> modelBuilderFunction = b -> b;
+    private NotNullFunction<ModelBuilder, ModelBuilder> modelBuilderFunction = NotNullFunction.identity();
 
     public void setLang(String key, String value) {
         primaryLang = new Pair<>(key, value);
@@ -22,15 +22,15 @@ public class DataGen<R, T extends R> {
         }
     }
 
-    public void inject(Register.Future<T> registerFuture) {
-        this.registerFuture = registerFuture;
+    public void inject(Register.Promise<T> registerPromise) {
+        this.registerPromise = registerPromise;
     }
 
     public T get() {
-        return registerFuture.get();
+        return registerPromise.get();
     }
 
-    public void model(Function<ModelBuilder, ModelBuilder> mutator) {
+    public void model(NotNullFunction<ModelBuilder, ModelBuilder> mutator) {
         modelBuilderFunction = modelBuilderFunction.andThen(mutator);
     }
 

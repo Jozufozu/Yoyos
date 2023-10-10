@@ -49,6 +49,11 @@ subprojects {
             url = 'https://maven.blamejared.com'
         }
 
+        maven {
+            name = "Modrinth"
+            url = "https://api.modrinth.com/maven"
+        }
+
         exclusiveContent {
             forRepository {
                 maven {

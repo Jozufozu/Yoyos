@@ -20,6 +20,7 @@ public class YoyoItem extends TieredItem {
 
         if (!level.isClientSide) {
             var yoyo = new Yoyo(level, player);
+            yoyo.onThrow();
             yoyo.setItem(stack);
             level.addFreshEntity(yoyo);
         }

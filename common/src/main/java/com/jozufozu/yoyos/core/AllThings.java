@@ -19,8 +19,8 @@ public class AllThings {
 
     public static EntityEntry<Yoyo> YOYO_ENTITY_TYPE = REGISTER.<Yoyo>entity("yoyo", Yoyo::new, MobCategory.MISC)
         .properties(b -> b.sized(0.25F, 0.25F)
-            .clientTrackingRange(4)
-            .updateInterval(10))
+            .clientTrackingRange(8)
+            .updateInterval(1))
         .renderer(() -> YoyoRenderer::new)
         .register();
 }

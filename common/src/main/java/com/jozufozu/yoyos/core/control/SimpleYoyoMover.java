@@ -1,5 +1,6 @@
 package com.jozufozu.yoyos.core.control;
 
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
@@ -10,7 +11,10 @@ import com.jozufozu.yoyos.core.Yoyo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 public class SimpleYoyoMover {
@@ -42,7 +46,7 @@ public class SimpleYoyoMover {
         yoyo.setPos(yoyo.position().add(motion.x, motion.y, motion.z));
 
         var entities = yoyo.level()
-            .getEntities(yoyo, getAttackBoundingBox(yoyo), getAttackEntitySelector(yoyo));
+            .getEntities(yoyo, getAttackBoundingBox(yoyo), getCollisionPredicate(yoyo));
 
         collisionCollector.markHit(entities);
     }
@@ -55,13 +59,55 @@ public class SimpleYoyoMover {
             return null;
         }
 
-        var ownerEyes = owner.getEyePosition();
+        // Mostly copied from ProjectileUtil
 
-        var lookVec = owner.getLookAngle();
+        Vec3 lookVec = owner.getViewVector(0.0F).scale(targetDistance);
+        Level level = owner.level();
+        Vec3 eyePos = owner.getEyePosition();
+        Vec3 maxTarget = eyePos.add(lookVec);
 
-        var maxLook = ownerEyes.add(lookVec.scale(targetDistance));
-        var hitResult = yoyo.level()
-            .clip(new ClipContext(ownerEyes, maxLook, ClipContext.Block.VISUAL, ClipContext.Fluid.NONE, yoyo));
+        // check blocks
+        HitResult hitResult = level.clip(new ClipContext(eyePos, maxTarget, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, owner));
+        if (hitResult.getType() != HitResult.Type.MISS) {
+            maxTarget = hitResult.getLocation();
+        }
+
+        // check entities
+        AABB searchBounds = owner.getBoundingBox().expandTowards(lookVec).inflate(1.0);
+        double closestSeenDistance = targetDistance;
+        Entity closestSeenEntity = null;
+        Vec3 closestSeenPosition = null;
+
+        for(Entity entity : level.getEntities(owner, searchBounds, getCollisionPredicate(yoyo))) {
+            AABB checkBounds = entity.getBoundingBox().inflate(entity.getPickRadius());
+            Optional<Vec3> maybeHit = checkBounds.clip(eyePos, maxTarget);
+            if (checkBounds.contains(eyePos)) {
+                if (closestSeenDistance >= 0.0) {
+                    closestSeenEntity = entity;
+                    closestSeenPosition = maybeHit.orElse(eyePos);
+                    closestSeenDistance = 0.0;
+                }
+            } else if (maybeHit.isPresent()) {
+                Vec3 hitPos = maybeHit.get();
+                double distance = eyePos.distanceToSqr(hitPos);
+                if (distance < closestSeenDistance || closestSeenDistance == 0.0) {
+                    if (entity.getRootVehicle() == owner.getRootVehicle()) {
+                        if (closestSeenDistance == 0.0) {
+                            closestSeenEntity = entity;
+                            closestSeenPosition = hitPos;
+                        }
+                    } else {
+                        closestSeenEntity = entity;
+                        closestSeenPosition = hitPos;
+                        closestSeenDistance = distance;
+                    }
+                }
+            }
+        }
+
+        if (closestSeenEntity != null) {
+            hitResult = new EntityHitResult(closestSeenEntity, closestSeenPosition);
+        }
 
         return hitResult.getLocation();
     }
@@ -70,7 +116,7 @@ public class SimpleYoyoMover {
         return yoyo.getBoundingBox().inflate(0.1);
     }
 
-    private Predicate<Entity> getAttackEntitySelector(Yoyo yoyo) {
-        return EntitySelector.NO_SPECTATORS.and(entity -> entity != yoyo.getOwner());
+    private Predicate<Entity> getCollisionPredicate(Yoyo yoyo) {
+        return EntitySelector.NO_SPECTATORS.and(entity -> entity != yoyo && entity != yoyo.getOwner());
     }
 }

@@ -15,6 +15,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TraceableEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.scores.Team;
 
 public class Yoyo extends Entity implements TraceableEntity {
     @Nullable
@@ -127,5 +128,12 @@ public class Yoyo extends Entity implements TraceableEntity {
     @Override
     public boolean shouldRender(double $$0, double $$1, double $$2) {
         return true;
+    }
+
+    @Nullable
+    @Override
+    public Team getTeam() {
+        var owner = getOwner();
+        return owner != null ? owner.getTeam() : super.getTeam();
     }
 }

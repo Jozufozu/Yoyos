@@ -25,6 +25,8 @@ public class YoyoRenderer<T extends Yoyo> extends EntityRenderer<T> {
 
         poseStack.pushPose();
 
+        var dimensions = yoyo.getDimensions(null);
+        poseStack.translate(-dimensions.width / 2, 0, -dimensions.width / 2);
         poseStack.scale(0.25f, 0.25f, 0.25f);
 
         blockRenderer.renderSingleBlock(Blocks.DIAMOND_BLOCK.defaultBlockState(), poseStack, multiBufferSource, light, OverlayTexture.NO_OVERLAY);

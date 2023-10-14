@@ -1,5 +1,9 @@
 package com.jozufozu.yoyos.core;
 
+import com.jozufozu.yoyos.core.control.SimpleYoyoCollider;
+import com.jozufozu.yoyos.core.control.SimpleYoyoController;
+import com.jozufozu.yoyos.core.control.SimpleYoyoMover;
+
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -19,9 +23,12 @@ public class YoyoItem extends TieredItem {
         var stack = player.getItemInHand(hand);
 
         if (!level.isClientSide) {
-            var yoyo = new Yoyo(level, player);
+            var yoyo = new Yoyo(level);
+            yoyo.setOwner(player);
+            yoyo.setController(new SimpleYoyoController(new SimpleYoyoMover(), new SimpleYoyoCollider()));
+            yoyo.setYoyoStack(stack);
             yoyo.onThrow();
-            yoyo.setItem(stack);
+
             level.addFreshEntity(yoyo);
         }
 

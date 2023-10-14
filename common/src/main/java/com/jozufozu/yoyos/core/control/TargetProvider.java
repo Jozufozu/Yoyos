@@ -1,4 +1,4 @@
-package com.jozufozu.yoyos.core;
+package com.jozufozu.yoyos.core.control;
 
 
 import org.jetbrains.annotations.Nullable;

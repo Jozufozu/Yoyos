@@ -21,7 +21,7 @@ public class CollisionCollector implements Iterable<Entity> {
         return entities.iterator();
     }
 
-    public void markHit(List<Entity> entities) {
-        this.entities.addAll(entities);
+    public void markHit(Entity entity) {
+        this.entities.add(entity);
     }
 }

@@ -1,6 +1,7 @@
 package com.jozufozu.yoyos.core.control;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
@@ -8,6 +9,7 @@ import org.joml.Vector3d;
 
 import com.jozufozu.yoyos.core.Yoyo;
 
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.level.ClipContext;
@@ -23,10 +25,10 @@ public class SimpleYoyoMover {
 
     private final Vector3d motion = new Vector3d();
 
-    public void tick(Yoyo yoyo, CollisionCollector collisionCollector) {
+    public void tick(Yoyo yoyo, Consumer<Entity> collisionCollector) {
         chaseTarget(yoyo);
 
-        applyMotion(yoyo, collisionCollector);
+        integrateMotion(yoyo, collisionCollector);
     }
 
     private void chaseTarget(Yoyo yoyo) {
@@ -42,13 +44,59 @@ public class SimpleYoyoMover {
             .mul(0.15 + 0.85 * Math.pow(1.1, -(weight * weight)));
     }
 
-    private void applyMotion(Yoyo yoyo, CollisionCollector collisionCollector) {
+    private void applyMotion(Yoyo yoyo, Consumer<Entity> collisionCollector) {
         yoyo.setPos(yoyo.position().add(motion.x, motion.y, motion.z));
 
         var entities = yoyo.level()
             .getEntities(yoyo, getAttackBoundingBox(yoyo), getCollisionPredicate(yoyo));
 
-        collisionCollector.markHit(entities);
+        entities.forEach(collisionCollector);
+    }
+
+    private void integrateMotion(Yoyo yoyo, Consumer<Entity> collisionCollector) {
+        var start = yoyo.position();
+        var end = start.add(motion.x, motion.y, motion.z);
+        var delta = end.subtract(start);
+        var dir = delta.normalize();
+
+        var searchBox = yoyo.getBoundingBox().minmax(yoyo.getBoundingBox().move(delta))
+            .inflate(1);
+
+        var entities = yoyo.level()
+            .getEntities(yoyo, searchBox, getCollisionPredicate(yoyo));
+
+        if (!entities.isEmpty()) {
+            double distance = delta.length();
+
+            // TODO: replace with mathy collision detection based on the prism between the start and end bounding box.
+            double stepsPerBlock = 64.;
+
+            int numberOfSteps = Mth.ceil(distance * stepsPerBlock);
+
+            var increment = dir.scale(1. / stepsPerBlock);
+            var accumulate = Vec3.ZERO;
+            for (int i = 0; i < numberOfSteps && !entities.isEmpty(); i++) {
+                var boxThisStep = yoyo.getBoundingBox()
+                    .move(accumulate);
+
+                // Iterate using removeIf to filter the list as we go.
+                entities.removeIf(entity -> {
+                    var entityBox = entity.getBoundingBox();
+
+                    if (entityBox.intersects(boxThisStep)) {
+                        collisionCollector.accept(entity);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+
+                accumulate = accumulate.add(increment);
+            }
+        }
+
+        yoyo.setPos(end);
+        yoyo.setDeltaMovement(motion.x, motion.y, motion.z);
     }
 
     @Nullable
@@ -74,32 +122,32 @@ public class SimpleYoyoMover {
 
         // check entities
         AABB searchBounds = owner.getBoundingBox().expandTowards(lookVec).inflate(1.0);
-        double closestSeenDistance = targetDistance;
+        double closestSeenDistanceSqr = targetDistance * targetDistance;
         Entity closestSeenEntity = null;
         Vec3 closestSeenPosition = null;
 
-        for(Entity entity : level.getEntities(owner, searchBounds, getCollisionPredicate(yoyo))) {
+        for (Entity entity : level.getEntities(owner, searchBounds, getCollisionPredicate(yoyo))) {
             AABB checkBounds = entity.getBoundingBox().inflate(entity.getPickRadius());
             Optional<Vec3> maybeHit = checkBounds.clip(eyePos, maxTarget);
             if (checkBounds.contains(eyePos)) {
-                if (closestSeenDistance >= 0.0) {
+                if (closestSeenDistanceSqr >= 0.0) {
                     closestSeenEntity = entity;
                     closestSeenPosition = maybeHit.orElse(eyePos);
-                    closestSeenDistance = 0.0;
+                    closestSeenDistanceSqr = 0.0;
                 }
             } else if (maybeHit.isPresent()) {
                 Vec3 hitPos = maybeHit.get();
-                double distance = eyePos.distanceToSqr(hitPos);
-                if (distance < closestSeenDistance || closestSeenDistance == 0.0) {
+                double distanceSqr = eyePos.distanceToSqr(hitPos);
+                if (distanceSqr < closestSeenDistanceSqr || closestSeenDistanceSqr == 0.0) {
                     if (entity.getRootVehicle() == owner.getRootVehicle()) {
-                        if (closestSeenDistance == 0.0) {
+                        if (closestSeenDistanceSqr == 0.0) {
                             closestSeenEntity = entity;
                             closestSeenPosition = hitPos;
                         }
                     } else {
                         closestSeenEntity = entity;
                         closestSeenPosition = hitPos;
-                        closestSeenDistance = distance;
+                        closestSeenDistanceSqr = distanceSqr;
                     }
                 }
             }

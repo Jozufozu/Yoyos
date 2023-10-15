@@ -7,9 +7,14 @@ import net.minecraft.world.entity.Entity;
 public record SimpleYoyoController(SimpleYoyoMover mover, SimpleYoyoCollider simpleYoyoCollider) {
 
     public void tick(Yoyo yoyo) {
+        if (yoyo.level().isClientSide) {
+            mover.tick(yoyo, $ -> {});
+            return;
+        }
+
         var collisionCollector = new CollisionCollector();
 
-        mover.tick(yoyo, collisionCollector);
+        mover.tick(yoyo, collisionCollector::markHit);
 
         simpleYoyoCollider.tick(yoyo, collisionCollector);
     }

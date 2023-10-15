@@ -2,22 +2,33 @@ package com.jozufozu.yoyos.core;
 
 import java.util.UUID;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.jozufozu.yoyos.core.control.SimpleYoyoCollider;
 import com.jozufozu.yoyos.core.control.SimpleYoyoController;
+import com.jozufozu.yoyos.core.control.SimpleYoyoMover;
+import com.jozufozu.yoyos.infrastructure.EntityDataHolder;
 
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TraceableEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.scores.Team;
 
 public class Yoyo extends Entity implements TraceableEntity {
+    private static final EntityDataAccessor<ItemStack> DATA_ITEM_STACK = SynchedEntityData.defineId(Yoyo.class, EntityDataSerializers.ITEM_STACK);
+
     @Nullable
     private UUID ownerUUID;
     @Nullable
@@ -25,11 +36,11 @@ public class Yoyo extends Entity implements TraceableEntity {
     @Nullable
     private SimpleYoyoController controller;
 
-    @NotNull
-    private ItemStack yoyoStack = ItemStack.EMPTY;
+    private final EntityDataHolder<ItemStack> yoyoStack = new EntityDataHolder<>(this, DATA_ITEM_STACK);
 
     public Yoyo(EntityType<? extends Yoyo> entityType, Level level) {
         super(entityType, level);
+        setController(new SimpleYoyoController(new SimpleYoyoMover(), new SimpleYoyoCollider()));
     }
 
     public Yoyo(Level level) {
@@ -46,7 +57,7 @@ public class Yoyo extends Entity implements TraceableEntity {
         super.tick();
 
         var controller = getController();
-        if (controller != null && !level().isClientSide) {
+        if (controller != null) {
             controller.tick(this);
         }
     }
@@ -60,12 +71,12 @@ public class Yoyo extends Entity implements TraceableEntity {
      * @return true if this yoyo has reached an invalid state and should be removed.
      */
     private boolean shouldDiscard() {
-        return yoyoStack.isEmpty() || getOwner() == null || getController() == null || !isStillHeld();
+        return getYoyoStack().isEmpty() || getOwner() == null || getController() == null || !isStillHeld();
     }
 
     private boolean isStillHeld() {
         if (getOwner() instanceof LivingEntity living) {
-            return yoyoStack.equals(living.getMainHandItem()) || yoyoStack.equals(living.getOffhandItem());
+            return getYoyoStack().equals(living.getMainHandItem()) || getYoyoStack().equals(living.getOffhandItem());
         }
         return false;
     }
@@ -75,7 +86,11 @@ public class Yoyo extends Entity implements TraceableEntity {
     }
 
     public void setYoyoStack(ItemStack yoyoStack) {
-        this.yoyoStack = yoyoStack;
+        this.yoyoStack.set(yoyoStack);
+    }
+
+    public ItemStack getYoyoStack() {
+        return this.yoyoStack.get();
     }
 
     public void onThrow() {
@@ -112,21 +127,41 @@ public class Yoyo extends Entity implements TraceableEntity {
 
     @Override
     protected void defineSynchedData() {
-
+        this.getEntityData().define(DATA_ITEM_STACK, ItemStack.EMPTY);
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag var1) {
-
+    protected void addAdditionalSaveData(CompoundTag tag) {
+        if (this.ownerUUID != null) {
+            tag.putUUID("Owner", this.ownerUUID);
+        }
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag var1) {
-
+    protected void readAdditionalSaveData(CompoundTag tag) {
+        if (tag.hasUUID("Owner")) {
+            this.ownerUUID = tag.getUUID("Owner");
+            this.cachedOwner = null;
+        }
     }
 
     @Override
-    public boolean shouldRender(double $$0, double $$1, double $$2) {
+    public Packet<ClientGamePacketListener> getAddEntityPacket() {
+        Entity owner = this.getOwner();
+        return new ClientboundAddEntityPacket(this, owner == null ? 0 : owner.getId());
+    }
+
+    @Override
+    public void recreateFromPacket(ClientboundAddEntityPacket packet) {
+        super.recreateFromPacket(packet);
+        Entity owner = this.level().getEntity(packet.getData());
+        if (owner != null) {
+            this.setOwner(owner);
+        }
+    }
+
+    @Override
+    public boolean shouldRender(double cameraX, double cameraY, double cameraZ) {
         return true;
     }
 
@@ -135,5 +170,15 @@ public class Yoyo extends Entity implements TraceableEntity {
     public Team getTeam() {
         var owner = getOwner();
         return owner != null ? owner.getTeam() : super.getTeam();
+    }
+
+    @Override
+    public boolean isControlledByLocalInstance() {
+        // Prevent janky motion caused by packets arriving a few ticks late.
+        if (getOwner() instanceof Player player) {
+            return player.isLocalPlayer();
+        } else {
+            return false;
+        }
     }
 }

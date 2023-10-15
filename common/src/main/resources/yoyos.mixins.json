@@ -7,8 +7,7 @@
     "mixins": [
     ],
     "client": [
-        "EntityRenderersMixin",
-        "MixinMinecraft"
+        "EntityRenderersInvoker"
     ],
     "server": [
     ],

@@ -9,7 +9,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 
 @Mixin(EntityRenderers.class)
-public interface EntityRenderersMixin {
+public interface EntityRenderersInvoker {
     @Invoker("register")
     static <T extends Entity> void register(EntityType<? extends T> entityType, EntityRendererProvider<T> rendererProvider) {
     }

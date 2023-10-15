@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullFunction;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
-import com.jozufozu.yoyos.mixin.EntityRenderersMixin;
+import com.jozufozu.yoyos.mixin.EntityRenderersInvoker;
 import com.jozufozu.yoyos.platform.Services;
 
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -38,7 +38,7 @@ public class EntityBuilder<T extends Entity> extends AbstractBuilder<EntityType<
 
         if (renderer == null) {
             onRegister(entityType -> Services.PLATFORM.runOnClient(() -> () -> {
-                EntityRenderersMixin.register(entityType, this.renderer.get());
+                EntityRenderersInvoker.register(entityType, this.renderer.get());
             }));
         }
 

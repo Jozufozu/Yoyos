@@ -11,6 +11,10 @@ public interface IPlatformHelper {
      */
     String getPlatformName();
 
+    /**
+     * Get and execute the given Runnable if we're running on the logical client.
+     * @param run A supplier providing the Runnable to execute.
+     */
     void runOnClient(NotNullSupplier<Runnable> run);
 
     /**

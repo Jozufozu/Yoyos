@@ -9,8 +9,7 @@ import net.minecraft.data.DataProvider;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
 
-public class Datagenner {
-
+public class YoyosDatagen {
     private static final String EN_US = "en_us";
 
     public static void gatherData(GatherDataEvent event) {

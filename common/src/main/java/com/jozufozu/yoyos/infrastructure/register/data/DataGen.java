@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullFunction;
 import com.jozufozu.yoyos.infrastructure.register.Register;
-import com.jozufozu.yoyos.infrastructure.types.Pair;
+import com.jozufozu.yoyos.infrastructure.util.Pair;
 
 public class DataGen<R, T extends R> {
     private Pair<String, String> primaryLang;

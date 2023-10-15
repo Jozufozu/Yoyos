@@ -1,4 +1,4 @@
-package com.jozufozu.yoyos.infrastructure;
+package com.jozufozu.yoyos.infrastructure.util;
 
 import com.jozufozu.yoyos.core.Yoyo;
 

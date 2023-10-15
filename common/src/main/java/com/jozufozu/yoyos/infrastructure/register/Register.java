@@ -14,7 +14,7 @@ import com.jozufozu.yoyos.infrastructure.notnull.NotNullConsumer;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullFunction;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
 import com.jozufozu.yoyos.infrastructure.register.data.DataGen;
-import com.jozufozu.yoyos.infrastructure.types.Pair;
+import com.jozufozu.yoyos.infrastructure.util.Pair;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;

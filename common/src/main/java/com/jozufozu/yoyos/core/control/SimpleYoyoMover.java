@@ -1,83 +1,137 @@
 package com.jozufozu.yoyos.core.control;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 
 import com.jozufozu.yoyos.core.Yoyo;
+import com.jozufozu.yoyos.infrastructure.util.JomlUtil;
 
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.level.ClipContext;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 
 public class SimpleYoyoMover {
+    // How far away from the player we try to be.
     private final float targetDistance = 8;
-    private final float weight = 1;
 
-    private final Vector3d motion = new Vector3d();
+    // Arbitrary unit. How heavy we are.
+    private final double mass = 3;
+    private final double invMass = 1. / mass;
+
+
+    // Arbitrary unit. How heavy the player is.
+    private final double playerMass = 64;
+
+    // The velocity of this yoyo. Persists between ticks and only changes when a force is applied.
+    private final Vector3d velocity = new Vector3d();
+
+    // The eye position of our owner.
+    private final Vector3d eyePos = new Vector3d();
+
+    // Where we should be.
+    private final Vector3d targetPos = new Vector3d();
+
+    // Where we are.
+    private final Vector3d ourPos = new Vector3d();
+
+    // Pre-allocated scratch vectors for misc math that can't mutate the above.
+    // Only A is needed in most cases, but for motion stepping we need both.
+    private final Vector3d scratchA = new Vector3d();
+    private final Vector3d scratchB = new Vector3d();
 
     public void tick(Yoyo yoyo, Consumer<Entity> collisionCollector) {
-        chaseTarget(yoyo);
+        yoyo.getCenterPos(ourPos);
+        updateTargetAndEye(yoyo);
+
+        applyTargetingForce();
+
+        applyOutwardForce();
+
+        applyDrag();
+
+        applyNearDrag();
+
+        constrainWithinDistance();
 
         integrateMotion(yoyo, collisionCollector);
     }
 
-    private void chaseTarget(Yoyo yoyo) {
-        var target = getTarget(yoyo);
-
-        if (target == null) {
-            return;
-        }
-
-        var pos = yoyo.position();
-        motion.set(target.x, target.y, target.z)
-            .sub(pos.x, pos.y + yoyo.getBbHeight() / 2, pos.z)
-            .mul(0.15 + 0.85 * Math.pow(1.1, -(weight * weight)));
+    // Apply a constant outward force. Helps to stabilize the yoyo.
+    private void applyOutwardForce() {
+        scratchA.set(ourPos)
+            .sub(eyePos)
+            .normalize(0.01 * invMass)
+            .add(velocity, velocity);
     }
 
-    private void applyMotion(Yoyo yoyo, Consumer<Entity> collisionCollector) {
-        yoyo.setPos(yoyo.position().add(motion.x, motion.y, motion.z));
+    // Apply drag to simulate air resistance and smooth out motion.
+    private void applyDrag() {
+        var v2 = velocity.lengthSquared();
+        var f = v2 / 2. * (0.25 * 0.25) * 25.;
 
-        var entities = yoyo.level()
-            .getEntities(yoyo, getAttackBoundingBox(yoyo), getCollisionPredicate(yoyo));
+        scratchA.set(velocity)
+            .normalize(-f * invMass)
+            .add(velocity, velocity);
+    }
 
-        entities.forEach(collisionCollector);
+    // Near drag and targeting - the two main forces dictating movement
+    // https://www.desmos.com/calculator/stdprtgsoh
+
+    // Apply a force counteracting motion when near the target.
+    private void applyNearDrag() {
+        scratchA.set(targetPos)
+            .sub(ourPos);
+
+        double d2 = scratchA.lengthSquared();
+        double f = -Math.pow(100, -d2);
+
+        scratchA.set(velocity)
+            .mul(f * invMass)
+            .add(velocity, velocity);
+    }
+
+    // Apply the force that pushes this yoyo towards where our owner is looking.
+    private void applyTargetingForce() {
+        scratchA.set(targetPos)
+            .sub(ourPos);
+
+        double d2 = scratchA.lengthSquared();
+        double d = Math.sqrt(d2);
+        double d4 = d2 * d2;
+
+        double f = 1 - Math.pow(10, -d4) + d / 4.;
+
+        scratchA.normalize(f * invMass)
+            .add(velocity, velocity);
     }
 
     private void integrateMotion(Yoyo yoyo, Consumer<Entity> collisionCollector) {
-        var start = yoyo.position();
-        var end = start.add(motion.x, motion.y, motion.z);
-        var delta = end.subtract(start);
-        var dir = delta.normalize();
-
-        var searchBox = yoyo.getBoundingBox().minmax(yoyo.getBoundingBox().move(delta))
+        var collisionBox = yoyo.getBoundingBox().inflate(0.2);
+        var searchBox = collisionBox.minmax(collisionBox.move(velocity.x, velocity.y, velocity.z))
             .inflate(1);
 
         var entities = yoyo.level()
             .getEntities(yoyo, searchBox, getCollisionPredicate(yoyo));
 
         if (!entities.isEmpty()) {
-            double distance = delta.length();
-
             // TODO: replace with mathy collision detection based on the prism between the start and end bounding box.
             double stepsPerBlock = 64.;
 
-            int numberOfSteps = Mth.ceil(distance * stepsPerBlock);
+            int numberOfSteps = Mth.ceil(velocity.length() * stepsPerBlock);
 
-            var increment = dir.scale(1. / stepsPerBlock);
-            var accumulate = Vec3.ZERO;
+            var stepVec = scratchA.set(velocity)
+                .normalize()
+                .div(stepsPerBlock);
+
+            var checkVec = scratchB.zero();
+
             for (int i = 0; i < numberOfSteps && !entities.isEmpty(); i++) {
-                var boxThisStep = yoyo.getBoundingBox()
-                    .move(accumulate);
+                var boxThisStep = collisionBox.move(checkVec.x, checkVec.y, checkVec.z);
 
                 // Iterate using removeIf to filter the list as we go.
                 entities.removeIf(entity -> {
@@ -91,80 +145,100 @@ public class SimpleYoyoMover {
                     }
                 });
 
-                accumulate = accumulate.add(increment);
+                checkVec.add(stepVec);
             }
         }
 
-        yoyo.setPos(end);
-        yoyo.setDeltaMovement(motion.x, motion.y, motion.z);
+        scratchA.set(ourPos)
+            .add(velocity);
+
+        yoyo.setCenterPos(scratchA);
+        yoyo.setDeltaMovement(velocity.x, velocity.y, velocity.z);
     }
 
-    @Nullable
-    private Vec3 getTarget(Yoyo yoyo) {
+    private void constrainWithinDistance() {
+        var nextDistance = scratchA.set(ourPos)
+            .add(velocity)
+            .distance(eyePos);
+
+        if (nextDistance > targetDistance) {
+
+            // add an impulse to bring us back to the target distance.
+            scratchA.sub(eyePos)
+                .normalize(targetDistance - nextDistance)
+                .add(velocity, velocity);
+        }
+    }
+
+    private void updateTargetAndEye(Yoyo yoyo) {
         var owner = yoyo.getOwner();
 
         if (owner == null) {
-            return null;
+            return;
         }
 
-        // Mostly copied from ProjectileUtil
+        // Mostly copied from ProjectileUtil, adapted for JOML
 
-        Vec3 lookVec = owner.getViewVector(0.0F).scale(targetDistance);
-        Level level = owner.level();
-        Vec3 eyePos = owner.getEyePosition();
-        Vec3 maxTarget = eyePos.add(lookVec);
+        setEyePos(owner);
+
+        JomlUtil.storeEntityViewVec(scratchA, owner, 0)
+            .mul(targetDistance);
+
+        AABB entitySearchBounds = owner.getBoundingBox()
+            .expandTowards(scratchA.x, scratchA.y, scratchA.z)
+            .inflate(1.0);
+
+        targetPos.set(eyePos)
+            .add(scratchA);
 
         // check blocks
-        HitResult hitResult = level.clip(new ClipContext(eyePos, maxTarget, ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, owner));
+        var level = yoyo.level();
+        HitResult hitResult = level.clip(new ClipContext(JomlUtil.mVec(eyePos), JomlUtil.mVec(targetPos), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, owner));
         if (hitResult.getType() != HitResult.Type.MISS) {
-            maxTarget = hitResult.getLocation();
+            JomlUtil.set(targetPos, hitResult.getLocation());
         }
 
         // check entities
-        AABB searchBounds = owner.getBoundingBox().expandTowards(lookVec).inflate(1.0);
-        double closestSeenDistanceSqr = targetDistance * targetDistance;
-        Entity closestSeenEntity = null;
-        Vec3 closestSeenPosition = null;
+        double closestSeenDistanceSqr = targetPos.distanceSquared(eyePos);
 
-        for (Entity entity : level.getEntities(owner, searchBounds, getCollisionPredicate(yoyo))) {
+        for (Entity entity : level.getEntities(owner, entitySearchBounds, getCollisionPredicate(yoyo))) {
             AABB checkBounds = entity.getBoundingBox().inflate(entity.getPickRadius());
-            Optional<Vec3> maybeHit = checkBounds.clip(eyePos, maxTarget);
-            if (checkBounds.contains(eyePos)) {
+
+            boolean hit = JomlUtil.clip(checkBounds, eyePos, targetPos, scratchA);
+
+            if (checkBounds.contains(eyePos.x, eyePos.y, eyePos.z)) {
                 if (closestSeenDistanceSqr >= 0.0) {
-                    closestSeenEntity = entity;
-                    closestSeenPosition = maybeHit.orElse(eyePos);
+                    if (hit) {
+                        targetPos.set(scratchA);
+                    } else {
+                        targetPos.set(eyePos);
+                        // Can't get any closer.
+                        return;
+                    }
                     closestSeenDistanceSqr = 0.0;
                 }
-            } else if (maybeHit.isPresent()) {
-                Vec3 hitPos = maybeHit.get();
-                double distanceSqr = eyePos.distanceToSqr(hitPos);
-                if (distanceSqr < closestSeenDistanceSqr || closestSeenDistanceSqr == 0.0) {
-                    if (entity.getRootVehicle() == owner.getRootVehicle()) {
-                        if (closestSeenDistanceSqr == 0.0) {
-                            closestSeenEntity = entity;
-                            closestSeenPosition = hitPos;
-                        }
-                    } else {
-                        closestSeenEntity = entity;
-                        closestSeenPosition = hitPos;
-                        closestSeenDistanceSqr = distanceSqr;
-                    }
+            } else if (hit) {
+                double distanceSqr = eyePos.distanceSquared(scratchA);
+                if (distanceSqr < closestSeenDistanceSqr) {
+                    targetPos.set(scratchA);
+                    closestSeenDistanceSqr = distanceSqr;
                 }
             }
         }
-
-        if (closestSeenEntity != null) {
-            hitResult = new EntityHitResult(closestSeenEntity, closestSeenPosition);
-        }
-
-        return hitResult.getLocation();
     }
 
-    private AABB getAttackBoundingBox(Yoyo yoyo) {
-        return yoyo.getBoundingBox().inflate(0.1);
+    private void setEyePos(Entity owner) {
+        var pos = owner.position();
+        eyePos.set(pos.x, pos.y + owner.getEyeHeight(), pos.z);
     }
 
     private Predicate<Entity> getCollisionPredicate(Yoyo yoyo) {
-        return EntitySelector.NO_SPECTATORS.and(entity -> entity != yoyo && entity != yoyo.getOwner());
+        var owner = yoyo.getOwner();
+        var out = EntitySelector.NO_SPECTATORS.and(entity -> entity != yoyo);
+        if (owner != null) {
+            // Don't collide with our owner or anything they're riding.
+            return out.and(entity -> entity != owner && !entity.isPassengerOfSameVehicle(owner));
+        }
+        return out;
     }
 }

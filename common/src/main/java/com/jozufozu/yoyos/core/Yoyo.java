@@ -3,11 +3,13 @@ package com.jozufozu.yoyos.core;
 import java.util.UUID;
 
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3d;
+import org.joml.Vector3dc;
 
 import com.jozufozu.yoyos.core.control.SimpleYoyoCollider;
 import com.jozufozu.yoyos.core.control.SimpleYoyoController;
 import com.jozufozu.yoyos.core.control.SimpleYoyoMover;
-import com.jozufozu.yoyos.infrastructure.EntityDataHolder;
+import com.jozufozu.yoyos.infrastructure.util.EntityDataHolder;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -60,6 +62,15 @@ public class Yoyo extends Entity implements TraceableEntity {
         if (controller != null) {
             controller.tick(this);
         }
+    }
+
+    public Vector3d getCenterPos(Vector3d dest) {
+        var pos = position();
+        return dest.set(pos.x, pos.y + getBbHeight() / 2, pos.z);
+    }
+
+    public void setCenterPos(Vector3dc centerPos) {
+        setPos(centerPos.x(), centerPos.y() - getBbHeight() / 2, centerPos.z());
     }
 
     @Nullable

@@ -9,6 +9,7 @@ import org.joml.Vector3dc;
 
 import com.jozufozu.yoyos.core.control.Controller;
 import com.jozufozu.yoyos.infrastructure.util.EntityDataHolder;
+import com.jozufozu.yoyos.infrastructure.util.YoyoUtil;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -61,8 +62,7 @@ public class Yoyo extends Entity implements TraceableEntity {
     }
 
     public Vector3d getCenterPos(Vector3d dest) {
-        var pos = position();
-        return dest.set(pos.x, pos.y + getBbHeight() / 2, pos.z);
+        return YoyoUtil.storeEntityCenter(dest, this);
     }
 
     public void setCenterPos(Vector3dc centerPos) {

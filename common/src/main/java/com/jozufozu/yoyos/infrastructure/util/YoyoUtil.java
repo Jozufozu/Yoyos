@@ -10,13 +10,18 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-public class JomlUtil {
+public class YoyoUtil {
 
     private static final double EPSILON = 1.0E-7;
 
+    public static Vector3d storeEntityCenter(Vector3d dest, Entity entity) {
+        var pos = entity.position();
+        return dest.set(pos.x, pos.y + entity.getBbHeight() / 2, pos.z);
+    }
+
     public static Vector3d storeEntityViewVec(Vector3d dest, Entity entity, float pt) {
-        float $$0 = entity.getViewXRot(0.0F);
-        float $$1 = entity.getViewYRot(0.0F);
+        float $$0 = entity.getViewXRot(pt);
+        float $$1 = entity.getViewYRot(pt);
         float $$2 = $$0 * (float) (Math.PI / 180.0);
         float $$3 = -$$1 * (float) (Math.PI / 180.0);
         float $$4 = Mth.cos($$3);

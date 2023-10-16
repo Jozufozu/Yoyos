@@ -3,7 +3,7 @@ package com.jozufozu.yoyos.core.control;
 import org.joml.Vector3d;
 
 import com.jozufozu.yoyos.core.Yoyo;
-import com.jozufozu.yoyos.infrastructure.util.JomlUtil;
+import com.jozufozu.yoyos.infrastructure.util.YoyoUtil;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ClipContext;
@@ -16,7 +16,7 @@ public class Targeter {
     public void updateTarget(Yoyo yoyo, Entity owner, YoyoContext c) {
         // Mostly copied from ProjectileUtil, adapted for JOML
 
-        JomlUtil.storeEntityViewVec(scratch, owner, 0)
+        YoyoUtil.storeEntityViewVec(scratch, owner, 0)
             .mul(c.targetDistance);
 
         AABB entitySearchBounds = owner.getBoundingBox()
@@ -28,9 +28,9 @@ public class Targeter {
 
         // check blocks
         var level = yoyo.level();
-        HitResult hitResult = level.clip(new ClipContext(JomlUtil.mVec(c.eyePos), JomlUtil.mVec(c.targetPos), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, owner));
+        HitResult hitResult = level.clip(new ClipContext(YoyoUtil.mVec(c.eyePos), YoyoUtil.mVec(c.targetPos), ClipContext.Block.COLLIDER, ClipContext.Fluid.NONE, owner));
         if (hitResult.getType() != HitResult.Type.MISS) {
-            JomlUtil.set(c.targetPos, hitResult.getLocation());
+            YoyoUtil.set(c.targetPos, hitResult.getLocation());
         }
 
         // check entities
@@ -39,7 +39,7 @@ public class Targeter {
         for (Entity entity : level.getEntities(owner, entitySearchBounds, yoyo.getCollisionPredicate())) {
             AABB checkBounds = entity.getBoundingBox().inflate(0.15);
 
-            boolean hit = JomlUtil.clip(checkBounds, c.eyePos, c.targetPos, scratch);
+            boolean hit = YoyoUtil.clip(checkBounds, c.eyePos, c.targetPos, scratch);
 
             if (checkBounds.contains(c.eyePos.x, c.eyePos.y, c.eyePos.z)) {
                 if (closestSeenDistanceSqr >= 0.0) {

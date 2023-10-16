@@ -8,18 +8,7 @@ import net.minecraft.util.Mth;
 
 public class Mover {
 
-    private final double dragCoefficient = 15;
-
-    // Arbitrary unit. How heavy we are.
-    private final double mass = 3;
-    private final double invMass = 1. / mass;
-
-
-    // Arbitrary unit. How heavy the player is.
-    private final double playerMass = 64;
-
     private final Vector3d scratchA = new Vector3d();
-
 
     public void tick(Yoyo yoyo, YoyoContext c) {
         applyDrag(c);
@@ -33,7 +22,7 @@ public class Mover {
 
     // Apply a constant outward force. Helps? to stabilize the yoyo.
     private void applyOutwardForce(YoyoContext c) {
-        var a = 0.05 * invMass;
+        var a = 0.05 * c.invMass;
 
         scratchA.set(c.ourPos)
             .sub(c.eyePos)
@@ -53,10 +42,10 @@ public class Mover {
             return;
         }
 
-        double f = v2 / 2. * (0.25 * 0.25) * dragCoefficient;
+        double f = v2 / 2. * (0.25 * 0.25) * c.dragCoefficient;
 
         // Don't let drag push us backwards.
-        double a = Math.min(f * invMass, Math.sqrt(v2));
+        double a = Math.min(f * c.invMass, Math.sqrt(v2));
 
         scratchA.set(c.velocity)
             .normalize(-a)
@@ -77,9 +66,9 @@ public class Mover {
 
         double d2 = scratchA.lengthSquared();
 
-        double f = v * Math.pow(100, -d2 * invMass);
+        double f = v * Math.pow(100, -d2 * c.invMass);
 
-        double a = f / Math.max(mass, 1);
+        double a = f / Math.max(c.mass, 1);
 
         scratchA.set(c.velocity)
             .normalize(-a)
@@ -97,7 +86,7 @@ public class Mover {
 
         double f = 1 - Math.pow(10, -d4) + d / 4.;
 
-        double a = f * invMass;
+        double a = f * c.invMass;
 
         scratchA.normalize(a)
             .add(c.velocity, c.velocity);

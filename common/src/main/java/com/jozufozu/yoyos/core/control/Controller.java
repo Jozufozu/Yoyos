@@ -11,7 +11,6 @@ public final class Controller {
     private final Targeter targeter = new Targeter();
     private final MotionResolver motionResolver = new MotionResolver();
 
-
     public void tick(Yoyo yoyo) {
         var owner = yoyo.getOwner();
 
@@ -19,10 +18,7 @@ public final class Controller {
             return;
         }
 
-        var isClientSide = yoyo.level().isClientSide;
-        if (!isClientSide) {
-            collider.tick(yoyo);
-        }
+        collider.tick(yoyo);
 
         yoyo.getCenterPos(yoyoContext.ourPos);
         yoyo.getOwnerEyePos(yoyoContext.eyePos);
@@ -30,7 +26,7 @@ public final class Controller {
         targeter.updateTarget(yoyo, owner, yoyoContext);
         mover.tick(yoyo, yoyoContext);
 
-        motionResolver.integrateMotion(yoyo, yoyoContext, isClientSide ? $ -> {} : e -> collider.onCollide(yoyo, e));
+        motionResolver.integrateMotion(yoyo, yoyoContext, collider);
     }
 
     public void onThrow(Yoyo yoyo, Entity owner) {

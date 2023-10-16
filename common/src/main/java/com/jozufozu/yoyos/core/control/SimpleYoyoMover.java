@@ -17,10 +17,12 @@ import net.minecraft.world.phys.HitResult;
 
 public class SimpleYoyoMover {
     // How far away from the player we try to be.
-    private final float targetDistance = 8;
+    private final double targetDistance = 8;
+
+    private final double dragCoefficient = 15;
 
     // Arbitrary unit. How heavy we are.
-    private final double mass = 3;
+    private final double mass = 5;
     private final double invMass = 1. / mass;
 
 
@@ -50,8 +52,6 @@ public class SimpleYoyoMover {
 
         applyTargetingForce();
 
-        applyOutwardForce();
-
         applyDrag();
 
         applyNearDrag();
@@ -63,35 +63,44 @@ public class SimpleYoyoMover {
 
     // Apply a constant outward force. Helps to stabilize the yoyo.
     private void applyOutwardForce() {
+        var a = 0.01 * invMass;
+
         scratchA.set(ourPos)
             .sub(eyePos)
-            .normalize(0.01 * invMass)
-            .add(velocity, velocity);
-    }
-
-    // Apply drag to simulate air resistance and smooth out motion.
-    private void applyDrag() {
-        var v2 = velocity.lengthSquared();
-        var f = v2 / 2. * (0.25 * 0.25) * 25.;
-
-        scratchA.set(velocity)
-            .normalize(-f * invMass)
+            .normalize(a)
             .add(velocity, velocity);
     }
 
     // Near drag and targeting - the two main forces dictating movement
     // https://www.desmos.com/calculator/stdprtgsoh
 
-    // Apply a force counteracting motion when near the target.
+    // Apply drag to simulate air resistance and smooth out motion.
+    private void applyDrag() {
+        double v2 = velocity.lengthSquared();
+        double f = v2 / 2. * (0.25 * 0.25) * dragCoefficient;
+
+        // Don't let drag push us backwards or truly zero out velocity.
+        double a = Math.min(f * invMass, 0.95 * Math.sqrt(v2));
+
+        scratchA.set(velocity)
+            .normalize(-a)
+            .add(velocity, velocity);
+    }
+
+    // Counteract motion when near the target. Not a true force, or at least lets pretend mass cancels out.
     private void applyNearDrag() {
         scratchA.set(targetPos)
             .sub(ourPos);
 
         double d2 = scratchA.lengthSquared();
-        double f = -Math.pow(100, -d2);
+        double v = velocity.length();
+
+        double f = v * Math.pow(100, -d2 * invMass);
+
+        double a = f / Math.max(mass, 1);
 
         scratchA.set(velocity)
-            .mul(f * invMass)
+            .normalize(-a)
             .add(velocity, velocity);
     }
 
@@ -106,7 +115,9 @@ public class SimpleYoyoMover {
 
         double f = 1 - Math.pow(10, -d4) + d / 4.;
 
-        scratchA.normalize(f * invMass)
+        double a = f * invMass;
+
+        scratchA.normalize(a)
             .add(velocity, velocity);
     }
 
@@ -202,7 +213,7 @@ public class SimpleYoyoMover {
         double closestSeenDistanceSqr = targetPos.distanceSquared(eyePos);
 
         for (Entity entity : level.getEntities(owner, entitySearchBounds, getCollisionPredicate(yoyo))) {
-            AABB checkBounds = entity.getBoundingBox().inflate(entity.getPickRadius());
+            AABB checkBounds = entity.getBoundingBox().inflate(0.15);
 
             boolean hit = JomlUtil.clip(checkBounds, eyePos, targetPos, scratchA);
 

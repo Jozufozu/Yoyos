@@ -4,7 +4,7 @@ import com.jozufozu.yoyos.core.Yoyo;
 
 import net.minecraft.world.entity.Entity;
 
-public class SimpleYoyoCollider {
+public class Collider {
     private final float damage = 0;
 
     private final int cooldownDurationTicks = 15;
@@ -18,21 +18,10 @@ public class SimpleYoyoCollider {
     // Significantly improves the feel of hitting many mobs at once.
     private int remainingCooldownGrace;
 
-    public void tick(Yoyo yoyo, CollisionCollector collisionCollector) {
+    public void tick(Yoyo yoyo) {
         if (remainingCooldownTicks > 0) {
             remainingCooldownTicks--;
             return;
-        }
-
-        if (!collisionCollector.isEmpty()) {
-            for (Entity entity : collisionCollector) {
-                entity.hurt(yoyo.damageSources().cactus(), damage);
-            }
-
-            // First tick of attack, start the grace period.
-            if (remainingCooldownGrace <= 0) {
-                remainingCooldownGrace = cooldownGraceDurationTicks;
-            }
         }
 
         if (remainingCooldownGrace > 0) {
@@ -42,6 +31,15 @@ public class SimpleYoyoCollider {
                 // Out of grace, next tick we're on cooldown.
                 remainingCooldownTicks = cooldownDurationTicks;
             }
+        }
+    }
+
+    public void onCollide(Yoyo yoyo, Entity other) {
+        other.hurt(yoyo.damageSources().cactus(), damage);
+
+        // First tick of attack, start the grace period.
+        if (remainingCooldownGrace <= 0) {
+            remainingCooldownGrace = cooldownGraceDurationTicks;
         }
     }
 

@@ -1,14 +1,13 @@
 package com.jozufozu.yoyos.core;
 
 import java.util.UUID;
+import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
-import com.jozufozu.yoyos.core.control.SimpleYoyoCollider;
-import com.jozufozu.yoyos.core.control.SimpleYoyoController;
-import com.jozufozu.yoyos.core.control.SimpleYoyoMover;
+import com.jozufozu.yoyos.core.control.Controller;
 import com.jozufozu.yoyos.infrastructure.util.EntityDataHolder;
 
 import net.minecraft.nbt.CompoundTag;
@@ -19,10 +18,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.TraceableEntity;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -36,13 +32,13 @@ public class Yoyo extends Entity implements TraceableEntity {
     @Nullable
     private Entity cachedOwner;
     @Nullable
-    private SimpleYoyoController controller;
+    private Controller controller;
 
     private final EntityDataHolder<ItemStack> yoyoStack = new EntityDataHolder<>(this, DATA_ITEM_STACK);
 
     public Yoyo(EntityType<? extends Yoyo> entityType, Level level) {
         super(entityType, level);
-        setController(new SimpleYoyoController(new SimpleYoyoMover(), new SimpleYoyoCollider()));
+        setController(new Controller());
     }
 
     public Yoyo(Level level) {
@@ -74,7 +70,7 @@ public class Yoyo extends Entity implements TraceableEntity {
     }
 
     @Nullable
-    private SimpleYoyoController getController() {
+    private Controller getController() {
         return controller;
     }
 
@@ -92,7 +88,7 @@ public class Yoyo extends Entity implements TraceableEntity {
         return false;
     }
 
-    public void setController(SimpleYoyoController controller) {
+    public void setController(Controller controller) {
         this.controller = controller;
     }
 
@@ -191,5 +187,25 @@ public class Yoyo extends Entity implements TraceableEntity {
         } else {
             return false;
         }
+    }
+
+    public Predicate<Entity> getCollisionPredicate() {
+        var owner = getOwner();
+        var out = EntitySelector.NO_SPECTATORS.and(entity -> entity != this);
+        if (owner != null) {
+            // Don't collide with our owner or anything they're riding.
+            return out.and(entity -> entity != owner && !entity.isPassengerOfSameVehicle(owner));
+        }
+        return out;
+    }
+
+    public void getOwnerEyePos(Vector3d eyePos) {
+        var owner = getOwner();
+        if (owner == null) {
+            return;
+        }
+
+        var pos = owner.position();
+        eyePos.set(pos.x, pos.y + owner.getEyeHeight(), pos.z);
     }
 }

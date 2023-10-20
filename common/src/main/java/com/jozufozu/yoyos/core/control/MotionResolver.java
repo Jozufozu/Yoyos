@@ -14,7 +14,7 @@ public class MotionResolver {
     private final Vector3d scratchA = new Vector3d();
     private final Vector3d scratchB = new Vector3d();
 
-    public void integrateMotion(Yoyo yoyo, YoyoContext p, Collider collider) {
+    public void solve(Yoyo yoyo, YoyoContext p, Collider collider) {
         var collisionBox = yoyo.getBoundingBox().inflate(0.2);
         var searchBox = collisionBox.minmax(collisionBox.move(p.velocity.x, p.velocity.y, p.velocity.z))
             .inflate(1);
@@ -32,14 +32,16 @@ public class MotionResolver {
 
         yoyo.setCenterPos(scratchA);
         yoyo.setDeltaMovement(p.velocity.x, p.velocity.y, p.velocity.z);
+
+        rotateYoyo(yoyo, p);
     }
 
-    private void stepAndCollide(Yoyo yoyo, AABB collisionBox, Collider collider, List<Entity> entities, YoyoContext p) {
+    private void stepAndCollide(Yoyo yoyo, AABB collisionBox, Collider collider, List<Entity> entities, YoyoContext c) {
         double stepsPerBlock = 64.;
 
-        int numberOfSteps = Mth.ceil(p.velocity.length() * stepsPerBlock);
+        int numberOfSteps = Mth.ceil(c.velocity.length() * stepsPerBlock);
 
-        var stepVec = scratchA.set(p.velocity)
+        var stepVec = scratchA.set(c.velocity)
             .normalize()
             .div(stepsPerBlock);
 
@@ -54,7 +56,7 @@ public class MotionResolver {
                 var entityBox = entity.getBoundingBox();
 
                 if (entityBox.intersects(boxThisStep)) {
-                    collider.onCollide(yoyo, entity, p);
+                    collider.onCollide(yoyo, entity, c);
                     return true;
                 } else {
                     return false;
@@ -63,5 +65,39 @@ public class MotionResolver {
 
             checkVec.add(stepVec);
         }
+    }
+
+    public void rotateYoyo(Yoyo yoyo, YoyoContext c) {
+        var pointVec = scratchA.set(c.ourPos)
+            .sub(c.tailPos);
+
+        if (pointVec.lengthSquared() == 0.0) {
+            return;
+        }
+
+        // Mostly copied from ProjectileUtil::rotateTowardsMovement
+
+        double xzShadow = Math.sqrt(Math.fma(pointVec.x, pointVec.x, pointVec.z * pointVec.z));
+        yoyo.setYRot((float)(Mth.atan2(pointVec.z, pointVec.x) * 180. / Math.PI) + 90);
+        yoyo.setXRot((float)(Mth.atan2(xzShadow, pointVec.y) * 180. / Math.PI) - 90);
+
+        while (yoyo.getXRot() - yoyo.xRotO < -180.0F) {
+            yoyo.xRotO -= 360.0F;
+        }
+
+        while (yoyo.getXRot() - yoyo.xRotO >= 180.0F) {
+            yoyo.xRotO += 360.0F;
+        }
+
+        while (yoyo.getYRot() - yoyo.yRotO < -180.0F) {
+            yoyo.yRotO -= 360.0F;
+        }
+
+        while (yoyo.getYRot() - yoyo.yRotO >= 180.0F) {
+            yoyo.yRotO += 360.0F;
+        }
+
+        yoyo.setXRot(Mth.lerp(0.5f, yoyo.xRotO, yoyo.getXRot()));
+        yoyo.setYRot(Mth.lerp(0.5f, yoyo.yRotO, yoyo.getYRot()));
     }
 }

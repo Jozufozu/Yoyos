@@ -25,7 +25,7 @@ public class Mover {
         var a = 0.05 * c.invMass;
 
         scratchA.set(c.ourPos)
-            .sub(c.eyePos)
+            .sub(c.tailPos)
             .normalize(a)
             .add(c.velocity, c.velocity);
     }
@@ -95,12 +95,12 @@ public class Mover {
     private void constrainWithinDistance(YoyoContext c) {
         var nextDistance = scratchA.set(c.ourPos)
             .add(c.velocity)
-            .distance(c.eyePos);
+            .distance(c.tailPos);
 
         if (nextDistance > c.targetDistance) {
 
             // add an impulse to bring us back to the target distance.
-            scratchA.sub(c.eyePos)
+            scratchA.sub(c.tailPos)
                 .normalize(c.targetDistance - nextDistance)
                 .add(c.velocity, c.velocity);
         }

@@ -70,7 +70,7 @@ public class Yoyo extends Entity implements TraceableEntity {
     }
 
     @Nullable
-    private Controller getController() {
+    public Controller getController() {
         return controller;
     }
 
@@ -191,7 +191,7 @@ public class Yoyo extends Entity implements TraceableEntity {
 
     public Predicate<Entity> getCollisionPredicate() {
         var owner = getOwner();
-        var out = EntitySelector.NO_SPECTATORS.and(entity -> entity != this);
+        var out = EntitySelector.NO_SPECTATORS.and(entity -> !(entity instanceof Yoyo));
         if (owner != null) {
             // Don't collide with our owner or anything they're riding.
             return out.and(entity -> entity != owner && !entity.isPassengerOfSameVehicle(owner));

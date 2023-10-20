@@ -5,7 +5,7 @@ import org.joml.Vector3d;
 public class YoyoContext {
 
     // How far away from the player we try to be.
-    public final double targetDistance = 8;
+    public final double targetDistance = 6;
 
     public final double dragCoefficient = 15;
 
@@ -20,7 +20,7 @@ public class YoyoContext {
     public final Vector3d velocity = new Vector3d();
 
     // The eye position of our owner.
-    public final Vector3d eyePos = new Vector3d();
+    public final Vector3d tailPos = new Vector3d();
 
     // Where we should be.
     public final Vector3d targetPos = new Vector3d();

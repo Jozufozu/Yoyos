@@ -5,7 +5,7 @@ import com.jozufozu.yoyos.core.Yoyo;
 import net.minecraft.world.entity.Entity;
 
 public final class Controller {
-    private final YoyoContext yoyoContext = new YoyoContext();
+    public final YoyoContext yoyoContext = new YoyoContext();
     private final Mover mover = new Mover();
     private final Collider collider = new Collider();
     private final Targeter targeter = new Targeter();
@@ -21,12 +21,12 @@ public final class Controller {
         collider.tick(yoyo);
 
         yoyo.getCenterPos(yoyoContext.ourPos);
-        yoyo.getOwnerEyePos(yoyoContext.eyePos);
+        yoyo.getOwnerEyePos(yoyoContext.tailPos);
 
         targeter.updateTarget(yoyo, owner, yoyoContext);
         mover.tick(yoyo, yoyoContext);
 
-        motionResolver.integrateMotion(yoyo, yoyoContext, collider);
+        motionResolver.solve(yoyo, yoyoContext, collider);
     }
 
     public void onThrow(Yoyo yoyo, Entity owner) {

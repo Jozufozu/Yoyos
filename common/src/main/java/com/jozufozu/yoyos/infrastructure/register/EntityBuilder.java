@@ -20,7 +20,7 @@ public class EntityBuilder<T extends Entity> extends AbstractBuilder<EntityType<
 
     private NotNullFunction<EntityType.Builder<T>, EntityType.Builder<T>> buildSteps = NotNullFunction.identity();
 
-    private NotNullSupplier<EntityRendererProvider<? super T>> renderer;
+    private NotNullSupplier<NotNullSupplier<EntityRendererProvider<? super T>>> renderer;
 
     public EntityBuilder(RegistrationCallback<EntityType<?>, EntityType<T>> registrationCallback, ResourceLocation name, EntityType.EntityFactory<T> factory, MobCategory category) {
         super(name, registrationCallback, Registries.ENTITY_TYPE);
@@ -33,12 +33,12 @@ public class EntityBuilder<T extends Entity> extends AbstractBuilder<EntityType<
         return this;
     }
 
-    public EntityBuilder<T> renderer(NotNullSupplier<EntityRendererProvider<? super T>> supplier) {
+    public EntityBuilder<T> renderer(NotNullSupplier<NotNullSupplier<EntityRendererProvider<? super T>>> supplier) {
         Objects.requireNonNull(supplier);
 
         if (renderer == null) {
             onRegister(entityType -> Services.PLATFORM_HELPER.runOnClient(() -> () -> {
-                EntityRenderersInvoker.register(entityType, this.renderer.get());
+                EntityRenderersInvoker.register(entityType, this.renderer.get().get());
             }));
         }
 

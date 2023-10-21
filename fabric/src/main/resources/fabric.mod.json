@@ -17,6 +17,9 @@
     "entrypoints": {
         "main": [
             "com.jozufozu.yoyos.YoyosFabric"
+        ],
+        "client": [
+            "com.jozufozu.yoyos.YoyosFabricClient"
         ]
     },
     "mixins": [

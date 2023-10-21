@@ -1,5 +1,7 @@
 package com.jozufozu.yoyos.core;
 
+import com.jozufozu.yoyos.core.network.YoyoTracker;
+
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -30,8 +32,9 @@ public class YoyoItem extends TieredItem {
     }
 
     private static void retractYoyo(Player player, InteractionHand hand) {
-        var yoyo = YoyoTracker.on(player)
-            .getAndCheckYoyoInHand(hand);
+        YoyoTracker yoyoTracker = YoyoTracker.on(player);
+
+        var yoyo = yoyoTracker.getYoyoInHand(hand);
 
         if (yoyo == null) {
             return;
@@ -50,5 +53,8 @@ public class YoyoItem extends TieredItem {
         yoyo.onThrow(player, hand);
 
         level.addFreshEntity(yoyo);
+
+        YoyoTracker.on(player)
+            .setYoyoInHand(hand, yoyo);
     }
 }

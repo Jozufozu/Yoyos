@@ -2,6 +2,7 @@ package com.jozufozu.yoyos.core;
 
 import com.jozufozu.yoyos.Constants;
 import com.jozufozu.yoyos.core.network.RetractYoyoPacket;
+import com.jozufozu.yoyos.core.network.YoyoTracker;
 import com.jozufozu.yoyos.infrastructure.register.EntityEntry;
 import com.jozufozu.yoyos.infrastructure.register.ItemEntry;
 import com.jozufozu.yoyos.infrastructure.register.Register;
@@ -23,11 +24,16 @@ public class AllThings {
         .properties(b -> b.sized(0.25F, 0.25F)
             .clientTrackingRange(8)
             .updateInterval(1))
-        .renderer(() -> YoyoRenderer::new)
+        .renderer(() -> () -> YoyoRenderer::new)
         .register();
 
     public static PacketEntry<RetractYoyoPacket> RETRACT_PACKET = REGISTER.packet("retract", RetractYoyoPacket.class, RetractYoyoPacket::new)
         .encoder(RetractYoyoPacket::write)
         .onClient(() -> RetractYoyoPacket::onClient)
+        .register();
+
+    public static PacketEntry<YoyoTracker.Packet> TRACK_PACKET = REGISTER.packet("track", YoyoTracker.Packet.class, YoyoTracker.Packet::new)
+        .encoder(YoyoTracker.Packet::write)
+        .onClient(() -> YoyoTracker.Packet::onClient)
         .register();
 }

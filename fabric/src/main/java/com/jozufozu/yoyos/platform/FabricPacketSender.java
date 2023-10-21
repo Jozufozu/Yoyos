@@ -19,5 +19,9 @@ public class FabricPacketSender implements PacketSender {
         for (ServerPlayer serverPlayer : PlayerLookup.tracking(entity)) {
             ServerPlayNetworking.send(serverPlayer, packetBehavior.name(), buf);
         }
+
+        if (entity instanceof ServerPlayer serverPlayer) {
+            ServerPlayNetworking.send(serverPlayer, packetBehavior.name(), buf);
+        }
     }
 }

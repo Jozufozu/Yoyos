@@ -10,6 +10,6 @@ import net.minecraftforge.network.PacketDistributor;
 public class ForgePacketSender implements PacketSender {
     @Override
     public <T> void sendToAllTracking(Entity entity, PacketBehavior<T> packetBehavior, T msg) {
-        YoyosForge.NETWORK.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), msg);
+        YoyosForge.NETWORK.send(PacketDistributor.TRACKING_ENTITY_AND_SELF.with(() -> entity), msg);
     }
 }

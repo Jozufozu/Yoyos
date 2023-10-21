@@ -1,13 +1,14 @@
 package com.jozufozu.yoyos.core;
 
-import java.util.UUID;
 import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
+import com.jozufozu.yoyos.Constants;
 import com.jozufozu.yoyos.core.network.RetractYoyoPacket;
+import com.jozufozu.yoyos.core.network.YoyoTracker;
 import com.jozufozu.yoyos.infrastructure.util.EntityDataHolder;
 import com.jozufozu.yoyos.infrastructure.util.YoyoUtil;
 import com.jozufozu.yoyos.platform.Services;
@@ -19,7 +20,6 @@ import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
@@ -31,9 +31,7 @@ public class Yoyo extends Entity implements TraceableEntity {
     private static final EntityDataAccessor<ItemStack> DATA_ITEM_STACK = SynchedEntityData.defineId(Yoyo.class, EntityDataSerializers.ITEM_STACK);
 
     @Nullable
-    private UUID ownerUUID;
-    @Nullable
-    private Entity cachedOwner;
+    private LivingEntity owner;
     private final Controller controller = new Controller();
 
     private InteractionHand hand;
@@ -69,6 +67,15 @@ public class Yoyo extends Entity implements TraceableEntity {
         getController().tick(this);
     }
 
+    @Override
+    public void remove(RemovalReason removalReason) {
+        super.remove(removalReason);
+        if (!level().isClientSide && owner != null) {
+            YoyoTracker.on(owner)
+                .setYoyoInHand(hand, null);
+        }
+    }
+
     public Vector3d getCenterPos(Vector3d dest) {
         return YoyoUtil.storeEntityCenter(dest, this);
     }
@@ -89,8 +96,9 @@ public class Yoyo extends Entity implements TraceableEntity {
     }
 
     private boolean isStillHeld() {
-        if (getOwner() instanceof LivingEntity living) {
-            return getYoyoStack().equals(living.getMainHandItem()) || getYoyoStack().equals(living.getOffhandItem());
+        var owner = getOwner();
+        if (owner != null) {
+            return getYoyoStack().equals(owner.getMainHandItem()) || getYoyoStack().equals(owner.getOffhandItem());
         }
         return false;
     }
@@ -109,28 +117,19 @@ public class Yoyo extends Entity implements TraceableEntity {
 
         getController().onThrow(this, owner);
 
-        YoyoTracker.on(owner)
-            .setYoyoInHand(hand, this);
+        this.hand = hand;
     }
 
-    public void setOwner(@Nullable Entity owner) {
+    public void setOwner(@Nullable LivingEntity owner) {
         if (owner != null) {
-            this.ownerUUID = owner.getUUID();
-            this.cachedOwner = owner;
+            this.owner = owner;
         }
     }
 
     @Nullable
     @Override
-    public Entity getOwner() {
-        if (this.cachedOwner != null && !this.cachedOwner.isRemoved()) {
-            return this.cachedOwner;
-        } else if (this.ownerUUID != null && this.level() instanceof ServerLevel) {
-            this.cachedOwner = ((ServerLevel)this.level()).getEntity(this.ownerUUID);
-            return this.cachedOwner;
-        } else {
-            return null;
-        }
+    public LivingEntity getOwner() {
+        return owner;
     }
 
     @Override
@@ -140,31 +139,30 @@ public class Yoyo extends Entity implements TraceableEntity {
 
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
-        if (this.ownerUUID != null) {
-            tag.putUUID("Owner", this.ownerUUID);
-        }
+
     }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
-        if (tag.hasUUID("Owner")) {
-            this.ownerUUID = tag.getUUID("Owner");
-            this.cachedOwner = null;
-        }
+
     }
 
     @Override
     public Packet<ClientGamePacketListener> getAddEntityPacket() {
-        Entity owner = this.getOwner();
+        var owner = this.getOwner();
         return new ClientboundAddEntityPacket(this, owner == null ? 0 : owner.getId());
     }
 
     @Override
     public void recreateFromPacket(ClientboundAddEntityPacket packet) {
         super.recreateFromPacket(packet);
-        Entity owner = this.level().getEntity(packet.getData());
-        if (owner != null) {
-            this.setOwner(owner);
+        var ownerId = packet.getData();
+        var maybeOwner = level().getEntity(ownerId);
+        if (maybeOwner instanceof LivingEntity living) {
+            this.setOwner(living);
+        } else {
+            Constants.LOG.error("Yoyo created with invalid owner {} (id: {})", maybeOwner, ownerId);
+            discard();
         }
     }
 

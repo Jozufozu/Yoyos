@@ -4,11 +4,8 @@ import com.jozufozu.yoyos.core.AllThings;
 import com.jozufozu.yoyos.infrastructure.register.packet.PacketBehavior;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -31,20 +28,10 @@ public class YoyosFabric implements ModInitializer {
         });
 
         AllThings.REGISTER._registerPackets((resourceLocation, packetBehavior) -> {
-            ClientPlayNetworking.registerGlobalReceiver(resourceLocation, (client, handler, buf, responseSender) -> {
-                handleClientPacket(client, handler, buf, responseSender, packetBehavior);
-            });
-
             ServerPlayNetworking.registerGlobalReceiver(resourceLocation, (server, player, handler, buf, responseSender) -> {
                 handleServerPacket(server, handler, buf, responseSender, packetBehavior);
             });
         });
-    }
-
-    private static <T> void handleClientPacket(Minecraft client, ClientPacketListener handler, FriendlyByteBuf buf, PacketSender responseSender, PacketBehavior<T> packetBehavior) {
-        var msg = packetBehavior.reconstruct(buf);
-
-        client.execute(() -> packetBehavior.handleClient(msg));
     }
 
     private static <T> void handleServerPacket(MinecraftServer server, ServerPacketListener handler, FriendlyByteBuf buf, PacketSender responseSender, PacketBehavior<T> packetBehavior) {

@@ -1,7 +1,5 @@
 package com.jozufozu.yoyos.core;
 
-import com.jozufozu.yoyos.core.control.Controller;
-
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
@@ -18,20 +16,39 @@ public class YoyoItem extends TieredItem {
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
-        var stack = player.getItemInHand(hand);
-
         if (!level.isClientSide) {
-            var yoyo = new Yoyo(level);
-            yoyo.setOwner(player);
-            yoyo.setController(new Controller());
-            yoyo.setYoyoStack(stack);
-            yoyo.onThrow();
-
-            level.addFreshEntity(yoyo);
+            if (hasThrownYoyo(player, hand)) {
+                retractYoyo(player, hand);
+            } else {
+                throwYoyo(level, player, hand);
+            }
         }
 
         player.awardStat(Stats.ITEM_USED.get(this));
 
-        return InteractionResultHolder.success(stack);
+        return InteractionResultHolder.success(player.getItemInHand(hand));
+    }
+
+    private static void retractYoyo(Player player, InteractionHand hand) {
+        var yoyo = YoyoTracker.on(player)
+            .getAndCheckYoyoInHand(hand);
+
+        if (yoyo == null) {
+            return;
+        }
+
+        yoyo.sendRetract();
+    }
+
+    private static boolean hasThrownYoyo(Player player, InteractionHand hand) {
+        return YoyoTracker.on(player)
+            .hasYoyo(hand);
+    }
+
+    private static void throwYoyo(Level level, Player player, InteractionHand hand) {
+        var yoyo = new Yoyo(level);
+        yoyo.onThrow(player, hand);
+
+        level.addFreshEntity(yoyo);
     }
 }

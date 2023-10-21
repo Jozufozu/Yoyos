@@ -1,9 +1,10 @@
 package com.jozufozu.yoyos.platform;
 
-import com.jozufozu.yoyos.Constants;
-import com.jozufozu.yoyos.platform.services.IPlatformHelper;
-
 import java.util.ServiceLoader;
+
+import com.jozufozu.yoyos.Constants;
+import com.jozufozu.yoyos.platform.services.PacketSender;
+import com.jozufozu.yoyos.platform.services.PlatformHelper;
 
 // Service loaders are a built-in Java feature that allow us to locate implementations of an interface that vary from one
 // environment to another. In the context of MultiLoader we use this feature to access a mock API in the common code that
@@ -13,7 +14,8 @@ public class Services {
     // In this example we provide a platform helper which provides information about what platform the mod is running on.
     // For example this can be used to check if the code is running on Forge vs Fabric, or to ask the modloader if another
     // mod is loaded.
-    public static final IPlatformHelper PLATFORM = load(IPlatformHelper.class);
+    public static final PlatformHelper PLATFORM_HELPER = load(PlatformHelper.class);
+    public static final PacketSender NETWORK = load(PacketSender.class);
 
     // This code is used to load a service for the current environment. Your implementation of the service must be defined
     // manually by including a text file in META-INF/services named with the fully qualified class name of the service.

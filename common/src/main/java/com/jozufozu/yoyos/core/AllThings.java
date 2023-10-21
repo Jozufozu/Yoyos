@@ -1,9 +1,11 @@
 package com.jozufozu.yoyos.core;
 
 import com.jozufozu.yoyos.Constants;
+import com.jozufozu.yoyos.core.network.RetractYoyoPacket;
 import com.jozufozu.yoyos.infrastructure.register.EntityEntry;
 import com.jozufozu.yoyos.infrastructure.register.ItemEntry;
 import com.jozufozu.yoyos.infrastructure.register.Register;
+import com.jozufozu.yoyos.infrastructure.register.packet.PacketEntry;
 
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Tiers;
@@ -22,5 +24,10 @@ public class AllThings {
             .clientTrackingRange(8)
             .updateInterval(1))
         .renderer(() -> YoyoRenderer::new)
+        .register();
+
+    public static PacketEntry<RetractYoyoPacket> RETRACT_PACKET = REGISTER.packet("retract", RetractYoyoPacket.class, RetractYoyoPacket::new)
+        .encoder(RetractYoyoPacket::write)
+        .onClient(() -> RetractYoyoPacket::onClient)
         .register();
 }

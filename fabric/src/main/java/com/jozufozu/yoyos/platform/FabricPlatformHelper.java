@@ -1,12 +1,12 @@
 package com.jozufozu.yoyos.platform;
 
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
-import com.jozufozu.yoyos.platform.services.IPlatformHelper;
+import com.jozufozu.yoyos.platform.services.PlatformHelper;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 
-public class FabricPlatformHelper implements IPlatformHelper {
+public class FabricPlatformHelper implements PlatformHelper {
 
     @Override
     public String getPlatformName() {

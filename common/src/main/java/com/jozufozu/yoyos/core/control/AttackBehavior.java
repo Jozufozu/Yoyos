@@ -7,7 +7,7 @@ import com.jozufozu.yoyos.infrastructure.util.YoyoUtil;
 
 import net.minecraft.world.entity.Entity;
 
-public class Collider {
+public class AttackBehavior implements YoyoBehavior {
     private final float damage = 0;
 
     private final int coolDownDurationTicks = 15;
@@ -23,6 +23,7 @@ public class Collider {
 
     private final Vector3d scratch = new Vector3d();
 
+    @Override
     public void tick(Yoyo yoyo) {
         if (remainingCoolDownTicks > 0) {
             remainingCoolDownTicks--;
@@ -39,8 +40,13 @@ public class Collider {
         }
     }
 
+    @Override
     public void onCollide(Yoyo yoyo, Entity other, YoyoContext c) {
         if (remainingCoolDownTicks > 0) {
+            return;
+        }
+
+        if (yoyo.isEntityOwnerOrOwnersMount(other)) {
             return;
         }
 

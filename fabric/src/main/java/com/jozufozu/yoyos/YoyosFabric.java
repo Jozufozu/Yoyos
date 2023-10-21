@@ -1,11 +1,20 @@
 package com.jozufozu.yoyos;
 
 import com.jozufozu.yoyos.core.AllThings;
+import com.jozufozu.yoyos.infrastructure.register.packet.PacketBehavior;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketSender;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.protocol.game.ServerPacketListener;
+import net.minecraft.server.MinecraftServer;
 
 public class YoyosFabric implements ModInitializer {
     
@@ -17,8 +26,30 @@ public class YoyosFabric implements ModInitializer {
             Registry.register(BuiltInRegistries.ITEM, rl, item);
         });
 
-        AllThings.REGISTER._register(Registries.ENTITY_TYPE, (rl, item) -> {
-            Registry.register(BuiltInRegistries.ENTITY_TYPE, rl, item);
+        AllThings.REGISTER._register(Registries.ENTITY_TYPE, (rl, entityType) -> {
+            Registry.register(BuiltInRegistries.ENTITY_TYPE, rl, entityType);
         });
+
+        AllThings.REGISTER._registerPackets((resourceLocation, packetBehavior) -> {
+            ClientPlayNetworking.registerGlobalReceiver(resourceLocation, (client, handler, buf, responseSender) -> {
+                handleClientPacket(client, handler, buf, responseSender, packetBehavior);
+            });
+
+            ServerPlayNetworking.registerGlobalReceiver(resourceLocation, (server, player, handler, buf, responseSender) -> {
+                handleServerPacket(server, handler, buf, responseSender, packetBehavior);
+            });
+        });
+    }
+
+    private static <T> void handleClientPacket(Minecraft client, ClientPacketListener handler, FriendlyByteBuf buf, PacketSender responseSender, PacketBehavior<T> packetBehavior) {
+        var msg = packetBehavior.reconstruct(buf);
+
+        client.execute(() -> packetBehavior.handleClient(msg));
+    }
+
+    private static <T> void handleServerPacket(MinecraftServer server, ServerPacketListener handler, FriendlyByteBuf buf, PacketSender responseSender, PacketBehavior<T> packetBehavior) {
+        var msg = packetBehavior.reconstruct(buf);
+
+        server.execute(() -> packetBehavior.handleServer(msg));
     }
 }

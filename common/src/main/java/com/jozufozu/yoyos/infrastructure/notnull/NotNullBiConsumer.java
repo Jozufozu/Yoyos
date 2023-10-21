@@ -1,14 +1,13 @@
 package com.jozufozu.yoyos.infrastructure.notnull;
 
 import java.util.Objects;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import org.jetbrains.annotations.NotNull;
 
-public interface NotNullConsumer<T> extends Consumer<T> {
-
-    static <T> NotNullConsumer<T> noop() {
-        return $ -> {};
+public interface NotNullBiConsumer<T, U> extends BiConsumer<T, U> {
+    static <T, U> NotNullBiConsumer<T, U> noop() {
+        return (t, u) -> {};
     }
 
     /**
@@ -17,22 +16,22 @@ public interface NotNullConsumer<T> extends Consumer<T> {
      * @param t the input argument
      */
     @Override
-    void accept(@NotNull T t);
+    void accept(@NotNull T t, @NotNull U u);
 
     /**
-     * Returns a composed {@code NotNullConsumer} that performs, in sequence, this
+     * Returns a composed {@code NotNullBiConsumer} that performs, in sequence, this
      * operation followed by the {@code after} operation. If performing either
      * operation throws an exception, it is relayed to the caller of the
      * composed operation.  If performing this operation throws an exception,
      * the {@code after} operation will not be performed.
      *
      * @param after the operation to perform after this operation
-     * @return a composed {@code NotNullConsumer} that performs in sequence this
+     * @return a composed {@code NotNullBiConsumer} that performs in sequence this
      * operation followed by the {@code after} operation
      * @throws NullPointerException if {@code after} is null
      */
-    default NotNullConsumer<T> andThen(NotNullConsumer<? super T> after) {
+    default NotNullBiConsumer<T, U> andThen(NotNullBiConsumer<? super T, ? super U> after) {
         Objects.requireNonNull(after);
-        return (T t) -> { accept(t); after.accept(t); };
+        return (T t, U u) -> { accept(t, u); after.accept(t, u); };
     }
 }

@@ -37,7 +37,7 @@ public class EntityBuilder<T extends Entity> extends AbstractBuilder<EntityType<
         Objects.requireNonNull(supplier);
 
         if (renderer == null) {
-            onRegister(entityType -> Services.PLATFORM.runOnClient(() -> () -> {
+            onRegister(entityType -> Services.PLATFORM_HELPER.runOnClient(() -> () -> {
                 EntityRenderersInvoker.register(entityType, this.renderer.get());
             }));
         }

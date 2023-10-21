@@ -15,7 +15,7 @@ public abstract class AbstractBuilder<R, T extends R, Self extends AbstractBuild
     protected final DataGen<R, T> dataGen = new DataGen<>();
     private final ResourceKey<? extends Registry<R>> resourceKey;
 
-    protected NotNullConsumer<T> onRegister = $ -> {};
+    protected NotNullConsumer<T> onRegister = NotNullConsumer.noop();
 
     protected AbstractBuilder(ResourceLocation name, RegistrationCallback<R, T> registrationCallback, ResourceKey<? extends Registry<R>> resourceKey) {
         this.name = name;

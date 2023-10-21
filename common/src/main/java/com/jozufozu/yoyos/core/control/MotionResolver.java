@@ -14,7 +14,7 @@ public class MotionResolver {
     private final Vector3d scratchA = new Vector3d();
     private final Vector3d scratchB = new Vector3d();
 
-    public void solve(Yoyo yoyo, YoyoContext p, Collider collider) {
+    public void solve(Yoyo yoyo, YoyoContext p, CollisionListener collider) {
         var collisionBox = yoyo.getBoundingBox().inflate(0.2);
         var searchBox = collisionBox.minmax(collisionBox.move(p.velocity.x, p.velocity.y, p.velocity.z))
             .inflate(1);
@@ -36,7 +36,7 @@ public class MotionResolver {
         rotateYoyo(yoyo, p);
     }
 
-    private void stepAndCollide(Yoyo yoyo, AABB collisionBox, Collider collider, List<Entity> entities, YoyoContext c) {
+    private void stepAndCollide(Yoyo yoyo, AABB collisionBox, CollisionListener collider, List<Entity> entities, YoyoContext c) {
         double stepsPerBlock = 64.;
 
         int numberOfSteps = Mth.ceil(c.velocity.length() * stepsPerBlock);

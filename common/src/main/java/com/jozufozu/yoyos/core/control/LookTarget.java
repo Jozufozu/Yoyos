@@ -10,9 +10,10 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 
-public class Targeter {
+public class LookTarget implements YoyoTarget {
     private final Vector3d scratch = new Vector3d();
 
+    @Override
     public void updateTarget(Yoyo yoyo, Entity owner, YoyoContext c) {
         // Mostly copied from ProjectileUtil, adapted for JOML
 

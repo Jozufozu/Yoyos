@@ -2,7 +2,7 @@ package com.jozufozu.yoyos.platform.services;
 
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
 
-public interface IPlatformHelper {
+public interface PlatformHelper {
 
     /**
      * Gets the name of the current platform

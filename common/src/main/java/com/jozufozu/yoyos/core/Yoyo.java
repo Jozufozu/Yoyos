@@ -7,9 +7,10 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.joml.Vector3dc;
 
-import com.jozufozu.yoyos.core.control.Controller;
+import com.jozufozu.yoyos.core.network.RetractYoyoPacket;
 import com.jozufozu.yoyos.infrastructure.util.EntityDataHolder;
 import com.jozufozu.yoyos.infrastructure.util.YoyoUtil;
+import com.jozufozu.yoyos.platform.Services;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -19,6 +20,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -32,18 +34,27 @@ public class Yoyo extends Entity implements TraceableEntity {
     private UUID ownerUUID;
     @Nullable
     private Entity cachedOwner;
-    @Nullable
-    private Controller controller;
+    private final Controller controller = new Controller();
 
+    private InteractionHand hand;
     private final EntityDataHolder<ItemStack> yoyoStack = new EntityDataHolder<>(this, DATA_ITEM_STACK);
 
     public Yoyo(EntityType<? extends Yoyo> entityType, Level level) {
         super(entityType, level);
-        setController(new Controller());
     }
 
     public Yoyo(Level level) {
         super(AllThings.YOYO_ENTITY_TYPE.get(), level);
+    }
+
+    public void sendRetract() {
+        if (level().isClientSide) {
+            return;
+        }
+
+        controller.signalRetract();
+
+        Services.NETWORK.sendToAllTracking(this, AllThings.RETRACT_PACKET.get(), new RetractYoyoPacket(this, true));
     }
 
     @Override
@@ -55,10 +66,7 @@ public class Yoyo extends Entity implements TraceableEntity {
 
         super.tick();
 
-        var controller = getController();
-        if (controller != null) {
-            controller.tick(this);
-        }
+        getController().tick(this);
     }
 
     public Vector3d getCenterPos(Vector3d dest) {
@@ -69,7 +77,6 @@ public class Yoyo extends Entity implements TraceableEntity {
         setPos(centerPos.x(), centerPos.y() - getBbHeight() / 2, centerPos.z());
     }
 
-    @Nullable
     public Controller getController() {
         return controller;
     }
@@ -78,7 +85,7 @@ public class Yoyo extends Entity implements TraceableEntity {
      * @return true if this yoyo has reached an invalid state and should be removed.
      */
     private boolean shouldDiscard() {
-        return getYoyoStack().isEmpty() || getOwner() == null || getController() == null || !isStillHeld();
+        return getYoyoStack().isEmpty() || getOwner() == null || !isStillHeld();
     }
 
     private boolean isStillHeld() {
@@ -86,10 +93,6 @@ public class Yoyo extends Entity implements TraceableEntity {
             return getYoyoStack().equals(living.getMainHandItem()) || getYoyoStack().equals(living.getOffhandItem());
         }
         return false;
-    }
-
-    public void setController(Controller controller) {
-        this.controller = controller;
     }
 
     public void setYoyoStack(ItemStack yoyoStack) {
@@ -100,16 +103,14 @@ public class Yoyo extends Entity implements TraceableEntity {
         return this.yoyoStack.get();
     }
 
-    public void onThrow() {
-        var owner = getOwner();
-        var yoyoController = getController();
+    public void onThrow(LivingEntity owner, InteractionHand hand) {
+        setOwner(owner);
+        setYoyoStack(owner.getItemInHand(hand));
 
-        if (owner == null || yoyoController == null) {
-            discard();
-            return;
-        }
+        getController().onThrow(this, owner);
 
-        yoyoController.onThrow(this, owner);
+        YoyoTracker.on(owner)
+            .setYoyoInHand(hand, this);
     }
 
     public void setOwner(@Nullable Entity owner) {
@@ -189,14 +190,13 @@ public class Yoyo extends Entity implements TraceableEntity {
         }
     }
 
+    @Override
+    public boolean shouldBeSaved() {
+        return false;
+    }
+
     public Predicate<Entity> getCollisionPredicate() {
-        var owner = getOwner();
-        var out = EntitySelector.NO_SPECTATORS.and(entity -> !(entity instanceof Yoyo));
-        if (owner != null) {
-            // Don't collide with our owner or anything they're riding.
-            return out.and(entity -> entity != owner && !entity.isPassengerOfSameVehicle(owner));
-        }
-        return out;
+        return EntitySelector.NO_SPECTATORS.and(entity -> !(entity instanceof Yoyo));
     }
 
     public void getOwnerEyePos(Vector3d eyePos) {
@@ -207,5 +207,15 @@ public class Yoyo extends Entity implements TraceableEntity {
 
         var pos = owner.position();
         eyePos.set(pos.x, pos.y + owner.getEyeHeight(), pos.z);
+    }
+
+    public boolean isEntityOwnerOrOwnersMount(Entity other) {
+        var owner = getOwner();
+
+        if (owner == null) {
+            return false;
+        }
+
+        return other == owner || other.isPassengerOfSameVehicle(owner);
     }
 }

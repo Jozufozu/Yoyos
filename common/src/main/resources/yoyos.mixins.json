@@ -9,8 +9,8 @@
     ],
     "client": [
         "EntityRenderersInvoker",
-        "ItemInHandRendererMixin",
-        "PlayerRendererMixin"
+        "ItemInHandLayerMixin",
+        "ItemInHandRendererMixin"
     ],
     "server": [
     ],

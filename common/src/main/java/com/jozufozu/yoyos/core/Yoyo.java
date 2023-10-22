@@ -98,7 +98,7 @@ public class Yoyo extends Entity implements TraceableEntity {
     private boolean isStillHeld() {
         var owner = getOwner();
         if (owner != null) {
-            return getYoyoStack().equals(owner.getMainHandItem()) || getYoyoStack().equals(owner.getOffhandItem());
+            return getYoyoStack().equals(owner.getItemInHand(hand));
         }
         return false;
     }

@@ -3,10 +3,8 @@ package com.jozufozu.yoyos.infrastructure.notnull;
 import java.util.Objects;
 import java.util.function.Function;
 
-import org.jetbrains.annotations.NotNull;
-
 @FunctionalInterface
-public interface NotNullFunction<T, R> extends Function<T, R> {
+public interface NotNullFunction<@NotNullType T, @NotNullType R> extends Function<T, R> {
     /**
      * Applies this function to the given argument.
      *
@@ -14,8 +12,7 @@ public interface NotNullFunction<T, R> extends Function<T, R> {
      * @return the function result
      */
     @Override
-    @NotNull
-    R apply(@NotNull T t);
+    R apply(T t);
 
     /**
      * Returns a composed function that first applies the {@code before}

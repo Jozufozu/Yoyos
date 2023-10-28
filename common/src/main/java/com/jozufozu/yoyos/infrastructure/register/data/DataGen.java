@@ -1,33 +1,27 @@
 package com.jozufozu.yoyos.infrastructure.register.data;
 
-import java.util.function.Consumer;
+import java.util.HashMap;
+import java.util.Map;
 
+import com.jozufozu.yoyos.infrastructure.notnull.NotNullBiConsumer;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullFunction;
 import com.jozufozu.yoyos.infrastructure.register.Register;
-import com.jozufozu.yoyos.infrastructure.util.Pair;
+import com.jozufozu.yoyos.infrastructure.register.data.providers.ProviderType;
+
+import net.minecraft.data.DataProvider;
 
 public class DataGen<R, T extends R> {
-    private Pair<String, String> primaryLang;
-    private Register.Promise<T> registerPromise;
+    private final Map<ProviderType<?>, NotNullBiConsumer<Register.Promise<R, T>, ? extends DataProvider>> providers = new HashMap<>();
 
     private NotNullFunction<ModelBuilder, ModelBuilder> modelBuilderFunction = NotNullFunction.identity();
 
-    public void setLang(String key, String value) {
-        primaryLang = new Pair<>(key, value);
+
+    public <D extends DataProvider> void setData(ProviderType<? extends D> providerType, NotNullBiConsumer<Register.Promise<R, T>, D> action) {
+        providers.put(providerType, action);
     }
 
-    public void _collectLang(Consumer<Pair<String, String>> out) {
-        if (primaryLang != null) {
-            out.accept(primaryLang);
-        }
-    }
-
-    public void inject(Register.Promise<T> registerPromise) {
-        this.registerPromise = registerPromise;
-    }
-
-    public T get() {
-        return registerPromise.get();
+    public Map<ProviderType<?>, NotNullBiConsumer<Register.Promise<R, T>, ? extends DataProvider>> getProviders() {
+        return providers;
     }
 
     public void model(NotNullFunction<ModelBuilder, ModelBuilder> mutator) {

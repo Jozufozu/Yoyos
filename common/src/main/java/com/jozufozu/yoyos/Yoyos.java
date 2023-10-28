@@ -1,5 +1,7 @@
 package com.jozufozu.yoyos;
 
+import com.jozufozu.yoyos.core.AllThings;
+
 import net.minecraft.resources.ResourceLocation;
 
 public class Yoyos {
@@ -8,6 +10,6 @@ public class Yoyos {
     }
 
     public static void init() {
-        // noop for now
+        AllThings.init();
     }
 }

@@ -1,25 +1,24 @@
 package com.jozufozu.yoyos.infrastructure.register;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.jozufozu.yoyos.Constants;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullBiConsumer;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullConsumer;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullFunction;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
 import com.jozufozu.yoyos.infrastructure.register.data.DataGen;
+import com.jozufozu.yoyos.infrastructure.register.data.providers.ProviderType;
 import com.jozufozu.yoyos.infrastructure.register.packet.PacketBehavior;
 import com.jozufozu.yoyos.infrastructure.register.packet.PacketBuilder;
-import com.jozufozu.yoyos.infrastructure.util.Pair;
 
 import net.minecraft.core.Registry;
+import net.minecraft.data.DataProvider;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -29,10 +28,9 @@ import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.Item;
 
 public class Register {
-    private final String modId;
+    public final String modId;
 
-    public final List<DataGen<Item, ?>> dataGen = new ArrayList<>();
-
+    private final Map<ProviderType<?>, List<NotNullConsumer<? extends DataProvider>>> providers = new HashMap<>();
     private final Table<ResourceKey<? extends Registry<?>>, ResourceLocation, Registration<?, ?>> registrations = HashBasedTable.create();
     // Special case packets since they don't have a formal registry.
     private final List<Registration<PacketBehavior<?>, ?>> packets = new ArrayList<>();
@@ -54,7 +52,8 @@ public class Register {
     }
 
     public <T extends Item> ItemBuilder<T> item(ResourceLocation name, NotNullFunction<Item.Properties, T> factory) {
-        return new ItemBuilder<>(this::callback, name, factory);
+        return new ItemBuilder<>(this::callback, name, factory)
+            .defaultLang();
     }
 
     public <T extends Entity> EntityBuilder<T> entity(String name, EntityType.EntityFactory<T> factory, MobCategory category) {
@@ -65,28 +64,32 @@ public class Register {
         return new EntityBuilder<>(this::callback, name, factory, category);
     }
 
-    private <T> Promise<PacketBehavior<T>> packetCallback(ResourceLocation name, NotNullSupplier<PacketBehavior<T>> creator, NotNullConsumer<PacketBehavior<T>> onRegister) {
-        var out = new Promise<PacketBehavior<T>>(name);
+    private <T> RegistrylessPromise<PacketBehavior<T>> packetCallback(ResourceLocation name, NotNullSupplier<PacketBehavior<T>> creator, NotNullConsumer<PacketBehavior<T>> onRegister) {
+        var out = new RegistrylessPromise<PacketBehavior<T>>(name);
 
-        var reg = new Registration<PacketBehavior<?>, PacketBehavior<T>>(out, name, creator, onRegister);
+        var reg = new Registration<PacketBehavior<?>, PacketBehavior<T>>(onRegister.butBeforeThat(out::acceptEntry), name, creator);
 
         packets.add(reg);
 
         return out;
     }
 
-    private <R, T extends R> Promise<T> callback(ResourceKey<? extends Registry<R>> key, ResourceLocation name, NotNullSupplier<T> creator, DataGen<R, T> dataGen, NotNullConsumer<T> postRegister) {
-        var out = new Promise<T>(name);
+    private <R, T extends R> Promise<R, T> callback(ResourceKey<? extends Registry<R>> key, ResourceLocation name, NotNullSupplier<T> creator, DataGen<R, T> dataGen, NotNullConsumer<T> postRegister) {
+        var out = new Promise<R, T>(ResourceKey.create(key, name));
 
-        dataGen.inject(out);
+        for (var entry : dataGen.getProviders().entrySet()) {
+            providers.computeIfAbsent(entry.getKey(), $ -> new ArrayList<>())
+                .add(entry.getValue().applyFirst(out));
+        }
 
-        var registration = new Registration<R, T>(out, name, creator, postRegister);
+        var registration = new Registration<R, T>(postRegister.butBeforeThat(out::acceptEntry), name, creator);
 
         registrations.put(key, name, registration);
 
         return out;
     }
 
+    @SuppressWarnings("unchecked")
     public <R> void _register(ResourceKey<? extends Registry<R>> key, NotNullBiConsumer<ResourceLocation, R> consumer) {
         for (var registration : registrations.row(key).values()) {
             ((Registration<R, ?>) registration).doRegister(consumer);
@@ -99,17 +102,33 @@ public class Register {
         }
     }
 
-    public void collectLang(Consumer<Pair<String, String>> consumer) {
-        for (DataGen<?, ?> datagen : dataGen) {
-            datagen._collectLang(consumer);
-        }
+    public DamageTypeBuilder damageType(String name) {
+        return damageType(name, name);
     }
 
-    public static class Promise<T> implements NotNullSupplier<T> {
-        public final ResourceLocation name;
+    public DamageTypeBuilder damageType(String name, String msgId) {
+        return damageType(new ResourceLocation(modId, name), msgId);
+    }
+
+    public DamageTypeBuilder damageType(ResourceLocation name, String msgId) {
+        return new DamageTypeBuilder(name, this::callback, msgId);
+    }
+
+    public <D extends DataProvider> void runData(ProviderType<? extends D> type, D dataProvider) {
+        providers.getOrDefault(type, Collections.emptyList()).forEach(cons -> {
+            try {
+                ((NotNullConsumer<D>) cons).accept(dataProvider);
+            } catch (Exception e) {
+                Constants.LOG.error("Error while running datagen", e);
+            }
+        });
+    }
+
+    public static class Promise<R, T extends R> implements NotNullSupplier<T> {
+        public final ResourceKey<R> name;
         private T entry = null;
 
-        public Promise(ResourceLocation name) {
+        private Promise(ResourceKey<R> name) {
             this.name = name;
         }
 
@@ -117,24 +136,47 @@ public class Register {
             return entry != null;
         }
 
+        private void acceptEntry(T entry) {
+            this.entry = entry;
+        }
+
         @Override
         @NotNull
         public T get() {
-            return Objects.requireNonNull(entry, name.toString() + " was never registered.");
+            return Objects.requireNonNull(entry, name + " was never registered.");
         }
     }
 
-    private record Registration<R, T extends R>(Promise<T> out, ResourceLocation loc, NotNullSupplier<T> creator,
-                                                NotNullConsumer<T> postRegister) {
+    public static class RegistrylessPromise<T> implements NotNullSupplier<T> {
+        public final ResourceLocation name;
+        private T entry = null;
 
+        private RegistrylessPromise(ResourceLocation name) {
+            this.name = name;
+        }
+
+        public boolean isReady() {
+            return entry != null;
+        }
+
+        private void acceptEntry(T entry) {
+            this.entry = entry;
+        }
+
+        @Override
+        @NotNull
+        public T get() {
+            return Objects.requireNonNull(entry, name + " was never registered.");
+        }
+    }
+
+    private record Registration<R, T extends R>(NotNullConsumer<T> postRegister, ResourceLocation loc, NotNullSupplier<T> creator) {
         public void doRegister(BiConsumer<ResourceLocation, R> register) {
                 var created = creator.get();
 
                 register.accept(loc, created);
 
                 postRegister.accept(created);
-
-                out.entry = created;
-            }
         }
+    }
 }

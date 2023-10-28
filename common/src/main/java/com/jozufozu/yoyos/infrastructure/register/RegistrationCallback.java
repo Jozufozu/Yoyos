@@ -12,5 +12,5 @@ import net.minecraft.resources.ResourceLocation;
 
 @FunctionalInterface
 public interface RegistrationCallback<R, T extends R> {
-    @NotNull Register.Promise<T> markForRegistration(ResourceKey<? extends Registry<R>> resourceKey, ResourceLocation name, NotNullSupplier<T> creator, DataGen<R, T> dataGen, NotNullConsumer<T> onRegister);
+    @NotNull Register.Promise<R, T> markForRegistration(ResourceKey<? extends Registry<R>> resourceKey, ResourceLocation name, NotNullSupplier<T> creator, DataGen<R, T> dataGen, NotNullConsumer<T> onRegister);
 }

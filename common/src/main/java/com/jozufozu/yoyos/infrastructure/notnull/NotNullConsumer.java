@@ -3,9 +3,7 @@ package com.jozufozu.yoyos.infrastructure.notnull;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import org.jetbrains.annotations.NotNull;
-
-public interface NotNullConsumer<T> extends Consumer<T> {
+public interface NotNullConsumer<@NotNullType T> extends Consumer<T> {
 
     static <T> NotNullConsumer<T> noop() {
         return $ -> {};
@@ -17,7 +15,7 @@ public interface NotNullConsumer<T> extends Consumer<T> {
      * @param t the input argument
      */
     @Override
-    void accept(@NotNull T t);
+    void accept(T t);
 
     /**
      * Returns a composed {@code NotNullConsumer} that performs, in sequence, this
@@ -34,5 +32,10 @@ public interface NotNullConsumer<T> extends Consumer<T> {
     default NotNullConsumer<T> andThen(NotNullConsumer<? super T> after) {
         Objects.requireNonNull(after);
         return (T t) -> { accept(t); after.accept(t); };
+    }
+
+    default NotNullConsumer<T> butBeforeThat(NotNullConsumer<T> before) {
+        Objects.requireNonNull(before);
+        return (T t) -> { before.accept(t); accept(t); };
     }
 }

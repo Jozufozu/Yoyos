@@ -3,9 +3,7 @@ package com.jozufozu.yoyos.infrastructure.notnull;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-import org.jetbrains.annotations.NotNull;
-
-public interface NotNullBiConsumer<T, U> extends BiConsumer<T, U> {
+public interface NotNullBiConsumer<@NotNullType T, @NotNullType U> extends BiConsumer<T, U> {
     static <T, U> NotNullBiConsumer<T, U> noop() {
         return (t, u) -> {};
     }
@@ -16,7 +14,7 @@ public interface NotNullBiConsumer<T, U> extends BiConsumer<T, U> {
      * @param t the input argument
      */
     @Override
-    void accept(@NotNull T t, @NotNull U u);
+    void accept(T t, U u);
 
     /**
      * Returns a composed {@code NotNullBiConsumer} that performs, in sequence, this
@@ -33,5 +31,20 @@ public interface NotNullBiConsumer<T, U> extends BiConsumer<T, U> {
     default NotNullBiConsumer<T, U> andThen(NotNullBiConsumer<? super T, ? super U> after) {
         Objects.requireNonNull(after);
         return (T t, U u) -> { accept(t, u); after.accept(t, u); };
+    }
+
+    default NotNullConsumer<U> applyFirst(NotNullSupplier<T> first) {
+        Objects.requireNonNull(first);
+        return u -> accept(first.get(), u);
+    }
+
+    default NotNullConsumer<U> applyFirst(T first) {
+        Objects.requireNonNull(first);
+        return u -> accept(first, u);
+    }
+
+    default NotNullConsumer<T> applySecond(NotNullSupplier<U> second) {
+        Objects.requireNonNull(second);
+        return t -> accept(t, second.get());
     }
 }

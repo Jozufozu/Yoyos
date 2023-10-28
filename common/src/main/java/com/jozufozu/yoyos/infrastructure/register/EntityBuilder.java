@@ -53,7 +53,7 @@ public class EntityBuilder<T extends Entity> extends AbstractBuilder<EntityType<
     }
 
     @Override
-    protected EntityEntry<T> wrap(Register.Promise<EntityType<T>> promise) {
+    protected EntityEntry<T> wrap(Register.Promise<EntityType<?>, EntityType<T>> promise) {
         return new EntityEntry<>(promise);
     }
 

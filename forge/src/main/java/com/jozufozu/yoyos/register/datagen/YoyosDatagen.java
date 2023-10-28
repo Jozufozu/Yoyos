@@ -2,11 +2,11 @@ package com.jozufozu.yoyos.register.datagen;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.jozufozu.yoyos.Constants;
 import com.jozufozu.yoyos.core.AllThings;
+import com.jozufozu.yoyos.infrastructure.register.data.providers.RegisterDataProvider;
 
+import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
-import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
 
 public class YoyosDatagen {
@@ -14,19 +14,12 @@ public class YoyosDatagen {
 
     public static void gatherData(GatherDataEvent event) {
         var generator = event.getGenerator();
-        var efh = event.getExistingFileHelper();
 
-        generator.addProvider(event.includeClient(), lang());
-        generator.addProvider(event.includeClient(), itemModels(efh));
+        generator.addProvider(true, getRegisterDataProviderFactory(event, generator));
     }
 
     @NotNull
-    private static DataProvider.Factory<RegisterLangProvider> lang() {
-        return output -> new RegisterLangProvider(AllThings.REGISTER, output, Constants.MOD_ID, EN_US);
-    }
-
-    @NotNull
-    private static DataProvider.Factory<RegisterItemModelProvider> itemModels(ExistingFileHelper efh) {
-        return output -> new RegisterItemModelProvider(AllThings.REGISTER, output, Constants.MOD_ID, efh);
+    private static DataProvider.Factory<RegisterDataProvider> getRegisterDataProviderFactory(GatherDataEvent event, DataGenerator generator) {
+        return output -> new RegisterDataProvider(AllThings.REGISTER, event.getLookupProvider(), generator.getPackOutput());
     }
 }

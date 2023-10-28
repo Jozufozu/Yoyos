@@ -7,7 +7,6 @@ import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
 import com.jozufozu.yoyos.infrastructure.register.data.DataGen;
 import com.jozufozu.yoyos.infrastructure.register.data.ModelBuilder;
 
-import net.minecraft.Util;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
@@ -22,8 +21,6 @@ public class ItemBuilder<T extends Item> extends AbstractBuilder<Item, T, ItemBu
     public ItemBuilder(RegistrationCallback<Item, T> registrationCallback, ResourceLocation rl, NotNullFunction<Item.Properties, T> factory) {
         super(rl, registrationCallback, Registries.ITEM);
         this.factory = factory;
-
-        dataGen.setLang(Util.makeDescriptionId("item", name), RegUtil.toEnglishName(name));
     }
 
     public ItemBuilder<T> initialProperties(NotNullSupplier<Item.Properties> supplier) {
@@ -38,9 +35,12 @@ public class ItemBuilder<T extends Item> extends AbstractBuilder<Item, T, ItemBu
         return this;
     }
 
+    public ItemBuilder<T> defaultLang() {
+        return lang(Item::getDescriptionId);
+    }
+
     public ItemBuilder<T> lang(String localized) {
-        dataGen.setLang(Util.makeDescriptionId("item", name), localized);
-        return this;
+        return lang(Item::getDescriptionId, localized);
     }
 
     @Override
@@ -49,7 +49,7 @@ public class ItemBuilder<T extends Item> extends AbstractBuilder<Item, T, ItemBu
     }
 
     @Override
-    protected ItemEntry<T> wrap(Register.Promise<T> promise) {
+    protected ItemEntry<T> wrap(Register.Promise<Item, T> promise) {
         return new ItemEntry<>(promise);
     }
 

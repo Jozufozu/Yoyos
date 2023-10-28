@@ -8,7 +8,7 @@ import com.jozufozu.yoyos.infrastructure.util.YoyoUtil;
 import net.minecraft.world.entity.Entity;
 
 public class AttackBehavior implements YoyoBehavior {
-    private final float damage = 0;
+    private final float damage = 4;
 
     private final int coolDownDurationTicks = 15;
     private final int coolDownGraceDurationTicks = 3;

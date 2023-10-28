@@ -4,10 +4,10 @@ import org.jetbrains.annotations.NotNull;
 
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
 
-public class Entry<T> implements NotNullSupplier<T> {
-    private final Register.Promise<T> promise;
+public class Entry<R, T extends R> implements NotNullSupplier<T> {
+    private final Register.Promise<R, T> promise;
 
-    protected Entry(Register.Promise<T> promise) {
+    protected Entry(Register.Promise<R, T> promise) {
         this.promise = promise;
     }
 

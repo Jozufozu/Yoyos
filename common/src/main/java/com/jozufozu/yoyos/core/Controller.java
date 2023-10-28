@@ -32,13 +32,7 @@ public final class Controller {
         target.updateTarget(yoyo, owner, yoyoContext);
         mover.tick(yoyo, yoyoContext);
 
-        motionResolver.solve(yoyo, yoyoContext, this::onCollide);
-    }
-
-    private void onCollide(Yoyo yoyo, Entity other, YoyoContext c) {
-        for (YoyoBehavior behavior : behaviors) {
-            behavior.onCollide(yoyo, other, c);
-        }
+        motionResolver.solve(yoyo, yoyoContext, behaviors);
     }
 
     public void onThrow(Yoyo yoyo, Entity owner) {
@@ -46,6 +40,7 @@ public final class Controller {
         yoyo.setPos(ownerPos.x, ownerPos.y + owner.getEyeHeight() * 0.75, ownerPos.z);
 
         behaviors.add(new AttackBehavior());
+        behaviors.add(new ParticleSprayBehavior());
     }
 
     public void signalRetract() {

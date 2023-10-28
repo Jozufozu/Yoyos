@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.joml.Vector3d;
-import org.joml.Vector3dc;
 
 import com.jozufozu.yoyos.core.Yoyo;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -18,8 +18,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class MotionResolver {
     private final Vector3d scratchA = new Vector3d();
     private final Vector3d scratchB = new Vector3d();
+    private final Vector3d scratchC = new Vector3d();
 
-    public void solve(Yoyo yoyo, YoyoContext p, CollisionListener collider) {
+    public void solve(Yoyo yoyo, YoyoContext p, List<YoyoBehavior> behaviors) {
         var collisionHitBox = yoyo.getBoundingBox();
         var entityHitBox = collisionHitBox.inflate(0.2);
         var searchBox = entityHitBox.minmax(entityHitBox.move(p.velocity.x, p.velocity.y, p.velocity.z))
@@ -31,31 +32,32 @@ public class MotionResolver {
         var collisionsShapes = new ArrayList<VoxelShape>();
         level.getCollisions(yoyo, searchBox).forEach(collisionsShapes::add);
 
-
         // TODO: replace with mathy collision detection based on the prism between the start and end bounding box.
         double stepsPerBlock = 64.;
 
         int numberOfSteps = Mth.ceil(p.velocity.length() * stepsPerBlock);
 
-        var step = scratchA.set(p.velocity)
+        scratchA.set(p.velocity)
             .normalize(1 / stepsPerBlock);
 
-        var accumulatedMotion = scratchB.zero();
+        scratchB.zero();
 
         // No need to continue stepping once we run out of entities.
+        // scratchA: step delta
+        // scratchB: accumulated motion relative to start pos
+        // scratchC: collision pos
         for (int i = 0; i < numberOfSteps; i++) {
+            hitAndFilterEntities(yoyo, p, behaviors, entities, entityHitBox.move(scratchB.x, scratchB.y, scratchB.z));
 
-            hitAndFilterEntities(yoyo, p, collider, entities, entityHitBox.move(accumulatedMotion.x, accumulatedMotion.y, accumulatedMotion.z));
+            collideWithShapes(yoyo, p, behaviors, collisionsShapes, collisionHitBox);
 
-            collideWithShapes(step, collisionHitBox.move(accumulatedMotion.x, accumulatedMotion.y, accumulatedMotion.z), collisionsShapes, step);
-
-            accumulatedMotion.add(step);
+            scratchB.add(scratchA);
         }
 
-        p.velocity.set(accumulatedMotion);
+        p.velocity.set(scratchB);
 
         scratchA.set(p.ourPos)
-            .add(accumulatedMotion);
+            .add(scratchB);
 
         yoyo.setCenterPos(scratchA);
         yoyo.setDeltaMovement(p.velocity.x, p.velocity.y, p.velocity.z);
@@ -63,55 +65,88 @@ public class MotionResolver {
         rotateYoyo(yoyo, p);
     }
 
-    private static void hitAndFilterEntities(Yoyo yoyo, YoyoContext p, CollisionListener collider, List<Entity> entities, AABB boxThisStep) {
+    private void collideWithShapes(Yoyo yoyo, YoyoContext p, List<YoyoBehavior> behaviors, ArrayList<VoxelShape> collisionsShapes, AABB collisionHitBox) {
+        if (collisionsShapes.isEmpty()) {
+            return;
+        }
+
+        AABB box = collisionHitBox.move(scratchB.x, scratchB.y, scratchB.z);
+        double dx = scratchA.x;
+        double dy = scratchA.y;
+        double dz = scratchA.z;
+        if (dy != 0.0) {
+            dy = collideAndHandleTouch(Direction.Axis.Y, yoyo, p, behaviors, collisionsShapes, box, dy);
+            if (dy != 0.0) {
+                box = box.move(0.0, dy, 0.0);
+            }
+        }
+
+        boolean moreZ = Math.abs(dx) < Math.abs(dz);
+        if (moreZ && dz != 0.0) {
+            dz = collideAndHandleTouch(Direction.Axis.Z, yoyo, p, behaviors, collisionsShapes, box, dz);
+            if (dz != 0.0) {
+                box = box.move(0.0, 0.0, dz);
+            }
+        }
+
+        if (dx != 0.0) {
+            dx = collideAndHandleTouch(Direction.Axis.X, yoyo, p, behaviors, collisionsShapes, box, dx);
+            if (!moreZ && dx != 0.0) {
+                box = box.move(dx, 0.0, 0.0);
+            }
+        }
+
+        if (!moreZ && dz != 0.0) {
+            dz = collideAndHandleTouch(Direction.Axis.Z, yoyo, p, behaviors, collisionsShapes, box, dz);
+        }
+
+        scratchA.set(dx, dy, dz);
+    }
+
+    private double collideAndHandleTouch(Direction.Axis axis, Yoyo yoyo, YoyoContext p, List<YoyoBehavior> behaviors, ArrayList<VoxelShape> collisionsShapes, AABB box, double da) {
+        double daNow = Shapes.collide(axis, box, collisionsShapes, da);
+        if (da != daNow) {
+            scratchC.set(p.ourPos)
+                .add(scratchB);
+
+            int sign = Mth.sign(da);
+            if (sign > 0) {
+                set(axis, scratchC, box.max(axis) + daNow + Mth.EPSILON);
+            } else if (sign < 0) {
+                set(axis, scratchC, box.min(axis) + daNow - Mth.EPSILON);
+            }
+
+            var hitPos = BlockPos.containing(scratchC.x, scratchC.y, scratchC.z);
+
+            for (YoyoBehavior behavior : behaviors) {
+                behavior.onTouchBlock(yoyo, p, hitPos, scratchC);
+            }
+        }
+        return daNow;
+    }
+
+    private static void set(Direction.Axis axis, Vector3d vec, double val) {
+        switch (axis) {
+        case X -> vec.x = val;
+        case Y -> vec.y = val;
+        case Z -> vec.z = val;
+        }
+    }
+
+    private static void hitAndFilterEntities(Yoyo yoyo, YoyoContext p, List<YoyoBehavior> behaviors, List<Entity> entities, AABB boxThisStep) {
         // Iterate using removeIf to filter the list as we go.
         entities.removeIf(entity -> {
             var entityBox = entity.getBoundingBox();
 
             if (entityBox.intersects(boxThisStep)) {
-                collider.onCollide(yoyo, entity, p);
+                for (YoyoBehavior behavior : behaviors) {
+                    behavior.onCollide(yoyo, entity, p);
+                }
                 return true;
             } else {
                 return false;
             }
         });
-    }
-
-    private Vector3d collideWithShapes(Vector3dc velocity, AABB box, List<VoxelShape> shapes, Vector3d target) {
-        if (shapes.isEmpty()) {
-            return target.set(velocity);
-        } else {
-            double dx = velocity.x();
-            double dy = velocity.y();
-            double dz = velocity.z();
-            if (dy != 0.0) {
-                dy = Shapes.collide(Direction.Axis.Y, box, shapes, dy);
-                if (dy != 0.0) {
-                    box = box.move(0.0, dy, 0.0);
-                }
-            }
-
-            boolean moreZ = Math.abs(dx) < Math.abs(dz);
-            if (moreZ && dz != 0.0) {
-                dz = Shapes.collide(Direction.Axis.Z, box, shapes, dz);
-                if (dz != 0.0) {
-                    box = box.move(0.0, 0.0, dz);
-                }
-            }
-
-            if (dx != 0.0) {
-                dx = Shapes.collide(Direction.Axis.X, box, shapes, dx);
-                if (!moreZ && dx != 0.0) {
-                    box = box.move(dx, 0.0, 0.0);
-                }
-            }
-
-            if (!moreZ && dz != 0.0) {
-                dz = Shapes.collide(Direction.Axis.Z, box, shapes, dz);
-            }
-
-            return target.set(dx, dy, dz);
-        }
     }
 
     public void rotateYoyo(Yoyo yoyo, YoyoContext c) {

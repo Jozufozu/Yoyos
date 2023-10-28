@@ -34,7 +34,7 @@ public interface NotNullConsumer<@NotNullType T> extends Consumer<T> {
         return (T t) -> { accept(t); after.accept(t); };
     }
 
-    default NotNullConsumer<T> butBeforeThat(NotNullConsumer<T> before) {
+    default NotNullConsumer<T> butFirst(NotNullConsumer<T> before) {
         Objects.requireNonNull(before);
         return (T t) -> { before.accept(t); accept(t); };
     }

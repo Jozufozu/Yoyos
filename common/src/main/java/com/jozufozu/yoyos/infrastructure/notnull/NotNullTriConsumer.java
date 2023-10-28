@@ -1,11 +1,12 @@
 package com.jozufozu.yoyos.infrastructure.notnull;
 
 import java.util.Objects;
-import java.util.function.BiConsumer;
 
-public interface NotNullBiConsumer<@NotNullType T, @NotNullType U> extends BiConsumer<T, U> {
-    static <T, U> NotNullBiConsumer<T, U> noop() {
-        return (t, u) -> {};
+import org.apache.logging.log4j.util.TriConsumer;
+
+public interface NotNullTriConsumer<@NotNullType T, @NotNullType U, @NotNullType V> extends TriConsumer<T, U, V> {
+    static <T, U, V> NotNullTriConsumer<T, U, V> noop() {
+        return (t, u, v) -> {};
     }
 
     /**
@@ -14,7 +15,7 @@ public interface NotNullBiConsumer<@NotNullType T, @NotNullType U> extends BiCon
      * @param t the input argument
      */
     @Override
-    void accept(T t, U u);
+    void accept(T t, U u, V v);
 
     /**
      * Returns a composed {@code NotNullBiConsumer} that performs, in sequence, this
@@ -28,32 +29,28 @@ public interface NotNullBiConsumer<@NotNullType T, @NotNullType U> extends BiCon
      * operation followed by the {@code after} operation
      * @throws NullPointerException if {@code after} is null
      */
-    default NotNullBiConsumer<T, U> andThen(NotNullBiConsumer<? super T, ? super U> after) {
+    default NotNullTriConsumer<T, U, V> andThen(NotNullTriConsumer<? super T, ? super U, ? super V> after) {
         Objects.requireNonNull(after);
-        return (T t, U u) -> { accept(t, u); after.accept(t, u); };
+        return (T t, U u, V v) -> { accept(t, u, v); after.accept(t, u, v); };
     }
 
-    default NotNullBiConsumer<T, U> butFirst(NotNullBiConsumer<? super T, ? super U> before) {
+    default NotNullTriConsumer<T, U, V> butFirst(NotNullTriConsumer<? super T, ? super U, ? super V> before) {
         Objects.requireNonNull(before);
-        return (T t, U u) -> { before.accept(t, u); accept(t, u); };
+        return (T t, U u, V v) -> { before.accept(t, u, v); accept(t, u, v); };
     }
 
-    default NotNullConsumer<U> applyFirst(NotNullSupplier<T> first) {
+    default NotNullBiConsumer<U, V> applyFirst(NotNullSupplier<T> first) {
         Objects.requireNonNull(first);
-        return u -> accept(first.get(), u);
+        return (u, v) -> accept(first.get(), u, v);
     }
 
-    default NotNullConsumer<U> applyFirst(T first) {
+    default NotNullBiConsumer<U, V> applyFirst(T first) {
         Objects.requireNonNull(first);
-        return u -> accept(first, u);
+        return (u, v) -> accept(first, u, v);
     }
 
-    default NotNullConsumer<T> applySecond(NotNullSupplier<U> second) {
+    default NotNullBiConsumer<T, V> applySecond(NotNullSupplier<U> second) {
         Objects.requireNonNull(second);
-        return t -> accept(t, second.get());
-    }
-
-    default NotNullBiConsumer<U, T> flipArgs() {
-        return (u, t) -> accept(t, u);
+        return (t, v) -> accept(t, second.get(), v);
     }
 }

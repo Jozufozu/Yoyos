@@ -68,7 +68,7 @@ public class Register {
     private <T> RegistrylessPromise<PacketBehavior<T>> packetCallback(ResourceLocation name, NotNullSupplier<PacketBehavior<T>> creator, NotNullConsumer<PacketBehavior<T>> onRegister) {
         var out = new RegistrylessPromise<PacketBehavior<T>>(name);
 
-        var reg = new Registration<PacketBehavior<?>, PacketBehavior<T>>(onRegister.butBeforeThat(out::acceptEntry), name, creator);
+        var reg = new Registration<PacketBehavior<?>, PacketBehavior<T>>(onRegister.butFirst(out::acceptEntry), name, creator);
 
         packets.add(reg);
 
@@ -83,7 +83,7 @@ public class Register {
                 .add(entry.getValue().applyFirst(out));
         }
 
-        var registration = new Registration<R, T>(postRegister.butBeforeThat(out::acceptEntry), name, creator);
+        var registration = new Registration<R, T>(postRegister.butFirst(out::acceptEntry), name, creator);
 
         registrations.put(key, name, registration);
 

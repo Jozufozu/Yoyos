@@ -1,16 +1,23 @@
-package com.jozufozu.yoyos.infrastructure.register.data.providers;
+package com.jozufozu.yoyos.infrastructure.register.data;
 
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.gson.JsonObject;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
+import com.jozufozu.yoyos.infrastructure.register.Register;
 
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
@@ -18,23 +25,38 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.block.Block;
 
-public abstract class LanguageProvider implements DataProvider {
+public class RegisterLangProvider implements DataProvider {
+    private final Register register;
+    // Needs to be a tree map so #save has a stable ordering.
     private final Map<String, String> data = new TreeMap<>();
     private final PackOutput output;
     private final String modid;
     private final String locale;
 
-    public LanguageProvider(PackOutput output, String modid, String locale) {
-        this.output = output;
-        this.modid = modid;
-        this.locale = locale;
+    public RegisterLangProvider(Register register, PackOutput packOutput) {
+        this.output = packOutput;
+        this.modid = register.modId;
+        this.locale = "en_us";
+        this.register = register;
     }
 
-    protected abstract void addTranslations();
+    public static String toEnglishName(ResourceLocation name) {
+        return toEnglishName(name.getPath());
+    }
+
+    public static String toEnglishName(String internalName) {
+        return Arrays.stream(internalName.toLowerCase(Locale.ROOT).split("_"))
+            .map(StringUtils::capitalize)
+            .collect(Collectors.joining(" "));
+    }
+
+    public <R, T extends R> String getAutomaticName(Register.Promise<R, T> sup) {
+        return toEnglishName(sup.name.location());
+    }
 
     @Override
     public CompletableFuture<?> run(CachedOutput cache) {
-        addTranslations();
+        register.runData(ProviderType.LANG, this);
 
         if (!data.isEmpty())
             return save(cache, this.output.getOutputFolder(PackOutput.Target.RESOURCE_PACK).resolve(this.modid).resolve("lang").resolve(this.locale + ".json"));
@@ -48,7 +70,6 @@ public abstract class LanguageProvider implements DataProvider {
     }
 
     private CompletableFuture<?> save(CachedOutput cache, Path target) {
-        // TODO: DataProvider.saveStable handles the caching and hashing already, but creating the JSON Object this way seems unreliable. -C
         JsonObject json = new JsonObject();
         this.data.forEach(json::addProperty);
 
@@ -86,16 +107,6 @@ public abstract class LanguageProvider implements DataProvider {
     public void add(Enchantment key, String name) {
         add(key.getDescriptionId(), name);
     }
-
-    /*
-    public void addBiome(Supplier<? extends Biome> key, String name) {
-        add(key.get(), name);
-    }
-
-    public void add(Biome key, String name) {
-        add(key.getTranslationKey(), name);
-    }
-    */
 
     public void addEffect(NotNullSupplier<? extends MobEffect> key, String name) {
         add(key.get(), name);

@@ -16,7 +16,7 @@ public class AllThings {
 
     public static ItemBuilder<YoyoItem> yoyo(String name, Tier tier) {
         return REGISTER.item(name, p -> new YoyoItem(tier, p))
-            .model(p -> p.parentModel(p.mcLoc("item/handheld")));
+            .handheldModel();
     }
 
     public static ItemEntry<YoyoItem> WOODEN_YOYO = yoyo("wooden_yoyo", Tiers.WOOD).register();

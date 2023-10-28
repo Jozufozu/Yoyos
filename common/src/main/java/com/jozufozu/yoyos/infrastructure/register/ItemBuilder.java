@@ -2,10 +2,11 @@ package com.jozufozu.yoyos.infrastructure.register;
 
 import java.util.Objects;
 
+import com.jozufozu.yoyos.infrastructure.notnull.NotNullBiConsumer;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullFunction;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
-import com.jozufozu.yoyos.infrastructure.register.data.DataGen;
-import com.jozufozu.yoyos.infrastructure.register.data.ModelBuilder;
+import com.jozufozu.yoyos.infrastructure.register.data.ProviderType;
+import com.jozufozu.yoyos.infrastructure.register.data.RegisterItemModelProvider;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -13,8 +14,6 @@ import net.minecraft.world.item.Item;
 
 public class ItemBuilder<T extends Item> extends AbstractBuilder<Item, T, ItemBuilder<T>> {
     private final NotNullFunction<Item.Properties, T> factory;
-    private final DataGen<Item, T> dataGen = new DataGen<>();
-
     private NotNullSupplier<Item.Properties> initialProperties = Item.Properties::new;
     private NotNullFunction<Item.Properties, Item.Properties> propertiesFunction = NotNullFunction.identity();
 
@@ -58,8 +57,16 @@ public class ItemBuilder<T extends Item> extends AbstractBuilder<Item, T, ItemBu
         return factory.apply(createAndMutateProperties());
     }
 
-    public ItemBuilder<T> model(NotNullFunction<ModelBuilder, ModelBuilder> mutator) {
-        dataGen.model(mutator);
+    public ItemBuilder<T> defaultModel() {
+        return model((promise, prov) -> prov.generated(promise));
+    }
+
+    public ItemBuilder<T> handheldModel() {
+        return model((promise, prov) -> prov.handheld(promise));
+    }
+
+    public ItemBuilder<T> model(NotNullBiConsumer<Register.Promise<Item, T>, RegisterItemModelProvider> consumer) {
+        dataGen.set(ProviderType.ITEM_MODEL, consumer);
         return this;
     }
 

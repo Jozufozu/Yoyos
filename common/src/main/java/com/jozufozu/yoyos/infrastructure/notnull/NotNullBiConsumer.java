@@ -47,4 +47,8 @@ public interface NotNullBiConsumer<@NotNullType T, @NotNullType U> extends BiCon
         Objects.requireNonNull(second);
         return t -> accept(t, second.get());
     }
+
+    default NotNullBiConsumer<U, T> flipArgs() {
+        return (u, t) -> accept(t, u);
+    }
 }

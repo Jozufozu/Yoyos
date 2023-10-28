@@ -1,4 +1,4 @@
-package com.jozufozu.yoyos.infrastructure.register.data.providers;
+package com.jozufozu.yoyos.infrastructure.register.data;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

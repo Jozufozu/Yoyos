@@ -13,7 +13,7 @@ import com.jozufozu.yoyos.infrastructure.notnull.NotNullConsumer;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullFunction;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullSupplier;
 import com.jozufozu.yoyos.infrastructure.register.data.DataGen;
-import com.jozufozu.yoyos.infrastructure.register.data.providers.ProviderType;
+import com.jozufozu.yoyos.infrastructure.register.data.ProviderType;
 import com.jozufozu.yoyos.infrastructure.register.packet.PacketBehavior;
 import com.jozufozu.yoyos.infrastructure.register.packet.PacketBuilder;
 
@@ -40,7 +40,7 @@ public class Register {
     }
 
     public <T> PacketBuilder<T> packet(String name, Class<T> clazz, NotNullFunction<FriendlyByteBuf, T> reconstruct) {
-        return packet(new ResourceLocation(modId, name), clazz, reconstruct);
+        return packet(rl(name), clazz, reconstruct);
     }
 
     public <T> PacketBuilder<T> packet(ResourceLocation name, Class<T> clazz, NotNullFunction<FriendlyByteBuf, T> reconstruct) {
@@ -48,16 +48,17 @@ public class Register {
     }
 
     public <T extends Item> ItemBuilder<T> item(String name, NotNullFunction<Item.Properties, T> factory) {
-        return item(new ResourceLocation(modId, name), factory);
+        return item(rl(name), factory);
     }
 
     public <T extends Item> ItemBuilder<T> item(ResourceLocation name, NotNullFunction<Item.Properties, T> factory) {
         return new ItemBuilder<>(this::callback, name, factory)
-            .defaultLang();
+            .defaultLang()
+            .defaultModel();
     }
 
     public <T extends Entity> EntityBuilder<T> entity(String name, EntityType.EntityFactory<T> factory, MobCategory category) {
-        return entity(new ResourceLocation(modId, name), factory, category);
+        return entity(rl(name), factory, category);
     }
 
     public <T extends Entity> EntityBuilder<T> entity(ResourceLocation name, EntityType.EntityFactory<T> factory, MobCategory category) {
@@ -87,6 +88,12 @@ public class Register {
         registrations.put(key, name, registration);
 
         return out;
+    }
+
+    public <D extends DataProvider> void addDataGen(ProviderType<D> providerType, NotNullConsumer<D> consumer) {
+        Objects.requireNonNull(consumer);
+        providers.computeIfAbsent(providerType, $ -> new ArrayList<>())
+            .add(consumer);
     }
 
     @SuppressWarnings("unchecked")
@@ -124,6 +131,10 @@ public class Register {
         });
     }
 
+    public ResourceLocation rl(String path) {
+        return new ResourceLocation(modId, path);
+    }
+
     public static class Promise<R, T extends R> implements NotNullSupplier<T> {
         public final ResourceKey<R> name;
         private T entry = null;
@@ -138,6 +149,10 @@ public class Register {
 
         private void acceptEntry(T entry) {
             this.entry = entry;
+        }
+
+        public String resourcePath() {
+            return name.location().getPath();
         }
 
         @Override

@@ -3,7 +3,7 @@ package com.jozufozu.yoyos.register.datagen;
 import org.jetbrains.annotations.NotNull;
 
 import com.jozufozu.yoyos.core.AllThings;
-import com.jozufozu.yoyos.infrastructure.register.data.providers.RegisterDataProvider;
+import com.jozufozu.yoyos.infrastructure.register.data.RegisterDataProvider;
 
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;

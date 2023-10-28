@@ -6,8 +6,8 @@ import com.jozufozu.yoyos.infrastructure.notnull.NotNullBiFunction;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullConsumer;
 import com.jozufozu.yoyos.infrastructure.notnull.NotNullFunction;
 import com.jozufozu.yoyos.infrastructure.register.data.DataGen;
-import com.jozufozu.yoyos.infrastructure.register.data.providers.ProviderType;
-import com.jozufozu.yoyos.infrastructure.register.data.providers.RegisterLangProvider;
+import com.jozufozu.yoyos.infrastructure.register.data.ProviderType;
+import com.jozufozu.yoyos.infrastructure.register.data.RegisterLangProvider;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
@@ -66,7 +66,7 @@ public abstract class AbstractBuilder<R, T extends R, Self extends AbstractBuild
     }
 
     private Self lang(NotNullFunction<T, String> langKeyProvider, NotNullBiFunction<RegisterLangProvider, Register.Promise<R, T>, String> localizedNameProvider) {
-        dataGen.setData(ProviderType.LANG, (ctx, prov) -> prov.add(langKeyProvider.apply(ctx.get()), localizedNameProvider.apply(prov, ctx)));
+        dataGen.set(ProviderType.LANG, (ctx, prov) -> prov.add(langKeyProvider.apply(ctx.get()), localizedNameProvider.apply(prov, ctx)));
         return self();
     }
 

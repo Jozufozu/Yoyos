@@ -1,2 +1,8 @@
-// 1.20	2023-10-28T13:05:32.156212	Register provider
+// 1.20	2023-10-28T14:38:28.0144645	Register provider
 750e6a83d69be68524f851192b833bd5b40d4790 assets/yoyos/lang/en_us.json
+29eb0b978c9c72effcdb50b42dcfd902187e5e6f assets/yoyos/models/item/diamond_yoyo.json
+2bf5f82dfa21a26365afe02d3d99adedf2783ef8 assets/yoyos/models/item/golden_yoyo.json
+865f70bd7c79220968840d91c5292a18f63cec38 assets/yoyos/models/item/iron_yoyo.json
+d1fb382b3d7f21bf8407f9d05ad52eaaeba98f8f assets/yoyos/models/item/netherite_yoyo.json
+5cb654e680188b712d56be79d34c1aae88d344b3 assets/yoyos/models/item/stone_yoyo.json
+b86e08e4d3621311f030f4da258e0b64c5b00dbd assets/yoyos/models/item/wooden_yoyo.json
